@@ -67,7 +67,7 @@
  * PA10 - Normal input      (USART1 RX).
  */
 #define VAL_GPIOACRL            0x88888888      /*  PA7...PA0 */
-#define VAL_GPIOACRH            0x888888A8      /* PA15...PA8 */
+#define VAL_GPIOACRH            0x88888888      /* PA15...PA8 */
 #define VAL_GPIOAODR            0xFFFFFFFF
 
 /*
@@ -78,7 +78,7 @@
  * PB14 - Normal input      (SPI2 MISO).
  * PB15 - Alternate output  (SPI2 MOSI).
  */
-#define VAL_GPIOBCRL            0x8B888881      /*  PB7...PB0 */
+#define VAL_GPIOBCRL            0x88888888      /*  PB7...PB0 */
 #define VAL_GPIOBCRH            0x88888888      /* PB15...PB8 */
 #define VAL_GPIOBODR            0xFFFFFFFF
 
