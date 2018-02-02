@@ -82,7 +82,6 @@ CppApplication
     //License
     ChibiOS + "os/license",
     //Drivers
-    ChibiOS + "os/hal/ports/STM32/LLD/DACv1",
     ChibiOS + "os/hal/ports/STM32/LLD/DMAv1",
     ChibiOS + "os/hal/ports/STM32/LLD/EXTIv1",
     ChibiOS + "os/hal/ports/STM32/LLD/GPIOv1",
@@ -133,17 +132,6 @@ CppApplication
       "shellconf.h",
     ]
   }
-  Group { name: "Wake"
-    prefix: "wake/"
-    files: [
-      "led_driver.h",
-      "led_driver_strip.cpp",
-      "wake_base.cpp",
-      "wake_base.h",
-      "crc8.h",
-      "crc8.cpp",
-    ]
-  }
   Group { name: "Utils"
     prefix: "utils/"
     files: [
@@ -171,7 +159,7 @@ CppApplication
       "stm32_registry.h",
       "hal_lld.h",
       "hal_lld.c",
-      "hal_lld_f100.h",
+      "hal_lld_f103.h",
       "hal_ext_lld_isr.c",
       "hal_adc_lld.c"
     ]
@@ -180,8 +168,6 @@ CppApplication
     prefix: "drivers/"
     files: [
       "gpio.h",
-      "i2c_fallback.h",
-      "ssd1306.h"
     ]
   }
   Group { name: "Drivers ChibiOS"
@@ -282,13 +268,6 @@ CppApplication
       "streams/memstreams.c",
       "streams/nullstreams.h",
       "streams/nullstreams.c"
-    ]
-  }
-  Group { name: "Resources"
-    prefix: "resources/"
-    files: [
-      "fonts.h",
-      "fonts.cpp",
     ]
   }
   Group { name: "CMSIS"
