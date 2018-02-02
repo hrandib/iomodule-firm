@@ -54,11 +54,12 @@
 #define STM32_RTCSEL                        STM32_RTCSEL_HSIDIV
 #define STM32_PVD_ENABLE                    FALSE
 #define STM32_PLS                           STM32_PLS_LEV0
+#define STM32_ADCPRE                        STM32_ADCPRE_DIV6
 
 /*
  * ADC driver system settings.
  */
-#define STM32_ADC_USE_ADC1                  TRUE
+#define STM32_ADC_USE_ADC1                  FALSE
 #define STM32_ADC_ADC1_DMA_PRIORITY         2
 #define STM32_ADC_ADC1_IRQ_PRIORITY         6
 

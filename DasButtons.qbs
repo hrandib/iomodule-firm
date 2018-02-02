@@ -57,8 +57,6 @@ CppApplication
     "config",
     "board",
     "utils",
-    "wake",
-    "resources",
     "drivers",
     "source",
     //Startup
@@ -161,7 +159,6 @@ CppApplication
       "hal_lld.c",
       "hal_lld_f103.h",
       "hal_ext_lld_isr.c",
-      "hal_adc_lld.c"
     ]
   }
   Group { name: "Drivers"
