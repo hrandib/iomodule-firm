@@ -18,37 +18,16 @@
 #define _BOARD_H_
 
 /*
- * Setup for STMicroelectronics STM32VL-Discovery board.
- */
-
-/*
  * Board identifier.
  */
-#define BOARD_ST_STM32VL_DISCOVERY
-#define BOARD_NAME              "Custom"
+#define BOARD_BLUE_PILL
+#define BOARD_NAME              "Blue Pill"
 
 /*
  * Board frequencies.
  */
 #define STM32_LSECLK            32768
 #define STM32_HSECLK            8000000
-
-/*
- * MCU type, supported types are defined in ./os/hal/platforms/hal_lld.h.
- */
-#ifndef STM32F100xB
-#define STM32F100xB
-#endif
-
-/*
- * IO pins assignments.
- */
-#define GPIOA_BUTTON            0
-#define GPIOA_SPI1NSS           4
-
-#define GPIOB_SPI2NSS           12
-
-#define GPIOB_LED1              0
 
 /*
  * I/O ports initial setup, this configuration is established soon after reset
