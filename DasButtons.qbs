@@ -21,7 +21,7 @@ CppApplication
 		"_GLIBCXX_USE_C99",
     "_GLIBCXX_HAVE_BROKEN_VSWPRINTF",
     "SHELL_CONFIG_FILE",
-    "STM32F100xB"
+    "STM32F103xB"
 	]
   cpp.driverFlags: [
 		"-mcpu=cortex-m3",
@@ -255,11 +255,6 @@ CppApplication
   Group {	name: "Main"
     files: [
       "main.cpp",
-      "source/button_control.h",
-      "source/display.cpp",
-      "source/display.h",
-      "source/measure.cpp",
-      "source/measure.h",
     ]
     excludeFiles: [
 			"**/*_res.c",
