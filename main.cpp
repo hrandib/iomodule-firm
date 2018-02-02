@@ -28,35 +28,13 @@
 #include "hal.h"
 #include "chprintf.h"
 
-#include "wake_base.h"
-#include "display.h"
-#include "led_driver.h"
-#include "button_control.h"
-#include "measure.h"
-
 using namespace Rtos;
 
-using LedDriver = Wk::LedDriver<>;
-
-using ButtonControl = Wk::ButtonControl<LedDriver>;
-
-static Wk::Wake<LedDriver> wake(UARTD1, 9600, GPIOA, 10);
-
-static Display disp;
-static Measure meas;
 
 int main(void) {
-
   halInit();
   System::init();
-  using namespace Mcudrv;
-  GpioB::Enable();
-  wake.Init();
-  disp.Init();
-  meas.Init();
-  ButtonControl buttonControl{GPIOB, 10};
-  while (true) {
-    buttonControl.Update();
-    BaseThread::sleep(buttonControl.GetUpdatePeriod());
+  while(true) {
+    BaseThread::sleep(MS2ST(10));
   }
 }
