@@ -45,7 +45,7 @@ CppApplication
 	Group {	name: "Linker files"
     prefix: "ld/"
 		fileTags: ["linkerscript"]
-    files: ["STM32F100x6.ld"]
+    files: ["STM32F103xB.ld"]
 	}
   cpp.linkerFlags: [
 		"--gc-sections",

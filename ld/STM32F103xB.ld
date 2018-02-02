@@ -15,11 +15,11 @@
 */
 
 /*
- * ST32F100xB memory setup.
+ * ST32F103xB memory setup.
  */
 MEMORY
 {
-    flash0  : org = 0x08000000, len = 32k
+    flash0  : org = 0x08000000, len = 128k
     flash1  : org = 0x00000000, len = 0
     flash2  : org = 0x00000000, len = 0
     flash3  : org = 0x00000000, len = 0
@@ -27,7 +27,7 @@ MEMORY
     flash5  : org = 0x00000000, len = 0
     flash6  : org = 0x00000000, len = 0
     flash7  : org = 0x00000000, len = 0
-    ram0    : org = 0x20000000, len = 4k
+    ram0    : org = 0x20000000, len = 20k
     ram1    : org = 0x00000000, len = 0
     ram2    : org = 0x00000000, len = 0
     ram3    : org = 0x00000000, len = 0
