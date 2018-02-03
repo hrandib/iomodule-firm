@@ -18,8 +18,6 @@ CppApplication
   cpp.cxxLanguageVersion: "gnu++17"
 	cpp.executableSuffix: ".elf"
   cpp.defines: [
-		"_GLIBCXX_USE_C99",
-    "_GLIBCXX_HAVE_BROKEN_VSWPRINTF",
     "SHELL_CONFIG_FILE",
     "STM32F103xB"
 	]
