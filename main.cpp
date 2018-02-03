@@ -28,6 +28,8 @@
 #include "hal.h"
 #include "chprintf.h"
 
+#include "usbcfg.h"
+
 using namespace Rtos;
 
 
