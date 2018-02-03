@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)http://www.stm32duino.com/viewtopic.php?t=780 -->
+<html dir="ltr" lang="en-gb"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Blue Pill with USB disconnect circuit added - Arduino for STM32</title>
+
+	<link rel="alternate" type="application/atom+xml" title="Feed - Arduino for STM32" href="http://www.stm32duino.com/app.php/feed?sid=bc4bc739a878f5e8f2065cb9abce9026">			<link rel="alternate" type="application/atom+xml" title="Feed - New Topics" href="http://www.stm32duino.com/app.php/feed/topics?sid=bc4bc739a878f5e8f2065cb9abce9026">		<link rel="alternate" type="application/atom+xml" title="Feed - Forum - Custom design boards" href="http://www.stm32duino.com/app.php/feed/forum/30?sid=bc4bc739a878f5e8f2065cb9abce9026">	<link rel="alternate" type="application/atom+xml" title="Feed - Topic - Blue Pill with USB disconnect circuit added" href="http://www.stm32duino.com/app.php/feed/topic/780?sid=bc4bc739a878f5e8f2065cb9abce9026">	
+	<link rel="canonical" href="http://www.stm32duino.com/viewtopic.php?t=780">
+
+<!--
+	phpBB style name: prosilver
+	Based on style:   prosilver (this is the default phpBB3 style)
+	Original author:  Tom Beddard ( http://www.subBlue.com/ )
+	Modified by:
+-->
+
+<link href="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/font-awesome.min.css" rel="stylesheet">
+<link href="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/stylesheet.css" rel="stylesheet">
+<link href="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/stylesheet(1).css" rel="stylesheet">
+
+
+
+
+<!--[if lte IE 9]>
+	<link href="./styles/prosilver/theme/tweaks.css?assets_version=12" rel="stylesheet">
+<![endif]-->
+
+
+
+
+
+<style></style></head>
+<body id="phpbb" class="notouch section-viewtopic ltr hasjs" style="">
+
+
+<div id="wrap" class="wrap">
+	<a id="top" class="top-anchor" accesskey="t"></a>
+	<div id="page-header">
+		<div class="headerbar" role="banner">
+					<div class="inner">
+
+			<div id="site-description" class="site-description">
+				<a id="logo" class="logo" href="http://www.stm32duino.com/" title="Home"><span class="site_logo"></span></a>
+				<h1>Arduino for STM32</h1>
+				<p>Everything relating to using STM32 boards with the Arduino IDE</p>
+				<p class="skiplink"><a href="http://www.stm32duino.com/viewtopic.php?t=780#start_here">Skip to content</a></p>
+			</div>
+
+									<div id="search-box" class="search-box search-header" role="search">
+				<form action="http://www.stm32duino.com/search.php?sid=bc4bc739a878f5e8f2065cb9abce9026" method="get" id="search">
+				<fieldset>
+					<input name="keywords" id="keywords" type="search" maxlength="128" title="Search for keywords" class="inputbox search tiny" size="20" value="" placeholder="Search…">
+					<button class="button button-search" type="submit" title="Search">
+						<i class="icon fa-search fa-fw" aria-hidden="true"></i><span class="sr-only">Search</span>
+					</button>
+					<a href="http://www.stm32duino.com/search.php?sid=bc4bc739a878f5e8f2065cb9abce9026" class="button button-search-end" title="Advanced search">
+						<i class="icon fa-cog fa-fw" aria-hidden="true"></i><span class="sr-only">Advanced search</span>
+					</a>
+					<input type="hidden" name="sid" value="bc4bc739a878f5e8f2065cb9abce9026">
+
+				</fieldset>
+				</form>
+			</div>
+						
+			</div>
+					</div>
+				<div class="navbar" role="navigation">
+	<div class="inner">
+
+	<ul id="nav-main" class="nav-main linklist" role="menubar">
+
+		<li id="quick-links" class="quick-links dropdown-container responsive-menu" data-skip-responsive="true">
+			<a href="http://www.stm32duino.com/viewtopic.php?t=780#" class="dropdown-trigger dropdown-toggle">
+				<i class="icon fa-bars fa-fw" aria-hidden="true"></i><span>Quick links</span>
+			</a>
+			<div class="dropdown">
+				<div class="pointer"><div class="pointer-inner"></div></div>
+				<ul class="dropdown-contents" role="menu">
+					
+											<li class="separator"></li>
+																									<li>
+								<a href="http://www.stm32duino.com/search.php?search_id=unanswered&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" role="menuitem">
+									<i class="icon fa-file-o fa-fw icon-gray" aria-hidden="true"></i><span>Unanswered topics</span>
+								</a>
+							</li>
+							<li>
+								<a href="http://www.stm32duino.com/search.php?search_id=active_topics&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" role="menuitem">
+									<i class="icon fa-file-o fa-fw icon-blue" aria-hidden="true"></i><span>Active topics</span>
+								</a>
+							</li>
+							<li class="separator"></li>
+							<li>
+								<a href="http://www.stm32duino.com/search.php?sid=bc4bc739a878f5e8f2065cb9abce9026" role="menuitem">
+									<i class="icon fa-search fa-fw" aria-hidden="true"></i><span>Search</span>
+								</a>
+							</li>
+					
+											<li class="separator"></li>
+																			<li>
+								<a href="http://www.stm32duino.com/memberlist.php?mode=team&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" role="menuitem">
+									<i class="icon fa-shield fa-fw" aria-hidden="true"></i><span>The team</span>
+								</a>
+							</li>
+																<li class="separator"></li>
+
+									</ul>
+			</div>
+		</li>
+
+				<li data-skip-responsive="true">
+			<a href="http://www.stm32duino.com/app.php/help/faq?sid=bc4bc739a878f5e8f2065cb9abce9026" rel="help" title="Frequently Asked Questions" role="menuitem">
+				<i class="icon fa-question-circle fa-fw" aria-hidden="true"></i><span>FAQ</span>
+			</a>
+		</li>
+						
+			<li class="rightside" data-skip-responsive="true">
+			<a href="http://www.stm32duino.com/ucp.php?mode=login&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" title="Login" accesskey="x" role="menuitem">
+				<i class="icon fa-power-off fa-fw" aria-hidden="true"></i><span>Login</span>
+			</a>
+		</li>
+					<li class="rightside" data-skip-responsive="true">
+				<a href="http://www.stm32duino.com/ucp.php?mode=register&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" role="menuitem">
+					<i class="icon fa-pencil-square-o  fa-fw" aria-hidden="true"></i><span>Register</span>
+				</a>
+			</li>
+						</ul>
+
+	<ul id="nav-breadcrumbs" class="nav-breadcrumbs linklist navlinks" role="menubar">
+						<li class="breadcrumbs" style="max-width: 1125px;">
+							<span class="crumb" itemtype="http://data-vocabulary.org/Breadcrumb" itemscope=""><a href="http://www.stm32duino.com/" itemprop="url" data-navbar-reference="home" title="Home"><i class="icon fa-home fa-fw" aria-hidden="true"></i><span itemprop="title">Home</span></a></span>
+										<span class="crumb" itemtype="http://data-vocabulary.org/Breadcrumb" itemscope=""><a href="http://www.stm32duino.com/index.php?sid=bc4bc739a878f5e8f2065cb9abce9026" itemprop="url" accesskey="h" data-navbar-reference="index" title="Board index"><span itemprop="title">Board index</span></a></span>
+
+											<span class="crumb" itemtype="http://data-vocabulary.org/Breadcrumb" itemscope="" data-forum-id="25"><a href="http://www.stm32duino.com/viewforum.php?f=25&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" itemprop="url" title="Boards"><span itemprop="title">Boards</span></a></span>
+															<span class="crumb" itemtype="http://data-vocabulary.org/Breadcrumb" itemscope="" data-forum-id="30"><a href="http://www.stm32duino.com/viewforum.php?f=30&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" itemprop="url" title="Custom design boards"><span itemprop="title">Custom design boards</span></a></span>
+												</li>
+		
+					<li class="rightside responsive-search">
+				<a href="http://www.stm32duino.com/search.php?sid=bc4bc739a878f5e8f2065cb9abce9026" title="View the advanced search options" role="menuitem">
+					<i class="icon fa-search fa-fw" aria-hidden="true"></i><span class="sr-only">Search</span>
+				</a>
+			</li>
+			</ul>
+
+	</div>
+</div>
+	</div>
+
+	
+	<a id="start_here" class="anchor"></a>
+	<div id="page-body" class="page-body" role="main">
+		
+		
+<h2 class="topic-title"><a href="http://www.stm32duino.com/viewtopic.php?f=30&amp;t=780&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">Blue Pill with USB disconnect circuit added</a></h2>
+<!-- NOTE: remove the style="display: none" when you want to have the forum description on the topic body -->
+<div style="display: none !important;">If you made your own board, post here, unless you built a Maple or Maple mini clone etc<br></div>
+
+
+<div class="action-bar bar-top">
+	
+			<a href="http://www.stm32duino.com/posting.php?mode=reply&amp;f=30&amp;t=780&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="button" title="Post a reply">
+							<span>Post Reply</span> <i class="icon fa-reply fa-fw" aria-hidden="true"></i>
+					</a>
+	
+			<div class="dropdown-container dropdown-button-control topic-tools">
+		<span title="Topic tools" class="button button-secondary dropdown-trigger dropdown-select dropdown-toggle">
+			<i class="icon fa-wrench fa-fw" aria-hidden="true"></i>
+			<span class="caret"><i class="icon fa-sort-down fa-fw" aria-hidden="true"></i></span>
+		</span>
+		<div class="dropdown">
+			<div class="pointer"><div class="pointer-inner"></div></div>
+			<ul class="dropdown-contents">
+																												<li>
+					<a href="http://www.stm32duino.com/viewtopic.php?f=30&amp;t=780&amp;sid=bc4bc739a878f5e8f2065cb9abce9026&amp;view=print" title="Print view" accesskey="p">
+						<i class="icon fa-print fa-fw" aria-hidden="true"></i><span>Print view</span>
+					</a>
+				</li>
+											</ul>
+		</div>
+	</div>
+	
+			<div class="search-box" role="search">
+			<form method="get" id="topic-search" action="http://www.stm32duino.com/search.php?sid=bc4bc739a878f5e8f2065cb9abce9026">
+			<fieldset>
+				<input class="inputbox search tiny" type="search" name="keywords" id="search_keywords" size="20" placeholder="Search this topic…">
+				<button class="button button-search" type="submit" title="Search">
+					<i class="icon fa-search fa-fw" aria-hidden="true"></i><span class="sr-only">Search</span>
+				</button>
+				<a href="http://www.stm32duino.com/search.php?sid=bc4bc739a878f5e8f2065cb9abce9026" class="button button-search-end" title="Advanced search">
+					<i class="icon fa-cog fa-fw" aria-hidden="true"></i><span class="sr-only">Advanced search</span>
+				</a>
+				<input type="hidden" name="t" value="780">
+<input type="hidden" name="sf" value="msgonly">
+<input type="hidden" name="sid" value="bc4bc739a878f5e8f2065cb9abce9026">
+
+			</fieldset>
+			</form>
+		</div>
+	
+			<div class="pagination">
+			6 posts
+							• Page <strong>1</strong> of <strong>1</strong>
+					</div>
+		</div>
+
+
+
+
+			<div id="p8782" class="post has-profile bg2">
+		<div class="inner">
+
+		<dl class="postprofile" id="profile8782">
+			<dt class="no-profile-rank no-avatar">
+				<div class="avatar-container">
+																			</div>
+								<a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=168&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">fredbox</a>							</dt>
+
+									
+		<dd class="profile-posts"><strong>Posts:</strong> <a href="http://www.stm32duino.com/search.php?author_id=168&amp;sr=posts&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">96</a></dd>		<dd class="profile-joined"><strong>Joined:</strong> Tue Jul 07, 2015 4:44 pm</dd>		
+		
+						
+						
+		</dl>
+
+		<div class="postbody">
+						<div id="post_content8782">
+
+						<h3 class="first"><a href="http://www.stm32duino.com/viewtopic.php?t=780#p8782">Blue Pill with USB disconnect circuit added</a></h3>
+
+													<ul class="post-buttons">
+																																									<li>
+							<a href="http://www.stm32duino.com/posting.php?mode=quote&amp;f=30&amp;p=8782&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" title="Reply with quote" class="button button-icon-only">
+								<i class="icon fa-quote-left fa-fw" aria-hidden="true"></i><span class="sr-only">Quote</span>
+							</a>
+						</li>
+														<li class="responsive-menu hidden dropdown-container"><a href="javascript:void(0);" class="js-responsive-menu-link responsive-menu-link dropdown-toggle"><i class="icon fa-bars fa-fw" aria-hidden="true"></i></a><div class="dropdown"><div class="pointer"><div class="pointer-inner"></div></div><ul class="dropdown-contents"></ul></div></li></ul>
+							
+						<p class="author">
+									<a class="unread" href="http://www.stm32duino.com/viewtopic.php?p=8782&amp;sid=bc4bc739a878f5e8f2065cb9abce9026#p8782" title="Post">
+						<i class="icon fa-file fa-fw icon-lightgray icon-md" aria-hidden="true"></i><span class="sr-only">Post</span>
+					</a>
+								<span class="responsive-hide">by <strong><a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=168&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">fredbox</a></strong> » </span>Sun Dec 06, 2015 5:54 am
+			</p>
+			
+			
+			
+			<div class="content">I haven't had a lot of success using the generic_pc13 bootloader on the blue pill.  After flashing the bootloader, it uploads the first sketch successfully, but subsequent uploads require clicking upload and playing with the reset button.  Also, the serial port does not enumerate unless I temporarily connect a 1K resistor from PA12 to ground. I'm using Linux Mint 17.2.<br>
+<br>
+I have no issues on the baite maple mini.  It uploads consistently and the serial port enumerates.<br>
+<br>
+As an experiment, I removed R10 and added a simple USB disconnect circuit to the board. I used a 2N3906 for the PNP transistor, but I suspect most anything would work ok. 
+<div class="inline-attachment">
+			
+		
+				<dl class="file">
+			<dt class="attach-image"><img src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/file.php" class="postimage" alt="bpreset_sch.png" onclick="viewableArea(this);"></dt>
+						<dd>bpreset_sch.png (1.15 KiB) Viewed 2034 times</dd>
+		</dl>
+		
+		
+		
+			</div>I used PB9 to be the same as the maple mini.<br>
+<br>
+Here is a picture of the three added parts.<div class="inline-attachment">
+			
+		
+				<dl class="file">
+			<dt class="attach-image"><img src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/file(1).php" class="postimage" alt="bp_reset_wiring.jpg" onclick="viewableArea(this);"></dt>
+						<dd>bp_reset_wiring.jpg (12.12 KiB) Viewed 2034 times</dd>
+		</dl>
+		
+		
+		
+			</div>
+I made a new generic bootloader to use the new circuit.
+<div class="codebox"><p>Code: <a href="http://www.stm32duino.com/viewtopic.php?t=780#" onclick="selectCode(this); return false;">Select all</a></p><pre><code>#elif defined TARGET_GENERIC_F103_PC13_DISC
+
+	#define HAS_MAPLE_HARDWARE  1	
+	#define LED_BANK			GPIOC 
+	#define LED_PIN 			13
+	#define LED_ON_STATE		0
+	
+	/* USB Disc Pin Setup.   USB DISC is PB9 */
+	#define USB_DISC_BANK       GPIOB
+	#define USB_DISC            9
+</code></pre></div>
+<div class="inline-attachment">
+			
+		
+		
+				<dl class="file">
+			<dt><span class="imageset icon_topic_attach"></span> <a class="postlink" href="http://www.stm32duino.com/download/file.php?id=350&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">generic_boot20_pc13_disc.zip</a></dt>
+						<dd>(4.89 KiB) Downloaded 64 times</dd>
+		</dl>
+		
+		
+			</div>
+I modified STM32F1/variants/generic_stm32f103c/board/board.h to point to the disconnect pin.<div class="codebox"><p>Code: <a href="http://www.stm32duino.com/viewtopic.php?t=780#" onclick="selectCode(this); return false;">Select all</a></p><pre><code>#define BOARD_USB_DISC_DEV        GPIOB
+#define BOARD_USB_DISC_BIT        9</code></pre></div>(This was using PB10. I would have expected this to point to PA12).<br>
+<br>
+This board now works like the maple mini. <br>
+I can now get consistent uploads without having to press the reset button and the serial port enumerates correctly.</div>
+
+			
+									
+									
+						</div>
+
+		</div>
+
+				<div class="back2top">
+						<a href="http://www.stm32duino.com/viewtopic.php?t=780#top" class="top" title="Top">
+				<i class="icon fa-chevron-circle-up fa-fw icon-gray" aria-hidden="true"></i>
+				<span class="sr-only">Top</span>
+			</a>
+					</div>
+		
+		</div>
+	</div>
+
+	<hr class="divider">
+				<div id="p8784" class="post has-profile bg1">
+		<div class="inner">
+
+		<dl class="postprofile" id="profile8784">
+			<dt class="no-profile-rank has-avatar">
+				<div class="avatar-container">
+																<a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=49&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="avatar"><img class="avatar" src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/file(2).php" width="90" height="90" alt="User avatar"></a>														</div>
+								<a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=49&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" style="color: #AA0000;" class="username-coloured">RogerClark</a>							</dt>
+
+									
+		<dd class="profile-posts"><strong>Posts:</strong> <a href="http://www.stm32duino.com/search.php?author_id=49&amp;sr=posts&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">7595</a></dd>		<dd class="profile-joined"><strong>Joined:</strong> Mon Apr 27, 2015 10:36 am</dd>		
+		
+											<dd class="profile-custom-field profile-phpbb_location"><strong>Location:</strong> Melbourne, Australia</dd>
+												
+							<dd class="profile-contact">
+				<strong>Contact:</strong>
+				<div class="dropdown-container dropdown-left">
+					<a href="http://www.stm32duino.com/viewtopic.php?t=780#" class="dropdown-trigger dropdown-toggle" title="Contact RogerClark">
+						<i class="icon fa-commenting-o fa-fw icon-lg" aria-hidden="true"></i><span class="sr-only">Contact RogerClark</span>
+					</a>
+					<div class="dropdown">
+						<div class="pointer"><div class="pointer-inner"></div></div>
+						<div class="dropdown-contents contact-icons">
+																																								<div>
+																	<a href="http://www.rogerclark.net/" title="Website" class="last-cell">
+										<span class="contact-icon phpbb_website-icon">Website</span>
+									</a>
+																	</div>
+																					</div>
+					</div>
+				</div>
+			</dd>
+				
+		</dl>
+
+		<div class="postbody">
+						<div id="post_content8784">
+
+						<h3><a href="http://www.stm32duino.com/viewtopic.php?t=780#p8784">Re: Blue Pill with USB disconnect circuit added</a></h3>
+
+													<ul class="post-buttons">
+																																									<li>
+							<a href="http://www.stm32duino.com/posting.php?mode=quote&amp;f=30&amp;p=8784&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" title="Reply with quote" class="button button-icon-only">
+								<i class="icon fa-quote-left fa-fw" aria-hidden="true"></i><span class="sr-only">Quote</span>
+							</a>
+						</li>
+														<li class="responsive-menu hidden dropdown-container"><a href="javascript:void(0);" class="js-responsive-menu-link responsive-menu-link dropdown-toggle"><i class="icon fa-bars fa-fw" aria-hidden="true"></i></a><div class="dropdown"><div class="pointer"><div class="pointer-inner"></div></div><ul class="dropdown-contents"></ul></div></li></ul>
+							
+						<p class="author">
+									<a class="unread" href="http://www.stm32duino.com/viewtopic.php?p=8784&amp;sid=bc4bc739a878f5e8f2065cb9abce9026#p8784" title="Post">
+						<i class="icon fa-file fa-fw icon-lightgray icon-md" aria-hidden="true"></i><span class="sr-only">Post</span>
+					</a>
+								<span class="responsive-hide">by <strong><a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=49&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" style="color: #AA0000;" class="username-coloured">RogerClark</a></strong> » </span>Sun Dec 06, 2015 7:13 am
+			</p>
+			
+			
+			
+			<div class="content">@fredbox<br>
+<br>
+I was initially going to do the same sort of modification on my RedPill boards, but the hack using GPIO on USB D+ works OK for me on Windows.<br>
+<br>
+I was however going to use a P-Channel FET instead of a PNP transistor.<br>
+<br>
+Its kinda of strange that the GPIO initially enumerates in the bootloader but not from the sketch.  I presume you had the correct board the selected ? As the core has the same code to re-enumerate via GPIO as the bootloader does.<br>
+<br>
+But I understand that Linux may behave differently from WIndows and OSX and also I've heard of OSX machines also not always re-enumerating.  But on OSX this seems to be a timing, problem, as I recall one user had to tweak the USB reset time delay (passed in).<br>
+<br>
+Part of the problem is also DFU-Util doesn't seem to have a timeout period in the OSX and Linux versions, so if the USB device is not ready at exactly the correct time, uploads fail for some people (mainly OSX users)</div>
+
+			
+									
+									
+						</div>
+
+		</div>
+
+				<div class="back2top">
+						<a href="http://www.stm32duino.com/viewtopic.php?t=780#top" class="top" title="Top">
+				<i class="icon fa-chevron-circle-up fa-fw icon-gray" aria-hidden="true"></i>
+				<span class="sr-only">Top</span>
+			</a>
+					</div>
+		
+		</div>
+	</div>
+
+	<hr class="divider">
+				<div id="p8794" class="post has-profile bg2">
+		<div class="inner">
+
+		<dl class="postprofile" id="profile8794">
+			<dt class="no-profile-rank no-avatar">
+				<div class="avatar-container">
+																			</div>
+								<a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=311&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">bianchifan</a>							</dt>
+
+									
+		<dd class="profile-posts"><strong>Posts:</strong> <a href="http://www.stm32duino.com/search.php?author_id=311&amp;sr=posts&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">82</a></dd>		<dd class="profile-joined"><strong>Joined:</strong> Sun Oct 18, 2015 1:27 pm</dd>		
+		
+											<dd class="profile-custom-field profile-phpbb_location"><strong>Location:</strong> W'tal, Germany</dd>
+							
+						
+		</dl>
+
+		<div class="postbody">
+						<div id="post_content8794">
+
+						<h3><a href="http://www.stm32duino.com/viewtopic.php?t=780#p8794">Re: Blue Pill with USB disconnect circuit added</a></h3>
+
+													<ul class="post-buttons">
+																																									<li>
+							<a href="http://www.stm32duino.com/posting.php?mode=quote&amp;f=30&amp;p=8794&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" title="Reply with quote" class="button button-icon-only">
+								<i class="icon fa-quote-left fa-fw" aria-hidden="true"></i><span class="sr-only">Quote</span>
+							</a>
+						</li>
+														<li class="responsive-menu hidden dropdown-container"><a href="javascript:void(0);" class="js-responsive-menu-link responsive-menu-link dropdown-toggle"><i class="icon fa-bars fa-fw" aria-hidden="true"></i></a><div class="dropdown"><div class="pointer"><div class="pointer-inner"></div></div><ul class="dropdown-contents"></ul></div></li></ul>
+							
+						<p class="author">
+									<a class="unread" href="http://www.stm32duino.com/viewtopic.php?p=8794&amp;sid=bc4bc739a878f5e8f2065cb9abce9026#p8794" title="Post">
+						<i class="icon fa-file fa-fw icon-lightgray icon-md" aria-hidden="true"></i><span class="sr-only">Post</span>
+					</a>
+								<span class="responsive-hide">by <strong><a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=311&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">bianchifan</a></strong> » </span>Sun Dec 06, 2015 11:21 am
+			</p>
+			
+			
+			
+			<div class="content"><blockquote class="uncited"><div> blue pill.</div></blockquote>
+?? Why pill, it's rectangled?<br>
+I know "pill" as a housing for Power-LEDs in flashlights <img class="smilies" src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/icon_e_wink.gif" width="15" height="17" alt=";)" title="Wink"><br>
+
+<blockquote><div><cite>fredbox wrote:</cite> I'm using Linux Mint 17.2.<br>
+...<br>
+As an experiment, I removed R10 .</div></blockquote>
+And R10 was what value?<br>
+I soldered 2k2 on top, 1k8 are nice for 1k5 result.</div>
+
+			
+									
+									
+						</div>
+
+		</div>
+
+				<div class="back2top">
+						<a href="http://www.stm32duino.com/viewtopic.php?t=780#top" class="top" title="Top">
+				<i class="icon fa-chevron-circle-up fa-fw icon-gray" aria-hidden="true"></i>
+				<span class="sr-only">Top</span>
+			</a>
+					</div>
+		
+		</div>
+	</div>
+
+	<hr class="divider">
+				<div id="p8825" class="post has-profile bg1">
+		<div class="inner">
+
+		<dl class="postprofile" id="profile8825">
+			<dt class="no-profile-rank no-avatar">
+				<div class="avatar-container">
+																			</div>
+								<a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=168&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">fredbox</a>							</dt>
+
+									
+		<dd class="profile-posts"><strong>Posts:</strong> <a href="http://www.stm32duino.com/search.php?author_id=168&amp;sr=posts&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">96</a></dd>		<dd class="profile-joined"><strong>Joined:</strong> Tue Jul 07, 2015 4:44 pm</dd>		
+		
+						
+						
+		</dl>
+
+		<div class="postbody">
+						<div id="post_content8825">
+
+						<h3><a href="http://www.stm32duino.com/viewtopic.php?t=780#p8825">Re: Blue Pill with USB disconnect circuit added</a></h3>
+
+													<ul class="post-buttons">
+																																									<li>
+							<a href="http://www.stm32duino.com/posting.php?mode=quote&amp;f=30&amp;p=8825&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" title="Reply with quote" class="button button-icon-only">
+								<i class="icon fa-quote-left fa-fw" aria-hidden="true"></i><span class="sr-only">Quote</span>
+							</a>
+						</li>
+														<li class="responsive-menu hidden dropdown-container"><a href="javascript:void(0);" class="js-responsive-menu-link responsive-menu-link dropdown-toggle"><i class="icon fa-bars fa-fw" aria-hidden="true"></i></a><div class="dropdown"><div class="pointer"><div class="pointer-inner"></div></div><ul class="dropdown-contents"></ul></div></li></ul>
+							
+						<p class="author">
+									<a class="unread" href="http://www.stm32duino.com/viewtopic.php?p=8825&amp;sid=bc4bc739a878f5e8f2065cb9abce9026#p8825" title="Post">
+						<i class="icon fa-file fa-fw icon-lightgray icon-md" aria-hidden="true"></i><span class="sr-only">Post</span>
+					</a>
+								<span class="responsive-hide">by <strong><a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=168&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">fredbox</a></strong> » </span>Sun Dec 06, 2015 11:46 pm
+			</p>
+			
+			
+			
+			<div class="content"><blockquote class="uncited"><div>I was however going to use a P-Channel FET instead of a PNP transistor.</div></blockquote>I thought about that also, but the ones I have here show that they need 3.5v from gate to source, so they wouldn't be suitable for a circuit powered by 3.3V
+<blockquote class="uncited"><div>Why pill, it's rectangled?</div></blockquote>I believe it's a reference for these boards being somewhat difficult to use.</div>
+
+			
+									
+									
+						</div>
+
+		</div>
+
+				<div class="back2top">
+						<a href="http://www.stm32duino.com/viewtopic.php?t=780#top" class="top" title="Top">
+				<i class="icon fa-chevron-circle-up fa-fw icon-gray" aria-hidden="true"></i>
+				<span class="sr-only">Top</span>
+			</a>
+					</div>
+		
+		</div>
+	</div>
+
+	<hr class="divider">
+				<div id="p8833" class="post has-profile bg2">
+		<div class="inner">
+
+		<dl class="postprofile" id="profile8833">
+			<dt class="no-profile-rank has-avatar">
+				<div class="avatar-container">
+																<a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=62&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="avatar"><img class="avatar" src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/file(3).php" width="90" height="90" alt="User avatar"></a>														</div>
+								<a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=62&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">Rick Kimball</a>							</dt>
+
+									
+		<dd class="profile-posts"><strong>Posts:</strong> <a href="http://www.stm32duino.com/search.php?author_id=62&amp;sr=posts&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">1074</a></dd>		<dd class="profile-joined"><strong>Joined:</strong> Tue Apr 28, 2015 1:26 am</dd>		
+		
+											<dd class="profile-custom-field profile-phpbb_location"><strong>Location:</strong> Eastern NC, US</dd>
+												
+							<dd class="profile-contact">
+				<strong>Contact:</strong>
+				<div class="dropdown-container dropdown-left">
+					<a href="http://www.stm32duino.com/viewtopic.php?t=780#" class="dropdown-trigger dropdown-toggle" title="Contact Rick Kimball">
+						<i class="icon fa-commenting-o fa-fw icon-lg" aria-hidden="true"></i><span class="sr-only">Contact Rick Kimball</span>
+					</a>
+					<div class="dropdown">
+						<div class="pointer"><div class="pointer-inner"></div></div>
+						<div class="dropdown-contents contact-icons">
+																																								<div>
+																	<a href="http://fabooh.com/" title="Website" class="last-cell">
+										<span class="contact-icon phpbb_website-icon">Website</span>
+									</a>
+																	</div>
+																					</div>
+					</div>
+				</div>
+			</dd>
+				
+		</dl>
+
+		<div class="postbody">
+						<div id="post_content8833">
+
+						<h3><a href="http://www.stm32duino.com/viewtopic.php?t=780#p8833">Re: Blue Pill with USB disconnect circuit added</a></h3>
+
+													<ul class="post-buttons">
+																																									<li>
+							<a href="http://www.stm32duino.com/posting.php?mode=quote&amp;f=30&amp;p=8833&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" title="Reply with quote" class="button button-icon-only">
+								<i class="icon fa-quote-left fa-fw" aria-hidden="true"></i><span class="sr-only">Quote</span>
+							</a>
+						</li>
+														<li class="responsive-menu hidden dropdown-container"><a href="javascript:void(0);" class="js-responsive-menu-link responsive-menu-link dropdown-toggle"><i class="icon fa-bars fa-fw" aria-hidden="true"></i></a><div class="dropdown"><div class="pointer"><div class="pointer-inner"></div></div><ul class="dropdown-contents"></ul></div></li></ul>
+							
+						<p class="author">
+									<a class="unread" href="http://www.stm32duino.com/viewtopic.php?p=8833&amp;sid=bc4bc739a878f5e8f2065cb9abce9026#p8833" title="Post">
+						<i class="icon fa-file fa-fw icon-lightgray icon-md" aria-hidden="true"></i><span class="sr-only">Post</span>
+					</a>
+								<span class="responsive-hide">by <strong><a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=62&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">Rick Kimball</a></strong> » </span>Mon Dec 07, 2015 1:15 am
+			</p>
+			
+			
+			
+			<div class="content"><blockquote><div><cite>fredbox wrote:</cite>I believe it's a reference for these boards being somewhat difficult to use.</div></blockquote>
+Actually inspiration was drawn from the movie the Matrix:<br>
+<a href="http://matrix.wikia.com/wiki/Redpill" class="postlink">http://matrix.wikia.com/wiki/Redpill</a><br>
+<br>
+Find my original post comparing the red and blue boards from ebay:<br>
+<a href="http://stm32duino.com/viewtopic.php?f=28&amp;t=117" class="postlink">viewtopic.php?f=28&amp;t=117</a></div>
+
+			
+									
+									<div id="sig8833" class="signature">-rick</div>
+						</div>
+
+		</div>
+
+				<div class="back2top">
+						<a href="http://www.stm32duino.com/viewtopic.php?t=780#top" class="top" title="Top">
+				<i class="icon fa-chevron-circle-up fa-fw icon-gray" aria-hidden="true"></i>
+				<span class="sr-only">Top</span>
+			</a>
+					</div>
+		
+		</div>
+	</div>
+
+	<hr class="divider">
+				<div id="p8967" class="post has-profile bg1">
+		<div class="inner">
+
+		<dl class="postprofile" id="profile8967">
+			<dt class="no-profile-rank no-avatar">
+				<div class="avatar-container">
+																			</div>
+								<a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=322&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">jcw</a>							</dt>
+
+									
+		<dd class="profile-posts"><strong>Posts:</strong> <a href="http://www.stm32duino.com/search.php?author_id=322&amp;sr=posts&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">171</a></dd>		<dd class="profile-joined"><strong>Joined:</strong> Mon Oct 26, 2015 8:16 am</dd>		
+		
+						
+						
+		</dl>
+
+		<div class="postbody">
+						<div id="post_content8967">
+
+						<h3><a href="http://www.stm32duino.com/viewtopic.php?t=780#p8967">Re: Blue Pill with USB disconnect circuit added</a></h3>
+
+													<ul class="post-buttons">
+																																									<li>
+							<a href="http://www.stm32duino.com/posting.php?mode=quote&amp;f=30&amp;p=8967&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" title="Reply with quote" class="button button-icon-only">
+								<i class="icon fa-quote-left fa-fw" aria-hidden="true"></i><span class="sr-only">Quote</span>
+							</a>
+						</li>
+														<li class="responsive-menu hidden dropdown-container"><a href="javascript:void(0);" class="js-responsive-menu-link responsive-menu-link dropdown-toggle"><i class="icon fa-bars fa-fw" aria-hidden="true"></i></a><div class="dropdown"><div class="pointer"><div class="pointer-inner"></div></div><ul class="dropdown-contents"></ul></div></li></ul>
+							
+						<p class="author">
+									<a class="unread" href="http://www.stm32duino.com/viewtopic.php?p=8967&amp;sid=bc4bc739a878f5e8f2065cb9abce9026#p8967" title="Post">
+						<i class="icon fa-file fa-fw icon-lightgray icon-md" aria-hidden="true"></i><span class="sr-only">Post</span>
+					</a>
+								<span class="responsive-hide">by <strong><a href="http://www.stm32duino.com/memberlist.php?mode=viewprofile&amp;u=322&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="username">jcw</a></strong> » </span>Sat Dec 12, 2015 3:52 pm
+			</p>
+			
+			
+			
+			<div class="content">Ah, I thought it was from Alice in Wonderland. Oh well, here's <a href="https://en.wikipedia.org/wiki/Red_pill_and_blue_pill" class="postlink">https://en.wikipedia.org/wiki/Red_pill_and_blue_pill</a>  on the subject :)</div>
+
+			
+									
+									
+						</div>
+
+		</div>
+
+				<div class="back2top">
+						<a href="http://www.stm32duino.com/viewtopic.php?t=780#top" class="top" title="Top">
+				<i class="icon fa-chevron-circle-up fa-fw icon-gray" aria-hidden="true"></i>
+				<span class="sr-only">Top</span>
+			</a>
+					</div>
+		
+		</div>
+	</div>
+
+	<hr class="divider">
+	
+
+	<div class="action-bar bar-bottom">
+	
+			<a href="http://www.stm32duino.com/posting.php?mode=reply&amp;f=30&amp;t=780&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="button" title="Post a reply">
+							<span>Post Reply</span> <i class="icon fa-reply fa-fw" aria-hidden="true"></i>
+					</a>
+		
+		<div class="dropdown-container dropdown-button-control topic-tools">
+		<span title="Topic tools" class="button button-secondary dropdown-trigger dropdown-select dropdown-toggle">
+			<i class="icon fa-wrench fa-fw" aria-hidden="true"></i>
+			<span class="caret"><i class="icon fa-sort-down fa-fw" aria-hidden="true"></i></span>
+		</span>
+		<div class="dropdown">
+			<div class="pointer"><div class="pointer-inner"></div></div>
+			<ul class="dropdown-contents">
+																												<li>
+					<a href="http://www.stm32duino.com/viewtopic.php?f=30&amp;t=780&amp;sid=bc4bc739a878f5e8f2065cb9abce9026&amp;view=print" title="Print view" accesskey="p">
+						<i class="icon fa-print fa-fw" aria-hidden="true"></i><span>Print view</span>
+					</a>
+				</li>
+											</ul>
+		</div>
+	</div>
+
+			<form method="post" action="http://www.stm32duino.com/viewtopic.php?f=30&amp;t=780&amp;sid=bc4bc739a878f5e8f2065cb9abce9026">
+		<div class="dropdown-container dropdown-container-left dropdown-button-control sort-tools">
+	<span title="Display and sorting options" class="button button-secondary dropdown-trigger dropdown-select dropdown-toggle">
+		<i class="icon fa-sort-amount-asc fa-fw" aria-hidden="true"></i>
+		<span class="caret"><i class="icon fa-sort-down fa-fw" aria-hidden="true"></i></span>
+	</span>
+	<div class="dropdown hidden">
+		<div class="pointer"><div class="pointer-inner"></div></div>
+		<div class="dropdown-contents">
+			<fieldset class="display-options">
+							<label>Display: <select name="st" id="st"><option value="0" selected="selected">All posts</option><option value="1">1 day</option><option value="7">7 days</option><option value="14">2 weeks</option><option value="30">1 month</option><option value="90">3 months</option><option value="180">6 months</option><option value="365">1 year</option></select></label>
+								<label>Sort by: <select name="sk" id="sk"><option value="a">Author</option><option value="t" selected="selected">Post time</option><option value="s">Subject</option></select></label>
+				<label>Direction: <select name="sd" id="sd"><option value="a" selected="selected">Ascending</option><option value="d">Descending</option></select></label>
+								<hr class="dashed">
+				<input type="submit" class="button2" name="sort" value="Go">
+						</fieldset>
+		</div>
+	</div>
+</div>
+		</form>
+	
+	
+	
+			<div class="pagination">
+			6 posts
+							• Page <strong>1</strong> of <strong>1</strong>
+					</div>
+	</div>
+
+
+<div class="action-bar actions-jump">
+		<p class="jumpbox-return">
+		<a href="http://www.stm32duino.com/viewforum.php?f=30&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="left-box arrow-left" accesskey="r">
+			<i class="icon fa-angle-left fa-fw icon-black" aria-hidden="true"></i><span>Return to “Custom design boards”</span>
+		</a>
+	</p>
+	
+		<div class="jumpbox dropdown-container dropdown-container-right dropdown-up dropdown-left dropdown-button-control" id="jumpbox">
+			<span title="Jump to" class="button button-secondary dropdown-trigger dropdown-select dropdown-toggle">
+				<span>Jump to</span>
+				<span class="caret"><i class="icon fa-sort-down fa-fw" aria-hidden="true"></i></span>
+			</span>
+		<div class="dropdown">
+			<div class="pointer"><div class="pointer-inner"></div></div>
+			<ul class="dropdown-contents">
+																				<li><a href="http://www.stm32duino.com/viewforum.php?f=54&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-cat-link"> <span> New users start here</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=55&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Forum rules, FAQs and HowTo's</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=2&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; New users MUST post here first, and let us know a bit about you and your projects</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=1&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-cat-link"> <span> Arduino for STM32</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=16&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Builds and Announcements</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=3&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; General discussion</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=9&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Libraries &amp; Hardware</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=13&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span><span class="spacer"></span> <span>↳ &nbsp; Working / ported libraries</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=14&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span><span class="spacer"></span> <span>↳ &nbsp; Problems with libraries</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=15&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span><span class="spacer"></span> <span>↳ &nbsp; Libary request</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=44&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span><span class="spacer"></span> <span>↳ &nbsp; Hardware</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=19&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Projects</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=17&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Ideas &amp; suggestions</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=18&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Code snipplets</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=8&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Installation and OS related</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=20&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span><span class="spacer"></span> <span>↳ &nbsp; Windows</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=21&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span><span class="spacer"></span> <span>↳ &nbsp; OSX</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=22&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span><span class="spacer"></span> <span>↳ &nbsp; Linux</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=41&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; IDE's</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=45&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Off topic</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=50&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Postbag</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=53&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; PR's bugs and enhancements</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=56&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Dead Thread Graveyard</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=25&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-cat-link"> <span> Boards</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=28&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM32F103 Boards</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=29&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM Nucleo boards</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=38&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Maple &amp; Maple mini etc</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=31&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; All other boards</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=30&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Custom design boards</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=39&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM32F4 Boards</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=40&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM32F3 Boards</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=47&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; GD32F103 boards</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=33&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-cat-link"> <span> Bootloaders and Cores</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=42&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Cores</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=32&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; USB bootloader</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=46&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; CubeMX and HAL</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=48&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM Core</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=49&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM core: Bugs and enhancements</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=51&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM32generic</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=52&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM8</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=58&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; LibMaple</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=59&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-cat-link"> <span> Libraries and Hardware</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=60&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STM Core</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=61&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; LibMaple Core</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=62&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Core agnostic libraries</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=34&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-cat-link"> <span> Uploaders and debuggers</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=35&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; STLink</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=36&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; USB to Serial adaptors</span></a></li>
+																<li><a href="http://www.stm32duino.com/viewforum.php?f=37&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" class="jumpbox-sub-link"><span class="spacer"></span> <span>↳ &nbsp; Black Magic Probe &amp; other</span></a></li>
+											</ul>
+		</div>
+	</div>
+
+	</div>
+
+
+			</div>
+
+
+<div id="page-footer" class="page-footer" role="contentinfo">
+	<div class="navbar" role="navigation">
+	<div class="inner">
+
+	<ul id="nav-footer" class="nav-footer linklist" role="menubar">
+		<li class="breadcrumbs">
+							<span class="crumb"><a href="http://www.stm32duino.com/" data-navbar-reference="home" title="Home"><i class="icon fa-home fa-fw" aria-hidden="true"></i><span>Home</span></a></span>									<span class="crumb"><a href="http://www.stm32duino.com/index.php?sid=bc4bc739a878f5e8f2065cb9abce9026" data-navbar-reference="index" title="Board index"><span>Board index</span></a></span>					</li>
+		
+				<li class="responsive-menu hidden rightside dropdown-container"><a href="javascript:void(0);" class="js-responsive-menu-link responsive-menu-link dropdown-toggle"><i class="icon fa-bars fa-fw" aria-hidden="true"></i></a><div class="dropdown"><div class="pointer"><div class="pointer-inner"></div></div><ul class="dropdown-contents"></ul></div></li><li class="rightside">All times are <span title="UTC">UTC</span></li>
+							<li class="rightside">
+				<a href="http://www.stm32duino.com/ucp.php?mode=delete_cookies&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" data-ajax="true" data-refresh="true" role="menuitem">
+					<i class="icon fa-trash fa-fw" aria-hidden="true"></i><span>Delete all board cookies</span>
+				</a>
+			</li>
+												<li class="rightside" data-last-responsive="true">
+				<a href="http://www.stm32duino.com/memberlist.php?mode=team&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" role="menuitem">
+					<i class="icon fa-shield fa-fw" aria-hidden="true"></i><span>The team</span>
+				</a>
+			</li>
+									<li class="rightside" data-last-responsive="true">
+				<a href="http://www.stm32duino.com/memberlist.php?mode=contactadmin&amp;sid=bc4bc739a878f5e8f2065cb9abce9026" role="menuitem">
+					<i class="icon fa-envelope fa-fw" aria-hidden="true"></i><span>Contact us</span>
+				</a>
+			</li>
+			</ul>
+
+	</div>
+</div>
+
+	<div class="copyright">
+				Powered by <a href="https://www.phpbb.com/">phpBB</a>® Forum Software © phpBB Limited
+									</div>
+
+	<div id="darkenwrapper" class="darkenwrapper" data-ajax-error-title="AJAX error" data-ajax-error-text="Something went wrong when processing your request." data-ajax-error-text-abort="User aborted request." data-ajax-error-text-timeout="Your request timed out; please try again." data-ajax-error-text-parsererror="Something went wrong with the request and the server returned an invalid reply.">
+		<div id="darken" class="darken">&nbsp;</div>
+	</div>
+
+	<div id="phpbb_alert" class="phpbb_alert" data-l-err="Error" data-l-timeout-processing-req="Request timed out.">
+		<a href="http://www.stm32duino.com/viewtopic.php?t=780#" class="alert_close">
+			<i class="icon fa-times-circle fa-fw" aria-hidden="true"></i>
+		</a>
+		<h3 class="alert_title">&nbsp;</h3><p class="alert_text"></p>
+	</div>
+	<div id="phpbb_confirm" class="phpbb_alert">
+		<a href="http://www.stm32duino.com/viewtopic.php?t=780#" class="alert_close">
+			<i class="icon fa-times-circle fa-fw" aria-hidden="true"></i>
+		</a>
+		<div class="alert_text"></div>
+	</div>
+</div>
+
+</div>
+
+<div>
+	<a id="bottom" class="anchor" accesskey="z"></a>
+	<img src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/cron.php" width="1" height="1" alt="cron"></div>
+
+<script type="text/javascript" src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/jquery.min.js.Без названия"></script>
+<script type="text/javascript" src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/core.js.Без названия"></script>
+
+
+
+<script type="text/javascript" src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/forum_fn.js.Без названия"></script>
+<script type="text/javascript" src="./Blue Pill with USB disconnect circuit added - Arduino for STM32_files/ajax.js.Без названия"></script>
+
+
+
+
+
+</body></html>
