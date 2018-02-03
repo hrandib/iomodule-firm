@@ -46,6 +46,6 @@ int main(void) {
   while(true) {
     Led::Toggle();
     BaseThread::sleep(MS2ST(100));
-    chprintf((BaseSequentialStream*)&SDU1, "Hello!!\n");
+    chprintf((BaseSequentialStream*)&SDU1, "Hello!!\r\n");
   }
 }
