@@ -29,14 +29,19 @@
 #include "chprintf.h"
 
 #include "usbcfg.h"
+#include "gpio.h"
 
 using namespace Rtos;
+using namespace Mcudrv;
 
+using Led = Pc13;
 
 int main(void) {
   halInit();
   System::init();
+  Led::SetConfig<GpioBase::Out_PushPull>();
   while(true) {
-    BaseThread::sleep(MS2ST(10));
+    Led::Toggle();
+    BaseThread::sleep(MS2ST(100));
   }
 }
