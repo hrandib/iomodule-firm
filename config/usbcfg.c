@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-#include "hal.h"
+#include "usbcfg.h"
 
 /* Virtual serial port over USB.*/
 SerialUSBDriver SDU1;

@@ -40,8 +40,12 @@ int main(void) {
   halInit();
   System::init();
   Led::SetConfig<GpioBase::Out_PushPull>();
+  sduObjectInit(&SDU1);
+  sduStart(&SDU1, &serusbcfg);
+  usbStart(serusbcfg.usbp, &usbcfg);
   while(true) {
     Led::Toggle();
     BaseThread::sleep(MS2ST(100));
+    chprintf((BaseSequentialStream*)&SDU1, "Hello!!\n");
   }
 }
