@@ -24,6 +24,7 @@
 #define PINLIST_H
 
 #include "gpio.h"
+#include "type_traits_ex.h"
 
 namespace Mcudrv {
 
@@ -49,11 +50,11 @@ namespace Mcudrv {
         First::SetOrClear(value & 0x01);
         PinlistImplementation<Rest...>::Write(value >> 1);
       }
-      template<OutputConf conf, OutputMode mode>
+      template<GpioModes conf>
       static void SetConfig()
       {
-        First::template SetConfig<conf, mode>();
-        PinlistImplementation<Rest...>::template SetConfig<conf, mode>();
+        First::template SetConfig<conf>();
+        PinlistImplementation<Rest...>::template SetConfig<conf>();
       }
     };
 
@@ -70,19 +71,11 @@ namespace Mcudrv {
         return 0;
       }
       static void Write(uint32_t) {}
-      template<OutputConf conf, OutputMode mode>
+      template<GpioModes conf>
       static void SetConfig() {}
     };
 
-    template<uint16_t NofPins>
-    struct NumberToMask {
-      enum { value = 1 << (NofPins - 1) | NumberToMask < NofPins - 1 >::value};
-    };
-
-    template<>
-    struct NumberToMask<0> {
-      enum { value = 0 };
-    };
+    using Utils::NumberToMask;
 
   } //_impl
 
@@ -105,15 +98,10 @@ namespace Mcudrv {
     {
       _impl::PinlistImplementation<First, Rest...>::Write(value);
     }
-    template<OutputConf conf, OutputMode mode>
+    template<GpioModes conf>
     static void SetConfig()
     {
-      _impl::PinlistImplementation<First, Rest...>::template SetConfig<conf, mode>();
-    }
-    template<InputConf conf, InputMode mode>
-    static void SetConfig()
-    {
-      _impl::PinlistImplementation<First, Rest...>::template SetConfig<conf, mode>();
+      _impl::PinlistImplementation<First, Rest...>::template SetConfig<conf>();
     }
   };
 
@@ -137,15 +125,10 @@ namespace Mcudrv {
       value = (value << offset) & mask;
       Port::ClearAndSet(~value & mask, value);
     }
-    template<OutputConf conf, OutputMode mode>
+    template<GpioModes conf>
     static void SetConfig()
     {
-      Port::template SetConfig<mask, conf, mode>();
-    }
-    template<InputConf conf, InputMode mode>
-    static void SetConfig()
-    {
-      Port::template SetConfig<mask, conf, mode>();
+      Port::template SetConfig<mask, conf>();
     }
   };
 
