@@ -83,6 +83,9 @@ namespace Utils {
     enum { value = 0 };
   };
 
+  template<uint32_t Num>
+  constexpr uint32_t NumberToMask_v = NumberToMask<Num>::value;
+
 //MaskToPosition<0b0100>::value == 0x02;
   template<uint32_t mask>
   struct MaskToPosition {
@@ -92,11 +95,15 @@ namespace Utils {
   struct MaskToPosition<0x01> {
     enum { value = 0 };
   };
+
 //Need for Nullpin
   template<>
   struct MaskToPosition<0x00> {
     enum { value = 0 };
   };
+
+  template<uint32_t mask>
+  constexpr uint32_t MaskToPosition_v = MaskToPosition<mask>::value;
 
   static constexpr uint32_t Unpack2Bit(uint32_t mask)
   {
