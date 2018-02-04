@@ -166,6 +166,7 @@ CppApplication
     prefix: "drivers/"
     files: [
       "gpio.h",
+      "pinlist.h"
     ]
   }
   Group { name: "Drivers ChibiOS"
