@@ -53,7 +53,7 @@ namespace Mcudrv {
       template<GpioModes conf>
       static void SetConfig()
       {
-        First::template SetConfig<conf>();
+        First::template SetConfig<GpioBase::Cfg(conf)>();
         PinlistImplementation<Rest...>::template SetConfig<conf>();
       }
     };
@@ -109,26 +109,25 @@ namespace Mcudrv {
   struct Pinlist<First, SequenceOf<Seq>> {
     enum {
       offset = First::position,
-      mask = _impl::NumberToMask<Seq>::value << offset
+      mask = _impl::NumberToMask<Seq>::value
     };
     using Port = typename First::Port;
     static uint16_t ReadODR()
     {
-      return (Port::ReadODR() & mask) >> offset;
+      return (Port::ReadODR() >> offset) & mask;
     }
     static uint16_t Read()
     {
-      return (Port::Read() & mask) >> offset;
+      return (Port::Read() >> offset) & mask;
     }
     static void Write(uint16_t value)
     {
-      value = (value << offset) & mask;
-      Port::ClearAndSet(~value & mask, value);
+      Port::ClearAndSet((~value & mask) << offset, (value & mask) << offset);
     }
     template<GpioModes conf>
     static void SetConfig()
     {
-      Port::template SetConfig<mask, conf>();
+      Port::template SetConfig<mask, GpioBase::Cfg(conf)>();
     }
   };
 
