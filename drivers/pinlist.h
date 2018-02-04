@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2014 Dmytro Shestakov
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,135 +25,130 @@
 
 #include "gpio.h"
 
-namespace Mcucpp {
-	namespace Gpio {
-		namespace Private {
+namespace Mcudrv {
 
-		template<typename...>
-		struct PinlistImplementation;
+  namespace _impl {
 
-		template<typename First, typename... Rest>
-		struct PinlistImplementation<First, Rest...>
-		{
-			template<uint32_t pos = 0>
-			static uint32_t ReadODR()
-			{
-				return ((uint32_t)First::IsSetODR() << pos) | PinlistImplementation<Rest...>::template ReadODR<pos + 1>();
-			}
-			template<uint32_t pos = 0>
-			static uint32_t Read()
-			{
-				return ((uint32_t)First::IsSet() << pos) | PinlistImplementation<Rest...>::template Read<pos + 1>();
-			}
-			static void Write(uint32_t value)
-			{
-				First::SetOrClear(value & 0x01);
-				PinlistImplementation<Rest...>::Write(value >> 1);
-			}
-			template<OutputConf conf, OutputMode mode>
-			static void SetConfig()
-			{
-				First::template SetConfig<conf, mode>();
-				PinlistImplementation<Rest...>::template SetConfig<conf, mode>();
-			}
-		};
+    template<typename...>
+    struct PinlistImplementation;
 
-		template<>
-		struct PinlistImplementation<>
-		{
-			template<uint32_t pos>
-			static uint32_t ReadODR()
-			{ return 0; }
-			template<uint32_t pos>
-			static uint32_t Read()
-			{ return 0; }
-			static void Write(uint32_t){}
-			template<OutputConf conf, OutputMode mode>
-			static void SetConfig(){}
-		};
+    template<typename First, typename... Rest>
+    struct PinlistImplementation<First, Rest...> {
+      template<uint32_t pos = 0>
+      static uint32_t ReadODR()
+      {
+        return ((uint32_t)First::IsSetODR() << pos) | PinlistImplementation<Rest...>::template ReadODR < pos + 1 > ();
+      }
+      template<uint32_t pos = 0>
+      static uint32_t Read()
+      {
+        return ((uint32_t)First::IsSet() << pos) | PinlistImplementation<Rest...>::template Read < pos + 1 > ();
+      }
+      static void Write(uint32_t value)
+      {
+        First::SetOrClear(value & 0x01);
+        PinlistImplementation<Rest...>::Write(value >> 1);
+      }
+      template<OutputConf conf, OutputMode mode>
+      static void SetConfig()
+      {
+        First::template SetConfig<conf, mode>();
+        PinlistImplementation<Rest...>::template SetConfig<conf, mode>();
+      }
+    };
 
-		template<uint16_t NofPins>
-		struct NumberToMask
-		{
-			enum { value = 1 << (NofPins - 1) | NumberToMask<NofPins - 1>::value};
-		};
+    template<>
+    struct PinlistImplementation<> {
+      template<uint32_t pos>
+      static uint32_t ReadODR()
+      {
+        return 0;
+      }
+      template<uint32_t pos>
+      static uint32_t Read()
+      {
+        return 0;
+      }
+      static void Write(uint32_t) {}
+      template<OutputConf conf, OutputMode mode>
+      static void SetConfig() {}
+    };
 
-		template<>
-		struct NumberToMask<0>
-		{
-			enum { value = 0 };
-		};
+    template<uint16_t NofPins>
+    struct NumberToMask {
+      enum { value = 1 << (NofPins - 1) | NumberToMask < NofPins - 1 >::value};
+    };
 
-		}//Private
+    template<>
+    struct NumberToMask<0> {
+      enum { value = 0 };
+    };
 
-		template<uint16_t seq>
-		struct SequenceOf
-		{
-			enum { value = seq };
-		};
+  } //_impl
 
-		template<typename First, typename... Rest>
-		struct Pinlist
-		{
-			static uint32_t ReadODR()
-			{
-				return Private::PinlistImplementation<First, Rest...>::template ReadODR<>();
-			}
-			static uint32_t Read()
-			{
-				return Private::PinlistImplementation<First, Rest...>::template Read<>();
-			}
-			static void Write(uint32_t value)
-			{
-				Private::PinlistImplementation<First, Rest...>::Write(value);
-			}
-			template<OutputConf conf, OutputMode mode>
-			static void SetConfig()
-			{
-				Private::PinlistImplementation<First, Rest...>::template SetConfig<conf, mode>();
-			}
-			template<InputConf conf, InputMode mode>
-			static void SetConfig()
-			{
-				Private::PinlistImplementation<First, Rest...>::template SetConfig<conf, mode>();
-			}
-		};
+  template<uint16_t seq>
+  struct SequenceOf {
+    enum { value = seq };
+  };
 
-		template<typename First, uint16_t Seq>
-		struct Pinlist<First, SequenceOf<Seq>>
-		{
-			enum
-			{
-				offset = First::position,
-				mask = Private::NumberToMask<Seq>::value << offset
-			};
-			using Port = typename First::Port;
-			static uint16_t ReadODR()
-			{
-				return (Port::ReadODR() & mask) >> offset;
-			}
-			static uint16_t Read()
-			{
-				return (Port::Read() & mask) >> offset;
-			}
-			static void Write(uint16_t value)
-			{
-				value = (value << offset) & mask;
-				Port::ClearAndSet(~value & mask, value);
-			}
-			template<OutputConf conf, OutputMode mode>
-			static void SetConfig()
-			{
-				Port::template SetConfig<mask, conf, mode>();
-			}			
-			template<InputConf conf, InputMode mode>
-			static void SetConfig()
-			{
-				Port::template SetConfig<mask, conf, mode>();
-			}
-		};
+  template<typename First, typename... Rest>
+  struct Pinlist {
+    static uint32_t ReadODR()
+    {
+      return _impl::PinlistImplementation<First, Rest...>::template ReadODR<>();
+    }
+    static uint32_t Read()
+    {
+      return _impl::PinlistImplementation<First, Rest...>::template Read<>();
+    }
+    static void Write(uint32_t value)
+    {
+      _impl::PinlistImplementation<First, Rest...>::Write(value);
+    }
+    template<OutputConf conf, OutputMode mode>
+    static void SetConfig()
+    {
+      _impl::PinlistImplementation<First, Rest...>::template SetConfig<conf, mode>();
+    }
+    template<InputConf conf, InputMode mode>
+    static void SetConfig()
+    {
+      _impl::PinlistImplementation<First, Rest...>::template SetConfig<conf, mode>();
+    }
+  };
 
-	}//Gpio
-}//Mcucpp
+  template<typename First, uint16_t Seq>
+  struct Pinlist<First, SequenceOf<Seq>> {
+    enum {
+      offset = First::position,
+      mask = _impl::NumberToMask<Seq>::value << offset
+    };
+    using Port = typename First::Port;
+    static uint16_t ReadODR()
+    {
+      return (Port::ReadODR() & mask) >> offset;
+    }
+    static uint16_t Read()
+    {
+      return (Port::Read() & mask) >> offset;
+    }
+    static void Write(uint16_t value)
+    {
+      value = (value << offset) & mask;
+      Port::ClearAndSet(~value & mask, value);
+    }
+    template<OutputConf conf, OutputMode mode>
+    static void SetConfig()
+    {
+      Port::template SetConfig<mask, conf, mode>();
+    }
+    template<InputConf conf, InputMode mode>
+    static void SetConfig()
+    {
+      Port::template SetConfig<mask, conf, mode>();
+    }
+  };
+
+} //Mcudrv
 
 #endif // PINLIST_H
