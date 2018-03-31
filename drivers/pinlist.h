@@ -24,7 +24,6 @@
 #define PINLIST_H
 
 #include "gpio.h"
-#include "type_traits_ex.h"
 
 namespace Mcudrv {
 
