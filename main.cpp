@@ -28,40 +28,15 @@
 #include "hal.h"
 #include "chprintf.h"
 
-#include "usbcfg.h"
 #include "pinlist.h"
 
 using namespace Rtos;
 using namespace Mcudrv;
 
-using Led = Pc13;
-
-using Buttons = Pinlist<Pb12, SequenceOf<4>>;
-using ButtonsGND = Pa8;
-
 int main(void) {
   halInit();
   System::init();
-  Led::SetConfig<GpioBase::Out_PushPull>();
-  ButtonsGND::SetConfig<GpioBase::Out_PushPull>();
-  ButtonsGND::Clear();
-
-  sduObjectInit(&SDU1);
-  sduStart(&SDU1, &serusbcfg);
-  usbStart(serusbcfg.usbp, &usbcfg);
-  bool buttonPressed{};
   while(true) {
-    if(~Buttons::Read() & Buttons::mask) {
-      if(!buttonPressed) {
-        Led::Clear();
-        chprintf((BaseSequentialStream*)&SDU1, "%u", ~Buttons::Read() & Buttons::mask);
-      }
-      buttonPressed = true;
-    }
-    else {
-      Led::Set();
-      buttonPressed = false;
-    }
     BaseThread::sleep(MS2ST(100));
   }
 }
