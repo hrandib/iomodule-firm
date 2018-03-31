@@ -145,7 +145,7 @@ namespace Mcudrv {
       template<DataT clearmask, DataT setmask>
       static void ClearAndSet()
       {
-        Regs()->ODR = setmask & ~clearmask;
+        Regs()->BSRR = uint32_t(clearmask) << 16 | setmask;
       }
       template <DataT value>
       static void Write()
@@ -191,8 +191,7 @@ namespace Mcudrv {
       }
       static void ClearAndSet(DataT clearmask, DataT setmask)
       {
-        const DataT value = setmask & ~clearmask;
-        Regs()->ODR = value;
+        Regs()->BSRR = uint32_t(clearmask) << 16 | setmask;
       }
       static void Write(DataT value)
       {
