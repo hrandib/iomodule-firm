@@ -33,10 +33,57 @@
 using namespace Rtos;
 using namespace Mcudrv;
 
+using Outputs_A = Pinlist<Pa8, SequenceOf<4>>;
+using Outputs_B = Pinlist<Pb6, SequenceOf<2>>;
+using Outputs_C = Pinlist<Pc13, SequenceOf<3>>;
+
+template<typename DataPin, typename ClkPin, typename LatchPin, uint8_t SizeInBytes = 1>
+class SerialReg
+{
+private:
+    enum { SizeInBits = SizeInBytes * 8 };
+    typedef typename Utils::SelectSize<SizeInBits>::type DataType;
+public:
+    static void Init()
+    {
+        DataPin::template SetConfig<GpioBase::Out_PushPull_fast>();
+        ClkPin::template SetConfig<GpioBase::Out_PushPull_fast>();
+        LatchPin::template SetConfig<GpioBase::Out_PushPull_fast>();
+    }
+    static void Write(DataType data, bool NoLatch = false)
+    {
+        for(uint8_t i = 0; i < SizeInBits; ++i) {
+            DataPin::SetOrClear(data & (1UL << (SizeInBits - 1)));
+            ClkPin::Set();
+            data <<= 1;
+            ClkPin::Clear();
+        }
+        if(!NoLatch) {
+            Latch();
+        }
+    }
+    static void Latch()
+    {
+        LatchPin::Set();
+        __NOP();
+        __NOP();
+        LatchPin::Clear();
+    }
+
+};
+
+using SR = SerialReg<Pb15, Pb13, Pb14, 2>;
+
 int main(void) {
   halInit();
   System::init();
+  SR::Init();
+  size_t counter = 0;
   while(true) {
-    BaseThread::sleep(MS2ST(100));
+    if(counter > 15) {
+      counter = 0;
+    }
+    SR::Write(uint16_t(1 << counter++));
+    BaseThread::sleep(S2ST(1));
   }
 }
