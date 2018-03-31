@@ -126,7 +126,7 @@ namespace Mcudrv {
     template<GpioModes conf>
     static void SetConfig()
     {
-      Port::template SetConfig<mask, GpioBase::Cfg(conf)>();
+      Port::template SetConfig<mask << offset, GpioBase::Cfg(conf)>();
     }
   };
 
