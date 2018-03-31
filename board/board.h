@@ -21,7 +21,7 @@
  * Board identifier.
  */
 #define BOARD_BLUE_PILL
-#define BOARD_NAME              "Blue Pill"
+#define BOARD_NAME              "iomodule"
 
 /*
  * Board frequencies.
@@ -68,7 +68,7 @@
  */
 #define VAL_GPIOACRL            0x88888888      /*  PA7...PA0 */
 #define VAL_GPIOACRH            0x88888888      /* PA15...PA8 */
-#define VAL_GPIOAODR            0xFFFFFFFF
+#define VAL_GPIOAODR            0x00000000
 
 /*
  * Port B setup.
@@ -80,7 +80,7 @@
  */
 #define VAL_GPIOBCRL            0x88888888      /*  PB7...PB0 */
 #define VAL_GPIOBCRH            0x88888888      /* PB15...PB8 */
-#define VAL_GPIOBODR            0xFFFFFFFF
+#define VAL_GPIOBODR            0x00000000
 
 /*
  * Port C setup.
@@ -90,7 +90,7 @@
  */
 #define VAL_GPIOCCRL            0x88888888      /*  PC7...PC0 */
 #define VAL_GPIOCCRH            0x88888888      /* PC15...PC8 */
-#define VAL_GPIOCODR            0xFFFFFFFF
+#define VAL_GPIOCODR            0x00000000
 
 /*
  * Port D setup.
@@ -100,7 +100,7 @@
  */
 #define VAL_GPIODCRL            0x88888844      /*  PD7...PD0 */
 #define VAL_GPIODCRH            0x88888888      /* PD15...PD8 */
-#define VAL_GPIODODR            0xFFFFFFFF
+#define VAL_GPIODODR            0x00000000
 
 /*
  * Port E setup.
@@ -108,7 +108,7 @@
  */
 #define VAL_GPIOECRL            0x88888888      /*  PE7...PE0 */
 #define VAL_GPIOECRH            0x88888888      /* PE15...PE8 */
-#define VAL_GPIOEODR            0xFFFFFFFF
+#define VAL_GPIOEODR            0x00000000
 
 #if !defined(_FROM_ASM_)
 #ifdef __cplusplus
