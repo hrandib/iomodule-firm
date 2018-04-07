@@ -19,17 +19,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef SHELL_IMPL_H
-#define SHELL_IMPL_H
 
-#include "hal.h"
-#include "shell.h"
-#include "chprintf.h"
+#include "shell_impl.h"
 
-class Shell
-{
-public:
-  Shell();
+static THD_WORKING_AREA(SHELL_WA_SIZE, 512);
+
+static const ShellCommand commands[] = {
+//  {"one", cmd_pwm},
+  {nullptr, nullptr}
 };
 
-#endif // SHELL_IMPL_H
+static char histbuf[128];
+
+static const ShellConfig shell_cfg1 = {
+  (BaseSequentialStream *)&SD1,
+  commands,
+  histbuf,
+  128
+};
+
+Shell::Shell()
+{
+  palSetPadMode(GPIOB, 6, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // tx
+  palSetPadMode(GPIOB, 7, PAL_MODE_INPUT); //rx
+  SerialConfig sercfg{ 115200,
+                       USART_CR1_TE | USART_CR1_RE | USART_CR1_UE,
+                           0,
+                           0};
+  sdStart(&SD1, &sercfg);
+  shellInit();
+  chThdCreateStatic(SHELL_WA_SIZE, sizeof(SHELL_WA_SIZE), NORMALPRIO, shellThread, (void*)&shell_cfg1);
+}

@@ -26,9 +26,8 @@
 
 #include "ch_extended.h"
 #include "hal.h"
-#include "chprintf.h"
-
 #include "pinlist.h"
+#include "shell_impl.h"
 
 using namespace Rtos;
 using namespace Mcudrv;
@@ -36,6 +35,7 @@ using namespace Mcudrv;
 int main(void) {
   halInit();
   System::init();
+  Shell sh;
   while(true) {
     BaseThread::sleep(S2ST(1));
   }

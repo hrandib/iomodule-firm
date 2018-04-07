@@ -240,6 +240,7 @@ CppApplication
   Group {	name: "Main"
     files: [
           "main.cpp",
+          "source/shell_impl.cpp",
           "source/shell_impl.h",
       ]
     excludeFiles: [
@@ -250,7 +251,7 @@ CppApplication
 		]
 	}
   Group {	name: "Various"
-    condition: false
+    condition: true
     prefix: ChibiOS + "os/various/"
     files: [
       "shell/shell.h",
@@ -279,7 +280,7 @@ CppApplication
     ]
   }
   Group { name: "Test"
-    condition: false
+    condition: true
     prefix: ChibiOS + "test/"
     files: [
       "lib/ch_test.h",
@@ -298,6 +299,7 @@ CppApplication
       "rt/source/test/test_sequence_010.h",
       "rt/source/test/test_sequence_011.h",
       "rt/source/test/test_sequence_012.h",
+      "rt/source/test/test_sequence_013.h",
       "rt/source/test/test_sequence_001.c",
       "rt/source/test/test_sequence_002.c",
       "rt/source/test/test_sequence_003.c",
