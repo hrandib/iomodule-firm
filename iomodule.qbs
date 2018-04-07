@@ -19,6 +19,7 @@ CppApplication
 	cpp.executableSuffix: ".elf"
   cpp.defines: [
     "SHELL_CONFIG_FILE",
+    "HAL_USE_SERIAL",
     "STM32F103xB"
 	]
   cpp.driverFlags: [
@@ -180,6 +181,8 @@ CppApplication
       "LLD/TIMv1/hal_st_lld.c",
       "LLD/USARTv1/hal_uart_lld.h",
       "LLD/USARTv1/hal_uart_lld.c",
+      "LLD/USARTv1/hal_serial_lld.h",
+      "LLD/USARTv1/hal_serial_lld.c"
     ]
   }
   Group { name: "RT"
@@ -236,8 +239,9 @@ CppApplication
 	}
   Group {	name: "Main"
     files: [
-      "main.cpp",
-    ]
+          "main.cpp",
+          "source/shell_impl.h",
+      ]
     excludeFiles: [
 			"**/*_res.c",
 			"**/*_conf_template.c",
