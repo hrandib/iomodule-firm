@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,24 +19,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef SHELL_IMPL_H
+#define SHELL_IMPL_H
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
-#include "ch_extended.h"
 #include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
+#include "shell.h"
+#include "chprintf.h"
 
-using namespace Rtos;
-using namespace Mcudrv;
+class Shell
+{
+public:
+  Shell();
+};
 
-int main(void) {
-  halInit();
-  System::init();
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
-  }
-}
+#endif // SHELL_IMPL_H

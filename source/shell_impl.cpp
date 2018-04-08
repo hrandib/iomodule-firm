@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,23 +20,33 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
 #include "shell_impl.h"
 
-using namespace Rtos;
-using namespace Mcudrv;
+static THD_WORKING_AREA(SHELL_WA_SIZE, 512);
 
-int main(void) {
-  halInit();
-  System::init();
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
-  }
+static const ShellCommand commands[] = {
+//  {"one", cmd_pwm},
+  {nullptr, nullptr}
+};
+
+static char histbuf[128];
+
+static const ShellConfig shell_cfg1 = {
+  (BaseSequentialStream *)&SD1,
+  commands,
+  histbuf,
+  128
+};
+
+Shell::Shell()
+{
+  palSetPadMode(GPIOB, 6, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // tx
+  palSetPadMode(GPIOB, 7, PAL_MODE_INPUT); //rx
+  SerialConfig sercfg{ 115200,
+                       USART_CR1_TE | USART_CR1_RE | USART_CR1_UE,
+                           0,
+                           0};
+  sdStart(&SD1, &sercfg);
+  shellInit();
+  chThdCreateStatic(SHELL_WA_SIZE, sizeof(SHELL_WA_SIZE), NORMALPRIO, shellThread, (void*)&shell_cfg1);
 }
