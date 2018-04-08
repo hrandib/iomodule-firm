@@ -22,4 +22,51 @@
 #ifndef ANALOGOUT_H
 #define ANALOGOUT_H
 
+#include <array>
+#include "type_traits_ex.h"
+
+namespace Analog {
+
+  class OutputCommand
+  {
+  private:
+    static constexpr size_t chNumber_ = 4;
+    static constexpr size_t maxMask_ = Utils::NumberToMask_v<chNumber_>;
+    std::array<uint16_t, 4> values_;
+    uint16_t channelMask_;
+  public:
+    constexpr size_t GetChannelNumber()
+    {
+      return chNumber_;
+    }
+    uint16_t GetChannelMask()
+    {
+      return channelMask_;
+    }
+    void SetChannelMask(uint16_t mask)
+    {
+      if(mask > maxMask_) {
+        return;
+      }
+      channelMask_ = mask;
+    }
+    uint16_t GetValue(size_t ch)
+    {
+      return values_[ch];
+    }
+    void SetValue(size_t ch, uint16_t value)
+    {
+      if(ch > chNumber_) {
+        return;
+      }
+      values_[ch] = value;
+    }
+  };
+
+  class Output
+  {
+
+  };
+}
+
 #endif // ANALOGOUT_H
