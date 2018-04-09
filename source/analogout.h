@@ -74,48 +74,14 @@ namespace Analog {
     PWMDriver* const PWMD_;
     channel_array_t values_;
     const IOBus pwmBus_{GPIOA, 0x0F, 8};
-    void main() override
-    {
-      while(true) {
-        /* Waiting for a queued message then retrieving it.*/
-        thread_t *tp = chMsgWait();
-        OutputCommand& cmd = *reinterpret_cast<OutputCommand*>(chMsgGet(tp));
-        auto chMask = cmd.GetChannelMask();
-        for(pwmchannel_t i{}; i < cmd.GetChannelNumber(); ++i) {
-          if(chMask & (1U << i)) {
-            SetValue(i, cmd.GetValue(i));
-          }
-          else {
-            cmd.SetValue(i, values_[i]);
-          }
-        }
-        chMsgRelease(tp, MSG_OK);
-      }
-    }
-    void SetValue(pwmchannel_t ch, pwmcnt_t value)
-    {
-      pwmEnableChannel(PWMD_, ch, value);
-      values_[ch] = static_cast<channel_array_t::value_type>(value);
-    }
+    void main() override;
+    void SetValue(pwmchannel_t ch, pwmcnt_t value);
   public:
     Output() : PWMD_{&PWMD1}, values_{}
     { }
-    void Init()
-    {
-      palSetBusMode(const_cast<IOBus*>(&pwmBus_), PAL_MODE_STM32_ALTERNATE_PUSHPULL);
-      pwmStart(PWMD_, &pwmcfg_);
-      start(NORMALPRIO);
-    }
-    msg_t SendMessage(OutputCommand& msg)
-    {
-      return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
-    }
-    ~Output() override
-    {
-      stop();
-      pwmStop(PWMD_);
-      palSetBusMode(const_cast<IOBus*>(&pwmBus_), PAL_MODE_INPUT_PULLDOWN);
-    }
+    void Init();
+    msg_t SendMessage(OutputCommand& msg);
+    ~Output() override;
   };
 
   extern Output output;
