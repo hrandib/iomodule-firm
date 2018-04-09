@@ -139,7 +139,6 @@ CppApplication
       "type_traits_ex.h"
     ]
   }
-
   Group { name: "Port"
     prefix: ChibiOS + "os/common/ports/ARMCMx/"
     files: [

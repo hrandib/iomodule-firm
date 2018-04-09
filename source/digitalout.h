@@ -22,4 +22,61 @@
 #ifndef DIGITALOUT_H
 #define DIGITALOUT_H
 
+#include "ch_extended.h"
+#include "hal.h"
+#include "type_traits_ex.h"
+#include <utility>
+
+namespace Digital {
+  class OutputCommand
+  {
+  public:
+    enum class Mode {
+      Set,
+      Clear,
+      SetAndClear,
+      Write,
+      Toggle
+    };
+  private:
+    static constexpr size_t busWidth_ = 16;
+    uint32_t value_;
+    Mode mode_;
+  public:
+    static constexpr size_t GetBusWidth()
+    {
+      return busWidth_;
+    }
+    std::pair<Mode, uint32_t> Get() const
+    {
+      return {mode_, value_};
+    }
+    uint32_t GetValue() const
+    {
+      return value_;
+    }
+    Mode GetMode() const
+    {
+      return mode_;
+    }
+    void SetValue(uint32_t value)
+    {
+      value_ = value;
+    }
+    void SetMode(Mode mode)
+    {
+      mode_ = mode;
+    }
+    Rtos::Status Set(Mode mode, uint32_t value)
+    {
+      if(mode != Mode::SetAndClear && value > Utils::NumberToMask_v<busWidth_>) {
+        return Rtos::Status::Failure;
+      }
+      SetValue(value);
+      SetMode(mode);
+      return Rtos::Status::Success;
+    }
+  };
+}
+
 #endif // DIGITALOUT_H
