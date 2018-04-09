@@ -30,12 +30,14 @@
 
 namespace Analog {
 
+  using channel_array_t = std::array<uint16_t, 4>;
+
   class OutputCommand
   {
   private:
     static constexpr size_t chNumber_ = 4;
     static constexpr size_t maxMask_ = Utils::NumberToMask_v<chNumber_>;
-    std::array<uint16_t, 4> values_;
+    channel_array_t values_;
     uint16_t channelMask_;
   public:
     static constexpr size_t GetChannelNumber()
@@ -68,39 +70,51 @@ namespace Analog {
   class Output : Rtos::BaseStaticThread<256>
   {
   private:
-    static const PWMConfig pwmcfg;
-    static PWMDriver* const PWMD;
+    static const PWMConfig pwmcfg_;
+    PWMDriver* const PWMD_;
+    channel_array_t values_;
+    const IOBus pwmBus_{GPIOA, 0x0F, 8};
     void main() override
     {
       while(true) {
         /* Waiting for a queued message then retrieving it.*/
         thread_t *tp = chMsgWait();
-        const OutputCommand& cmd = *reinterpret_cast<const OutputCommand*>(chMsgGet(tp));
-        chMsgRelease(tp, MSG_OK);
+        OutputCommand& cmd = *reinterpret_cast<OutputCommand*>(chMsgGet(tp));
         auto chMask = cmd.GetChannelMask();
         for(pwmchannel_t i{}; i < cmd.GetChannelNumber(); ++i) {
           if(chMask & (1U << i)) {
-            chprintf((BaseSequentialStream*)&SD1, "i: %u  val: %u\r\n", i, cmd.GetValue(i));
             SetValue(i, cmd.GetValue(i));
           }
+          else {
+            cmd.SetValue(i, values_[i]);
+          }
         }
+        chMsgRelease(tp, MSG_OK);
       }
     }
     void SetValue(pwmchannel_t ch, pwmcnt_t value)
     {
-      pwmEnableChannel(PWMD, ch, value);
+      pwmEnableChannel(PWMD_, ch, value);
+      values_[ch] = static_cast<channel_array_t::value_type>(value);
     }
   public:
+    Output() : PWMD_{&PWMD1}, values_{}
+    { }
     void Init()
     {
-      IOBus pwmBus{GPIOA, 0x0F, 8};
-      palSetBusMode(&pwmBus, PAL_MODE_STM32_ALTERNATE_PUSHPULL);
-      pwmStart(PWMD, &pwmcfg);
+      palSetBusMode(const_cast<IOBus*>(&pwmBus_), PAL_MODE_STM32_ALTERNATE_PUSHPULL);
+      pwmStart(PWMD_, &pwmcfg_);
       start(NORMALPRIO);
     }
-    msg_t SendMessage(const OutputCommand& msg)
+    msg_t SendMessage(OutputCommand& msg)
     {
       return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
+    }
+    ~Output() override
+    {
+      stop();
+      pwmStop(PWMD_);
+      palSetBusMode(const_cast<IOBus*>(&pwmBus_), PAL_MODE_INPUT_PULLDOWN);
     }
   };
 

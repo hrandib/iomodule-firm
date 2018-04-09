@@ -20,12 +20,19 @@
  * SOFTWARE.
  */
 
+#include "hal.h"
+#include "shell.h"
 #include "shell_impl.h"
+#include "analogout.h"
+#include "chprintf.h"
+#include <cstdlib>
 
 static THD_WORKING_AREA(SHELL_WA_SIZE, 512);
 
+static void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[]);
+
 static const ShellCommand commands[] = {
-//  {"one", cmd_pwm},
+  {"setanalog", cmd_setanalog},
   {nullptr, nullptr}
 };
 
@@ -37,6 +44,34 @@ static const ShellConfig shell_cfg1 = {
   histbuf,
   128
 };
+
+void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  if(argc == 2) do {
+    pwmchannel_t ch = *argv[0] - '0';
+    if(ch > 3) {
+      break;
+    }
+    int value = atoi(argv[1]);
+    if(value < 0 || value > 4096) {
+      break;
+    }
+    Analog::OutputCommand cmd{};
+    cmd.SetValue(ch, (uint16_t)value);
+    Analog::output.SendMessage(cmd);
+    chprintf(chp, "%4u %4u %4u %4u\r\n",
+                  cmd.GetValue(0),
+                  cmd.GetValue(1),
+                  cmd.GetValue(2),
+                  cmd.GetValue(3));
+    return;
+  } while(false);
+  shellUsage(chp, "Set analog output value on selected channel"
+                  "\r\nReturns array of current values"
+                  "\r\n\tsetanalog [channel(0-3)] [value(0-4096)]"
+                  "\r\nExample:"
+                  "\r\n\tsetanalog 1 2048");
+}
 
 Shell::Shell()
 {

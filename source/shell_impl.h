@@ -22,10 +22,6 @@
 #ifndef SHELL_IMPL_H
 #define SHELL_IMPL_H
 
-#include "hal.h"
-#include "shell.h"
-#include "chprintf.h"
-
 class Shell
 {
 public:
