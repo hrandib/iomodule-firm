@@ -85,6 +85,7 @@ CppApplication
     ChibiOS + "os/hal/ports/STM32/LLD/GPIOv1",
     ChibiOS + "os/hal/ports/STM32/LLD/TIMv1",
     ChibiOS + "os/hal/ports/STM32/LLD/USARTv1",
+    ChibiOS + "os/hal/ports/STM32/LLD/SPIv1",
     //cpp support
     ChibiOS + "os/various/cpp_wrappers",
     //Various
@@ -182,7 +183,9 @@ CppApplication
       "LLD/USARTv1/hal_uart_lld.h",
       "LLD/USARTv1/hal_uart_lld.c",
       "LLD/USARTv1/hal_serial_lld.h",
-      "LLD/USARTv1/hal_serial_lld.c"
+      "LLD/USARTv1/hal_serial_lld.c",
+      "LLD/SPIv1/hal_spi_lld.h",
+      "LLD/SPIv1/hal_spi_lld.c"
     ]
   }
   Group { name: "RT"
