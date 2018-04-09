@@ -47,6 +47,19 @@ static const ShellConfig shell_cfg1 = {
 
 void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
 {
+  Analog::OutputCommand cmd{};
+  auto PrintValues = [&] {
+    chprintf(chp, "%4u %4u %4u %4u\r\n",
+             cmd.GetValue(0),
+             cmd.GetValue(1),
+             cmd.GetValue(2),
+             cmd.GetValue(3));
+  };
+  if(argc == 0) {
+    Analog::output.SendMessage(cmd);
+    PrintValues();
+    return;
+  }
   if(argc == 2) do {
     pwmchannel_t ch = *argv[0] - '0';
     if(ch > 3) {
@@ -56,14 +69,9 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
     if(value < 0 || value > 4096) {
       break;
     }
-    Analog::OutputCommand cmd{};
     cmd.SetValue(ch, (uint16_t)value);
     Analog::output.SendMessage(cmd);
-    chprintf(chp, "%4u %4u %4u %4u\r\n",
-                  cmd.GetValue(0),
-                  cmd.GetValue(1),
-                  cmd.GetValue(2),
-                  cmd.GetValue(3));
+    PrintValues();
     return;
   } while(false);
   shellUsage(chp, "Set analog output value on selected channel"
