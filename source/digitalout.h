@@ -77,6 +77,22 @@ namespace Digital {
       return Rtos::Status::Success;
     }
   };
-}
+
+  class Output : Rtos::BaseStaticThread<256>
+  {
+  private:
+    static const SPIConfig spicfg_;
+    SPIDriver* const SPID_;
+    const IOBus spiBus_{GPIOA, 0x0F, 8};
+    void main() override;
+    void SetValue(pwmchannel_t ch, pwmcnt_t value);
+  public:
+    Output() : SPID_{&SPID2}
+    { }
+    void Init();
+    msg_t SendMessage(OutputCommand& msg);
+    ~Output() override;
+  };
+} //Digital
 
 #endif // DIGITALOUT_H

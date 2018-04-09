@@ -21,3 +21,13 @@
  */
 
 #include "digitalout.h"
+
+namespace Digital {
+  const SPIConfig Output::spicfg_ {
+    nullptr,
+    nullptr,
+    0,
+    0,
+    0
+  };
+}
