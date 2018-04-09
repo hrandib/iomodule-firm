@@ -102,8 +102,9 @@ namespace Analog {
     {
       return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
     }
-
   };
-}
+
+  extern Output output;
+} //Analog
 
 #endif // ANALOGOUT_H

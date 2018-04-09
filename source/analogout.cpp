@@ -24,6 +24,9 @@
 
 
 namespace Analog {
+
+  Output output;
+
   const PWMConfig Output::pwmcfg {
     4000000UL,                                    /* 4MHz PWM clock frequency.   */
     4096,                                         /* Initial PWM period 1ms.      */
