@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,25 +20,27 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
 #include "analogout.h"
 
-using namespace Rtos;
-using namespace Mcudrv;
 
-int main(void) {
-  halInit();
-  System::init();
-  Analog::output.Init();
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
-  }
+namespace Analog {
+
+  Output output;
+
+  const PWMConfig Output::pwmcfg_ {
+    8000000UL,                                    /* 4MHz PWM clock frequency.   */
+    4096,                                         /* Initial PWM period 1ms.      */
+    nullptr,
+    {
+      {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+      {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+      {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+      {PWM_OUTPUT_ACTIVE_HIGH, nullptr}
+    },
+    0,
+    0,
+#if STM32_PWM_USE_ADVANCED
+    0
+#endif
+  };
 }

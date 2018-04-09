@@ -20,6 +20,7 @@ CppApplication
   cpp.defines: [
     "SHELL_CONFIG_FILE",
     "HAL_USE_SERIAL",
+    "HAL_USE_PWM",
     "STM32F103xB"
 	]
   cpp.driverFlags: [
@@ -239,10 +240,12 @@ CppApplication
 	}
   Group {	name: "Main"
     files: [
-          "main.cpp",
-          "source/shell_impl.cpp",
-          "source/shell_impl.h",
-      ]
+      "main.cpp",
+      "source/analogout.cpp",
+      "source/analogout.h",
+      "source/shell_impl.cpp",
+      "source/shell_impl.h",
+    ]
     excludeFiles: [
 			"**/*_res.c",
 			"**/*_conf_template.c",
