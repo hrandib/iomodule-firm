@@ -33,28 +33,12 @@
 using namespace Rtos;
 using namespace Mcudrv;
 
-static Analog::Output out;
-
 int main(void) {
   halInit();
   System::init();
+  Analog::output.Init();
   Shell sh;
-  out.Init();
-  uint16_t i{}, val{};
-  Analog::OutputCommand cmd{};
   while(true) {
-    val += 30;
-    if(val > 4095) {
-      val = 0;
-      if(++i == Analog::OutputCommand::GetChannelNumber()) {
-        i = 0;
-      }
-    }
-    cmd.SetValue(0, val);
-    cmd.SetValue(1, val);
-    cmd.SetValue(2, val);
-    cmd.SetValue(3, val);
-    out.SendMessage(cmd);
     BaseThread::sleep(S2ST(1));
   }
 }
