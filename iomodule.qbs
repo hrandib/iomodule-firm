@@ -243,6 +243,8 @@ CppApplication
       "main.cpp",
       "source/analogout.cpp",
       "source/analogout.h",
+      "source/digitalout.cpp",
+      "source/digitalout.h",
       "source/shell_impl.cpp",
       "source/shell_impl.h",
     ]
