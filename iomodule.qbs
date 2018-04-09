@@ -20,6 +20,7 @@ CppApplication
   cpp.defines: [
     "SHELL_CONFIG_FILE",
     "HAL_USE_SERIAL",
+    "HAL_USE_PWM",
     "STM32F103xB"
 	]
   cpp.driverFlags: [

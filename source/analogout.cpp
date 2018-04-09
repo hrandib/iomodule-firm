@@ -21,3 +21,25 @@
  */
 
 #include "analogout.h"
+
+
+namespace Analog {
+  const PWMConfig Output::pwmcfg {
+    4000000UL,                                    /* 4MHz PWM clock frequency.   */
+    4096,                                         /* Initial PWM period 1ms.      */
+    nullptr,
+    {
+      {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+      {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+      {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+      {PWM_OUTPUT_ACTIVE_HIGH, nullptr}
+    },
+    0,
+    0,
+#if STM32_PWM_USE_ADVANCED
+    0
+#endif
+  };
+
+  PWMDriver* const Output::PWMD{&PWMD1};
+}

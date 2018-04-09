@@ -23,7 +23,10 @@
 #define ANALOGOUT_H
 
 #include <array>
+#include "ch_extended.h"
+#include "hal.h"
 #include "type_traits_ex.h"
+#include "chprintf.h"
 
 namespace Analog {
 
@@ -35,22 +38,15 @@ namespace Analog {
     std::array<uint16_t, 4> values_;
     uint16_t channelMask_;
   public:
-    constexpr size_t GetChannelNumber()
+    static constexpr size_t GetChannelNumber()
     {
       return chNumber_;
     }
-    uint16_t GetChannelMask()
+    uint16_t GetChannelMask() const
     {
       return channelMask_;
     }
-    void SetChannelMask(uint16_t mask)
-    {
-      if(mask > maxMask_) {
-        return;
-      }
-      channelMask_ = mask;
-    }
-    uint16_t GetValue(size_t ch)
+    uint16_t GetValue(size_t ch) const
     {
       return values_[ch];
     }
@@ -59,12 +55,52 @@ namespace Analog {
       if(ch > chNumber_) {
         return;
       }
+      channelMask_ |= uint16_t(1U << ch);
       values_[ch] = value;
+    }
+    void Clear()
+    {
+      channelMask_ = 0;
     }
   };
 
-  class Output
+  class Output : Rtos::BaseStaticThread<256>
   {
+  private:
+    static const PWMConfig pwmcfg;
+    static PWMDriver* const PWMD;
+    void main() override
+    {
+      while(true) {
+        /* Waiting for a queued message then retrieving it.*/
+        thread_t *tp = chMsgWait();
+        const OutputCommand& cmd = *reinterpret_cast<const OutputCommand*>(chMsgGet(tp));
+        chMsgRelease(tp, MSG_OK);
+        auto chMask = cmd.GetChannelMask();
+        for(pwmchannel_t i{}; i < cmd.GetChannelNumber(); ++i) {
+          if(chMask & (1U << i)) {
+            chprintf((BaseSequentialStream*)&SD1, "i: %u  val: %u\r\n", i, cmd.GetValue(i));
+            SetValue(i, cmd.GetValue(i));
+          }
+        }
+      }
+    }
+    void SetValue(pwmchannel_t ch, pwmcnt_t value)
+    {
+      pwmEnableChannel(PWMD, ch, value);
+    }
+  public:
+    void Init()
+    {
+      IOBus pwmBus{GPIOA, 0x0F, 8};
+      palSetBusMode(&pwmBus, PAL_MODE_STM32_ALTERNATE_PUSHPULL);
+      pwmStart(PWMD, &pwmcfg);
+      start(NORMALPRIO);
+    }
+    msg_t SendMessage(const OutputCommand& msg)
+    {
+      return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
+    }
 
   };
 }

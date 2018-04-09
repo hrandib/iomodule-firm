@@ -84,6 +84,11 @@ namespace Rtos {
   {
       chThdSleep(interval);
   }
+
+  static inline ::thread_t* GetThdSelf()
+  {
+    return chThdGetSelfX();
+  }
 }//Rtos
 
 #endif // CH_EXTENDED_H
