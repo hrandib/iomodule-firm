@@ -50,13 +50,14 @@ namespace Analog {
     {
       return values_[ch];
     }
-    void SetValue(size_t ch, uint16_t value)
+    Rtos::Status SetValue(size_t ch, uint16_t value)
     {
       if(ch > chNumber_) {
-        return;
+        return Rtos::Status::Failure;
       }
       channelMask_ |= uint16_t(1U << ch);
       values_[ch] = value;
+      return Rtos::Status::Success;
     }
     void Clear()
     {
