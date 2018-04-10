@@ -89,11 +89,65 @@ namespace Digital {
     static const SPIConfig spicfg_;
     static const pinmap_t pinMap_;
     SPIDriver* const SPID_;
+    value_t mappedVal_, rawVal_;
+    void main() override
+    {
+      using Mode = OutputCommand::Mode;
+      while(true) {
+        /* Waiting for a queued message then retrieving it.*/
+        thread_t *tp = chMsgWait();
+        OutputCommand& cmd = *reinterpret_cast<OutputCommand*>(chMsgGet(tp));
+        value_t value = static_cast<value_t>(cmd.GetValue());
+        switch(cmd.GetMode()) {
+        case Mode::Set:
+          rawVal_ |= value;
+          break;
+        case Mode::Clear:
+          rawVal_ &= ~value;
+          break;
+        case Mode::SetAndClear:
+          rawVal_ |= value;
+          rawVal_ &= static_cast<value_t>(cmd.GetValue() >> OutputCommand::GetBusWidth());
+          break;
+        case Mode::Write:
+          rawVal_ = value;
+          break;
+        case Mode::Toggle:
+          rawVal_ ^= value;
+          break;
+        }
+        chMsgRelease(tp, static_cast<msg_t>(rawVal_));
+        mappedVal_ = Remap(rawVal_);
+        SpiSend();
+      }
+    }
+    void SpiSend()
+    {
+      spiSelect(SPID_);
+      spiStartSend(SPID_, 1, &mappedVal_);
+    }
+    static uint16_t Remap(uint16_t val)
+    {
+      uint16_t result{};
+      for(size_t i{}; i < pinMap_.size(); ++i) {
+        result |= val & (1UL << i) ? pinMap_[i] : 0;
+      }
+      return result;
+    }
   public:
-    Output() : SPID_{&SPID2}
+    Output() : SPID_{&SPID2}, mappedVal_{}, rawVal_{}
     { }
-    void Init();
-    msg_t SendMessage(OutputCommand& msg);
+    void Init()
+    {
+      palSetPadMode(GPIOB, 13, PAL_MODE_STM32_ALTERNATE_PUSHPULL);            // CLK
+      palSetPadMode(spicfg_.ssport, spicfg_.sspad, PAL_MODE_OUTPUT_PUSHPULL); // RCLK
+      palSetPadMode(GPIOB, 15, PAL_MODE_STM32_ALTERNATE_PUSHPULL);            // MOSI
+      spiStart(SPID_, &spicfg_);
+    }
+    msg_t SendMessage(OutputCommand& msg)
+    {
+      return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
+    }
     ~Output() override;
   };
 } //Digital
