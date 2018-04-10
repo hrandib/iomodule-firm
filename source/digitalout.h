@@ -26,6 +26,7 @@
 #include "hal.h"
 #include "type_traits_ex.h"
 #include <utility>
+#include <array>
 
 namespace Digital {
   class OutputCommand
@@ -81,7 +82,9 @@ namespace Digital {
   class Output : Rtos::BaseStaticThread<256>
   {
   private:
+    using pinmap_t = std::array<uint16_t, OutputCommand::GetBusWidth()>;
     static const SPIConfig spicfg_;
+    static const pinmap_t pinMap_;
     SPIDriver* const SPID_;
     const IOBus spiBus_{GPIOA, 0x0F, 8};
     void main() override;
