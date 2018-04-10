@@ -29,6 +29,7 @@
 #include "pinlist.h"
 #include "shell_impl.h"
 #include "analogout.h"
+#include "digitalout.h"
 
 using namespace Rtos;
 using namespace Mcudrv;
@@ -37,6 +38,7 @@ int main(void) {
   halInit();
   System::init();
   Analog::output.Init();
+  Digital::output.Init();
   Shell sh;
   while(true) {
     BaseThread::sleep(S2ST(1));
