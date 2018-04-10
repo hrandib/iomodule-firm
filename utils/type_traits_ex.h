@@ -45,12 +45,15 @@ namespace Utils {
 
   template<size_t sizeBits>
   struct SelectSize {
-    static const bool LessOrEq8 = sizeBits <= 8;
-    static const bool LessOrEq16 = sizeBits <= 16;
-    static const bool LessOrEq32 = sizeBits <= 32;
+    static constexpr bool LessOrEq8 = sizeBits <= 8;
+    static constexpr bool LessOrEq16 = sizeBits <= 16;
+    static constexpr bool LessOrEq32 = sizeBits <= 32;
 
     using type = std::conditional_t<LessOrEq8, uint8_t, std::conditional_t<LessOrEq16, uint16_t, uint32_t>>;
   };
+
+  template<size_t sizeBits>
+  using SelectSize_t = typename SelectSize<sizeBits>::type;
 
   template<unsigned size>
   struct SelectSizeForLength {
