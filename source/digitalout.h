@@ -107,7 +107,7 @@ namespace Digital {
           break;
         case Mode::SetAndClear:
           rawVal_ |= value;
-          rawVal_ &= static_cast<value_t>(cmd.GetValue() >> OutputCommand::GetBusWidth());
+          rawVal_ &= ~static_cast<value_t>(cmd.GetValue() >> OutputCommand::GetBusWidth());
           break;
         case Mode::Write:
           rawVal_ = value;
