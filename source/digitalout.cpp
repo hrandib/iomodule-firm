@@ -23,6 +23,9 @@
 #include "digitalout.h"
 
 namespace Digital {
+
+  Output output;
+
   const SPIConfig Output::spicfg_ {
     [](SPIDriver* spid) { spiUnselectI(spid); },
     GPIOB,        //strobe port

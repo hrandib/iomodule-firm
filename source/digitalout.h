@@ -143,13 +143,22 @@ namespace Digital {
       palSetPadMode(spicfg_.ssport, spicfg_.sspad, PAL_MODE_OUTPUT_PUSHPULL); // RCLK
       palSetPadMode(GPIOB, 15, PAL_MODE_STM32_ALTERNATE_PUSHPULL);            // MOSI
       spiStart(SPID_, &spicfg_);
+      start(NORMALPRIO);
     }
     msg_t SendMessage(OutputCommand& msg)
     {
       return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
     }
-    ~Output() override;
+    ~Output() override
+    {
+      spiStop(SPID_);
+      palSetPadMode(GPIOB, 13, PAL_MODE_INPUT_PULLDOWN);                      // CLK
+      palSetPadMode(spicfg_.ssport, spicfg_.sspad, PAL_MODE_INPUT_PULLDOWN);  // RCLK
+      palSetPadMode(GPIOB, 15, PAL_MODE_INPUT_PULLDOWN);                      // MOSI
+    }
   };
+
+  extern Output output;
 } //Digital
 
 #endif // DIGITALOUT_H
