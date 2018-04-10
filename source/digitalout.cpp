@@ -24,10 +24,10 @@
 
 namespace Digital {
   const SPIConfig Output::spicfg_ {
-    nullptr,
-    nullptr,
-    0,
-    0,
+    [](SPIDriver* spid) { spiUnselectI(spid); },
+    GPIOB,        //strobe port
+    14,           //strobe pad
+    SPI_CR1_DFF,  //16 bit transfer
     0
   };
 }
