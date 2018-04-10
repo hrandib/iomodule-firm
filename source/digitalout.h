@@ -41,18 +41,20 @@ namespace Digital {
     };
   private:
     static constexpr size_t busWidth_ = 16;
-    uint32_t value_;
+    using ex_value_t = Utils::SelectSize_t<busWidth_ * 2>;
+    ex_value_t value_;
     Mode mode_;
   public:
+    using value_type = Utils::SelectSize_t<busWidth_>;
     static constexpr size_t GetBusWidth()
     {
       return busWidth_;
     }
-    std::pair<Mode, uint32_t> Get() const
+    std::pair<Mode, ex_value_t> Get() const
     {
       return {mode_, value_};
     }
-    uint32_t GetValue() const
+    ex_value_t GetValue() const
     {
       return value_;
     }
@@ -60,7 +62,7 @@ namespace Digital {
     {
       return mode_;
     }
-    void SetValue(uint32_t value)
+    void SetValue(ex_value_t value)
     {
       value_ = value;
     }
@@ -68,7 +70,7 @@ namespace Digital {
     {
       mode_ = mode;
     }
-    Rtos::Status Set(Mode mode, uint32_t value)
+    Rtos::Status Set(Mode mode, ex_value_t value)
     {
       if(mode != Mode::SetAndClear && value > Utils::NumberToMask_v<busWidth_>) {
         return Rtos::Status::Failure;
@@ -83,12 +85,10 @@ namespace Digital {
   {
   private:
     using pinmap_t = std::array<uint16_t, OutputCommand::GetBusWidth()>;
+    using value_t = OutputCommand::value_type;
     static const SPIConfig spicfg_;
     static const pinmap_t pinMap_;
     SPIDriver* const SPID_;
-    const IOBus spiBus_{GPIOA, 0x0F, 8};
-    void main() override;
-    void SetValue(pwmchannel_t ch, pwmcnt_t value);
   public:
     Output() : SPID_{&SPID2}
     { }
