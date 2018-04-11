@@ -34,13 +34,25 @@
 using namespace Rtos;
 using namespace Mcudrv;
 
+static constexpr auto& dout = Digital::output;
+static constexpr auto& aout = Analog::output;
+
 int main(void) {
   halInit();
   System::init();
-  Analog::output.Init();
-  Digital::output.Init();
+  aout.Init();
+  dout.Init();
   Shell sh;
+  uint16_t dval{};
+  Digital::OutputCommand cmd{};
+  cmd.SetMode(Digital::OutputCommand::Mode::Write);
   while(true) {
+    dval <<= 1;
+    if(!dval) {
+      dval = 1;
+    }
+    cmd.SetValue(dval);
+    dout.SendMessage(cmd);
     BaseThread::sleep(S2ST(1));
   }
 }
