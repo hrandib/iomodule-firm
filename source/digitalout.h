@@ -117,8 +117,10 @@ namespace Digital {
           break;
         }
         chMsgRelease(tp, static_cast<msg_t>(rawVal_));
-        mappedVal_ = Remap(rawVal_);
-        SpiSend();
+        if(auto temp = Remap(rawVal_); mappedVal_ != temp) {
+          mappedVal_ = temp;
+          SpiSend();
+        }
       }
     }
     void SpiSend()
