@@ -43,16 +43,7 @@ int main(void) {
   aout.Init();
   dout.Init();
   Shell sh;
-  uint16_t dval{};
-  Digital::OutputCommand cmd{};
-  cmd.SetMode(Digital::OutputCommand::Mode::Write);
   while(true) {
-    dval <<= 1;
-    if(!dval) {
-      dval = 1;
-    }
-    cmd.SetValue(dval);
-    dout.SendMessage(cmd);
     BaseThread::sleep(S2ST(1));
   }
 }
