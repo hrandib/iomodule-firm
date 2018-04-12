@@ -93,45 +93,56 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
   using namespace Digital;
   using Mode = OutputCommand::Mode;
   OutputCommand cmd{};
-  if(argc == 0) {
-    output.SendMessage(cmd);
-    chprintf(chp, "%u\r\n", cmd.GetValue());
-    return;
-  }
-  else if(argc == 3 && "set_clear"sv == argv[0]) {
-    uint16_t setVal = static_cast<uint16_t>(atoi(argv[1]));
-    uint16_t clearVal = static_cast<uint16_t>(atoi(argv[2]));
-    cmd.Set(Mode::SetAndClear, setVal | uint32_t(clearVal << OutputCommand::GetBusWidth()));
-    output.SendMessage(cmd);
-    chprintf(chp, "%u\r\n", cmd.GetValue());
-    return;
-  }
-  else if(argc == 2) do {
-    if("set"sv == argv[0]) {
-      cmd.SetMode(Mode::Set);
+  do {
+    if(argc == 0) {
+      output.SendMessage(cmd);
+      chprintf(chp, "%x\r\n", cmd.GetValue());
+      return;
     }
-    else if("clear"sv == argv[0]) {
-      cmd.SetMode(Mode::Clear);
+    else if(argc == 3 && "set_clear"sv == argv[0]) {
+      //FIXME: not thread safe
+      errno = 0;
+      int32_t setVal = (int32_t)strtoul(argv[1], nullptr, 0);
+      if(errno || setVal < 0 || setVal > 65535) {
+        break;
+      }
+      int32_t clearVal = (int32_t)strtoul(argv[2], nullptr, 0);
+      if(errno || clearVal < 0 || clearVal > 65535) {
+        break;
+      }
+      uint32_t val = (uint32_t)setVal | uint32_t(clearVal << OutputCommand::GetBusWidth());
+      cmd.Set(Mode::SetAndClear, val);
+      output.SendMessage(cmd);
+      chprintf(chp, "%x\r\n", cmd.GetValue());
+      return;
     }
-    else if("write"sv == argv[0]) {
-      cmd.SetMode(Mode::Write);
+    else if(argc == 2) {
+      if("set"sv == argv[0]) {
+        cmd.SetMode(Mode::Set);
+      }
+      else if("clear"sv == argv[0]) {
+        cmd.SetMode(Mode::Clear);
+      }
+      else if("write"sv == argv[0]) {
+        cmd.SetMode(Mode::Write);
+      }
+      else if("toggle"sv == argv[0]) {
+        cmd.SetMode(Mode::Toggle);
+      }
+      else {
+        break;
+      }
+      //FIXME: not thread safe
+      errno = 0;
+      int32_t value = (int32_t)strtoul(argv[1], nullptr, 0);
+      if(errno || value < 0 || value > 65535) {
+        break;
+      }
+      cmd.SetValue((uint16_t)value);
+      output.SendMessage(cmd);
+      chprintf(chp, "%x\r\n", cmd.GetValue());
+      return;
     }
-    else if("toggle"sv == argv[0]) {
-      cmd.SetMode(Mode::Toggle);
-    }
-    else {
-      break;
-    }
-    //FIXME: protect with mutex
-    errno = 0;
-    int32_t value = (int32_t)strtoul(argv[1], nullptr, 0);
-    if(errno || value < 0 || value > 65535) {
-      break;
-    }
-    cmd.SetValue((uint16_t)value);
-    output.SendMessage(cmd);
-    chprintf(chp, "%u\r\n", cmd.GetValue());
-    return;
   } while(false);
   shellUsage(chp, "Set state of digital output register"
                   "\r\npossible modes: set, clear, set_clear, write, toggle"
