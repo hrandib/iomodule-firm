@@ -24,15 +24,21 @@
 #include "shell.h"
 #include "shell_impl.h"
 #include "analogout.h"
+#include "digitalout.h"
 #include "chprintf.h"
 #include <cstdlib>
+#include <string_view>
+
+using namespace std::literals;
 
 static THD_WORKING_AREA(SHELL_WA_SIZE, 512);
 
 static void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
   {"setanalog", cmd_setanalog},
+  {"setdigital", cmd_setdigital},
   {nullptr, nullptr}
 };
 
@@ -47,7 +53,8 @@ static const ShellConfig shell_cfg1 = {
 
 void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  Analog::OutputCommand cmd{};
+  using namespace Analog;
+  OutputCommand cmd{};
   auto PrintValues = [&] {
     chprintf(chp, "%4u %4u %4u %4u\r\n",
              cmd.GetValue(0),
@@ -56,7 +63,7 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
              cmd.GetValue(3));
   };
   if(argc == 0) {
-    Analog::output.SendMessage(cmd);
+    output.SendMessage(cmd);
     PrintValues();
     return;
   }
@@ -70,7 +77,7 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
       break;
     }
     cmd.SetValue(ch, (uint16_t)value);
-    Analog::output.SendMessage(cmd);
+    output.SendMessage(cmd);
     PrintValues();
     return;
   } while(false);
@@ -80,6 +87,73 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\nExample:"
                   "\r\n\tsetanalog 1 2048");
 }
+
+void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  using namespace Digital;
+  using Mode = OutputCommand::Mode;
+  OutputCommand cmd{};
+  do {
+    if(argc == 0) {
+      output.SendMessage(cmd);
+      chprintf(chp, "%x\r\n", cmd.GetValue());
+      return;
+    }
+    else if(argc == 3 && "set_clear"sv == argv[0]) {
+      //FIXME: not thread safe
+      errno = 0;
+      int32_t setVal = (int32_t)strtoul(argv[1], nullptr, 0);
+      if(errno || setVal < 0 || setVal > 65535) {
+        break;
+      }
+      int32_t clearVal = (int32_t)strtoul(argv[2], nullptr, 0);
+      if(errno || clearVal < 0 || clearVal > 65535) {
+        break;
+      }
+      uint32_t val = (uint32_t)setVal | uint32_t(clearVal << OutputCommand::GetBusWidth());
+      cmd.Set(Mode::SetAndClear, val);
+      output.SendMessage(cmd);
+      chprintf(chp, "%x\r\n", cmd.GetValue());
+      return;
+    }
+    else if(argc == 2) {
+      if("set"sv == argv[0]) {
+        cmd.SetMode(Mode::Set);
+      }
+      else if("clear"sv == argv[0]) {
+        cmd.SetMode(Mode::Clear);
+      }
+      else if("write"sv == argv[0]) {
+        cmd.SetMode(Mode::Write);
+      }
+      else if("toggle"sv == argv[0]) {
+        cmd.SetMode(Mode::Toggle);
+      }
+      else {
+        break;
+      }
+      //FIXME: not thread safe
+      errno = 0;
+      int32_t value = (int32_t)strtoul(argv[1], nullptr, 0);
+      if(errno || value < 0 || value > 65535) {
+        break;
+      }
+      cmd.SetValue((uint16_t)value);
+      output.SendMessage(cmd);
+      chprintf(chp, "%x\r\n", cmd.GetValue());
+      return;
+    }
+  } while(false);
+  shellUsage(chp, "Set state of digital output register"
+                  "\r\npossible modes: set, clear, set_clear, write, toggle"
+                  "\r\nReturns modified register value"
+                  "\r\n\tsetanalog [mode] [mask(0-65535)]"
+                  "\r\nExamples:"
+                  "\r\n\tsetdigital set 0x2020"
+                  "\r\n\tsetdigital set_clear 0x0088 0xFF00"
+                  "\r\n\tsetdigital toggle 666");
+}
+
 
 Shell::Shell()
 {

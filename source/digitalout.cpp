@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +20,23 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogout.h"
 #include "digitalout.h"
 
-using namespace Rtos;
-using namespace Mcudrv;
+namespace Digital {
 
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
+  Output output;
 
-int main(void) {
-  halInit();
-  System::init();
-  aout.Init();
-  dout.Init();
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
-  }
-}
+  const SPIConfig Output::spicfg_ {
+    [](SPIDriver* spid) { spiUnselectI(spid); },
+    GPIOB,        //strobe port
+    14,           //strobe pad
+    SPI_CR1_DFF,  //16 bit transfer
+    0
+  };
+  const Output::pinmap_t Output::pinMap_{{0x0080, 0x0001, 0x0040, 0x0002,
+                                          0x0020, 0x0004, 0x0010, 0x0008,
+                                          0x8000, 0x0100, 0x4000, 0x0200,
+                                          0x2000, 0x0400, 0x1000, 0x0800,
+                                         }};
+
+} //Digital

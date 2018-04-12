@@ -21,6 +21,7 @@ CppApplication
     "SHELL_CONFIG_FILE",
     "HAL_USE_SERIAL",
     "HAL_USE_PWM",
+    "HAL_USE_SPI",
     "STM32F103xB"
 	]
   cpp.driverFlags: [
@@ -85,6 +86,7 @@ CppApplication
     ChibiOS + "os/hal/ports/STM32/LLD/GPIOv1",
     ChibiOS + "os/hal/ports/STM32/LLD/TIMv1",
     ChibiOS + "os/hal/ports/STM32/LLD/USARTv1",
+    ChibiOS + "os/hal/ports/STM32/LLD/SPIv1",
     //cpp support
     ChibiOS + "os/various/cpp_wrappers",
     //Various
@@ -139,7 +141,6 @@ CppApplication
       "type_traits_ex.h"
     ]
   }
-
   Group { name: "Port"
     prefix: ChibiOS + "os/common/ports/ARMCMx/"
     files: [
@@ -183,7 +184,9 @@ CppApplication
       "LLD/USARTv1/hal_uart_lld.h",
       "LLD/USARTv1/hal_uart_lld.c",
       "LLD/USARTv1/hal_serial_lld.h",
-      "LLD/USARTv1/hal_serial_lld.c"
+      "LLD/USARTv1/hal_serial_lld.c",
+      "LLD/SPIv1/hal_spi_lld.h",
+      "LLD/SPIv1/hal_spi_lld.c"
     ]
   }
   Group { name: "RT"
@@ -243,6 +246,8 @@ CppApplication
       "main.cpp",
       "source/analogout.cpp",
       "source/analogout.h",
+      "source/digitalout.cpp",
+      "source/digitalout.h",
       "source/shell_impl.cpp",
       "source/shell_impl.h",
     ]
