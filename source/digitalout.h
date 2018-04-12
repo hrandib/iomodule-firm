@@ -106,7 +106,7 @@ namespace Digital {
           rawVal_ &= ~value;
           break;
         case Mode::SetAndClear:
-          rawVal_ |= value;
+          rawVal_ |= value & 0xFFFF;
           rawVal_ &= ~static_cast<value_t>(cmd.GetValue() >> OutputCommand::GetBusWidth());
           break;
         case Mode::Write:
@@ -116,7 +116,8 @@ namespace Digital {
           rawVal_ ^= value;
           break;
         }
-        chMsgRelease(tp, static_cast<msg_t>(rawVal_));
+        cmd.SetValue(rawVal_);
+        chMsgRelease(tp, MSG_OK);
         if(auto temp = Remap(rawVal_); mappedVal_ != temp) {
           mappedVal_ = temp;
           SpiSend();
