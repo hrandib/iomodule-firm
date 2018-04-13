@@ -160,6 +160,8 @@ CppApplication
       "hal_lld.c",
       "hal_lld_f103.h",
       "hal_ext_lld_isr.c",
+      "hal_adc_lld.h",
+      "hal_adc_lld.c",
     ]
   }
   Group { name: "Drivers"
@@ -244,6 +246,8 @@ CppApplication
   Group {	name: "Main"
     files: [
       "main.cpp",
+      "source/analogin.cpp",
+      "source/analogin.h",
       "source/analogout.cpp",
       "source/analogout.h",
       "source/digitalout.cpp",
