@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,31 +20,4 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogout.h"
-#include "digitalout.h"
 #include "modbus_impl.h"
-
-using namespace Rtos;
-using namespace Mcudrv;
-
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
-
-int main(void) {
-  halInit();
-  System::init();
-  aout.Init();
-  dout.Init();
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
-  }
-}

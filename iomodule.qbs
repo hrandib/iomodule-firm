@@ -248,6 +248,8 @@ CppApplication
       "source/analogout.h",
       "source/digitalout.cpp",
       "source/digitalout.h",
+      "source/modbus_impl.cpp",
+      "source/modbus_impl.h",
       "source/shell_impl.cpp",
       "source/shell_impl.h",
     ]
