@@ -22,4 +22,17 @@
 #ifndef ANALOGIN_H
 #define ANALOGIN_H
 
+#include "hal.h"
+#include "ch_extended.h"
+
+namespace Analog {
+  class Input
+  {
+  private:
+    static const ADCConversionGroup adcGroupCfg;
+    static void AdcCb(ADCDriver* /*adcp*/, adcsample_t* buffer, size_t n)
+    { }
+  };
+}
+
 #endif // ANALOGIN_H
