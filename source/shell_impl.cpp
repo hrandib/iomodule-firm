@@ -144,10 +144,10 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
       return;
     }
   } while(false);
-  shellUsage(chp, "Set state of digital output register"
+  shellUsage(chp, "Set state of the digital output register"
                   "\r\npossible modes: set, clear, set_clear, write, toggle"
                   "\r\nReturns modified register value"
-                  "\r\n\tsetanalog [mode] [mask(0-65535)]"
+                  "\r\n\tsetdigital [mode] [mask(0-65535)]"
                   "\r\nExamples:"
                   "\r\n\tsetdigital set 0x2020"
                   "\r\n\tsetdigital set_clear 0x0088 0xFF00"
