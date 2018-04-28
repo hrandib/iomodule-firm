@@ -24,6 +24,8 @@
 
 namespace Analog {
 
+  Input input;
+
 #define ADC_GRP1_NUM_CHANNELS   1
 #define ADC_GRP1_BUF_DEPTH      8
 
@@ -68,76 +70,6 @@ const ADCConversionGroup Input::adcGroupCfg {
   ADC_SQR3_SQ4_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN10) |
   ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN10)
 };
-
-/*
- * Red LEDs blinker thread, times are in milliseconds.
- */
-static THD_WORKING_AREA(waThread1, 128);
-static THD_FUNCTION(Thread1, arg) {
-
-  (void)arg;
-
-  chRegSetThreadName("blinker");
-  while (true) {
-    palClearPad(IOPORT3, GPIOC_LED);
-    chThdSleepMilliseconds(500);
-    palSetPad(IOPORT3, GPIOC_LED);
-    chThdSleepMilliseconds(500);
-  }
-}
-
-/*
- * Application entry point.
- */
-int main(void) {
-
-  /*
-   * System initializations.
-   * - HAL initialization, this also initializes the configured device drivers
-   *   and performs the board-specific initializations.
-   * - Kernel initialization, the main() function becomes a thread and the
-   *   RTOS is active.
-   */
-  halInit();
-  chSysInit();
-
-  /*
-   * Setting up analog inputs used by the demo.
-   */
-  palSetGroupMode(GPIOC, PAL_PORT_BIT(0) | PAL_PORT_BIT(1),
-                  0, PAL_MODE_INPUT_ANALOG);
-
-  /*
-   * Creates the blinker thread.
-   */
-  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
-
-  /*
-   * Activates the ADC1 driver and the temperature sensor.
-   */
-  adcStart(&ADCD1, NULL);
-
-  /*
-   * Linear conversion.
-   */
-  adcConvert(&ADCD1, &adcgrpcfg1, samples1, ADC_GRP1_BUF_DEPTH);
-  chThdSleepMilliseconds(1000);
-
-  /*
-   * Starts an ADC continuous conversion.
-   */
-  adcStartConversion(&ADCD1, &adcgrpcfg2, samples2, ADC_GRP2_BUF_DEPTH);
-
-  /*
-   * Normal main() thread activity, in this demo it does nothing.
-   */
-  while (true) {
-    if (palReadPad(GPIOA, GPIOA_BUTTON))
-      adcStopConversion(&ADCD1);
-    chThdSleepMilliseconds(500);
-  }
-  return 0;
-}
 
 } //Analog
 

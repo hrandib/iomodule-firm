@@ -29,6 +29,7 @@
 #include "pinlist.h"
 #include "shell_impl.h"
 #include "analogout.h"
+#include "analogin.h"
 #include "digitalout.h"
 
 using namespace Rtos;
@@ -36,12 +37,18 @@ using namespace Mcudrv;
 
 static constexpr auto& dout = Digital::output;
 static constexpr auto& aout = Analog::output;
+static constexpr auto& ain = Analog::input;
+
+template<typename... Ts>
+static void Init(Ts&&... objs)
+{
+  (objs.Init(), ...);
+}
 
 int main(void) {
   halInit();
   System::init();
-  aout.Init();
-  dout.Init();
+  Init(aout, dout, ain);
   Shell sh;
   while(true) {
     BaseThread::sleep(S2ST(1));

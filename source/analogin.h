@@ -24,15 +24,28 @@
 
 #include "hal.h"
 #include "ch_extended.h"
+#include "pinlist.h"
 
 namespace Analog {
+using namespace Mcudrv;
+
   class Input
   {
   private:
+    using InputPins = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pb0, Pb1>;
+    static constexpr uint32_t chNumber = 10;
     static const ADCConversionGroup adcGroupCfg;
-    static void AdcCb(ADCDriver* /*adcp*/, adcsample_t* buffer, size_t n)
+    static void AdcCb(ADCDriver* /*adcp*/, adcsample_t*/* buffer*/, size_t /*n*/)
     { }
+  public:
+    Input() {}
+    void Init()
+    {
+      InputPins::SetConfig<GpioModes::InputAnalog>();
+    }
   };
-}
+
+  extern Input input;
+} //Analog
 
 #endif // ANALOGIN_H
