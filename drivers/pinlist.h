@@ -52,7 +52,7 @@ namespace Mcudrv {
       template<GpioModes conf>
       static void SetConfig()
       {
-        First::template SetConfig<GpioBase::Cfg(conf)>();
+        First::template SetConfig<conf>();
         PinlistImplementation<Rest...>::template SetConfig<conf>();
       }
     };

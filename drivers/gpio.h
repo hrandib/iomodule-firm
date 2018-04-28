@@ -126,6 +126,11 @@ namespace Mcudrv {
           Regs()->CRH = (Regs()->CRH & ~(maskH * 0x0F)) | maskH * (config >> 1);
         }
       }
+      template <DataT mask, GpioModes config>
+      static void SetConfig()
+      {
+        SetConfig<mask, static_cast<Cfg>(config)>();
+      }
       template <DataT mask, Cfg config>
       static void WriteConfig()
       {
@@ -171,6 +176,11 @@ namespace Mcudrv {
           Regs()->CRH = (Regs()->CRH & ~(maskH * 0x0F)) | maskH * (config >> 1);
         }
       }
+      static void SetConfig(DataT mask, GpioModes config)
+      {
+        SetConfig(mask, static_cast<Cfg>(config));
+      }
+
       static void WriteConfig(DataT mask, Cfg config)
       {
         Regs()->CRL = Unpack4Bit(mask) * (config >> 1);
@@ -218,6 +228,9 @@ namespace Mcudrv {
     enum { Width = 16 };
     enum { id = 0xFF };
     template <DataT mask, Cfg cfg>
+    static void SetConfig()
+    { }
+    template <DataT mask, GpioModes cfg>
     static void SetConfig()
     { }
     template <DataT mask, Cfg cfg>
@@ -293,6 +306,11 @@ namespace Mcudrv {
       static void SetConfig()
       {
         Port::template SetConfig<mask, cfg>();
+      }
+      template <GpioModes cfg>
+      static void SetConfig()
+      {
+        SetConfig<static_cast<GpioBase::Cfg>(cfg)>();
       }
       static void Set()
       {
