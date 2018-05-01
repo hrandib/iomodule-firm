@@ -39,11 +39,9 @@ static constexpr auto& dout = Digital::output;
 static constexpr auto& aout = Analog::output;
 static constexpr auto& ain = Analog::input;
 
-template<typename... Ts>
-static void Init(Ts&&... objs)
-{
+static auto Init = [](auto&&... objs) {
   (objs.Init(), ...);
-}
+};
 
 int main(void) {
   halInit();

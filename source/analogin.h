@@ -25,24 +25,56 @@
 #include "hal.h"
 #include "ch_extended.h"
 #include "pinlist.h"
+#include "circularfifo.h"
+
+#include <array>
 
 namespace Analog {
 using namespace Mcudrv;
 
-  class Input
+  class Input : Rtos::BaseStaticThread<256>
   {
-  private:
-    using InputPins = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pb0, Pb1>;
-    static constexpr uint32_t chNumber = 10;
-    static const ADCConversionGroup adcGroupCfg;
-    static void AdcCb(ADCDriver* /*adcp*/, adcsample_t*/* buffer*/, size_t /*n*/)
-    { }
   public:
-    Input() {}
+    static constexpr size_t numChannels = 10;
+    static constexpr size_t bufDepth = 2;
+    using sample_buf_t = std::array<adcsample_t, numChannels>;
+    using dma_buf_t = std::array<sample_buf_t, bufDepth>;
+    using fifo_t = memory_relaxed_aquire_release::CircularFifo<sample_buf_t, 128>;
+  private:
+    using InputPins = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pinlist<Pb0, SequenceOf<2>>>;
+    dma_buf_t dmaBuf_;
+    fifo_t fifo_;
+    ADCDriver& AdcDriver_;
+    static const ADCConversionGroup adcGroupCfg_;
+  public:
+    Input() : fifo_{}, AdcDriver_{ADCD1}
+    {
+      AdcDriver_.customData = this;
+    }
     void Init()
     {
       InputPins::SetConfig<GpioModes::InputAnalog>();
+      start(NORMALPRIO);
+      adcStart(&AdcDriver_, nullptr);
+      adcStartConversion(&AdcDriver_, &adcGroupCfg_, (adcsample_t*)&dmaBuf_, bufDepth);
     }
+    static void AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t n)
+    {
+      Input& inp = *reinterpret_cast<Input*>(adcp->customData);
+      sample_buf_t& sb = *reinterpret_cast<sample_buf_t*>(buffer);
+      inp.fifo_.push(sb);
+    }
+    void main() override
+    {
+      sample_buf_t buf;
+      while(true) {
+        if(fifo_.pop(buf) == false) {
+          continue;
+        }
+
+      }
+    }
+
   };
 
   extern Input input;

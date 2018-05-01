@@ -21,55 +21,27 @@
  */
 
 #include "analogin.h"
+#include "type_traits_ex.h"
 
 namespace Analog {
 
-  Input input;
-
-#define ADC_GRP1_NUM_CHANNELS   1
-#define ADC_GRP1_BUF_DEPTH      8
-
-#define ADC_GRP2_NUM_CHANNELS   8
-#define ADC_GRP2_BUF_DEPTH      16
-
-static adcsample_t samples1[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
-static adcsample_t samples2[ADC_GRP2_NUM_CHANNELS * ADC_GRP2_BUF_DEPTH];
-
-/*
- * ADC streaming callback.
- */
-static size_t nx = 0, ny = 0;
-static void adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
-
-  (void)adcp;
-  if (samples2 == buffer) {
-    nx += n;
-  }
-  else {
-    ny += n;
-  }
-}
-
-/*
- * ADC conversion group.
- * Mode:        Continuous, 16 samples of 8 channels, SW triggered.
- * Channels:    IN10, IN11, IN10, IN11, IN10, IN11, Sensor, VRef.
- */
-const ADCConversionGroup Input::adcGroupCfg {
-  TRUE, // is circular
-  ADC_GRP2_NUM_CHANNELS,
+const ADCConversionGroup Input::adcGroupCfg_ {
+  true, // is circular
+  numChannels,
   AdcCb,
   nullptr,
-  0, ADC_CR2_TSVREFE,           /* CR1, CR2 */
-  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_AN10(ADC_SAMPLE_41P5) |
-  ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_239P5) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_239P5),
-  0,                            /* SMPR2 */
-  ADC_SQR1_NUM_CH(ADC_GRP2_NUM_CHANNELS),
-  ADC_SQR2_SQ8_N(ADC_CHANNEL_SENSOR) | ADC_SQR2_SQ7_N(ADC_CHANNEL_VREFINT),
-  ADC_SQR3_SQ6_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN10) |
-  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN10) |
-  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN10)
+  0, 0,           /* CR1, CR2 */
+  0,
+  Utils::Unpack3Bit(Utils::NumberToMask_v<numChannels>) * ADC_SAMPLE_28P5, /* SMPR2 */
+  ADC_SQR1_NUM_CH(numChannels),
+  ADC_SQR2_SQ10_N(ADC_CHANNEL_IN9) | ADC_SQR2_SQ9_N(ADC_CHANNEL_IN8) |
+  ADC_SQR2_SQ8_N(ADC_CHANNEL_IN7) | ADC_SQR2_SQ7_N(ADC_CHANNEL_IN6),
+  ADC_SQR3_SQ6_N(ADC_CHANNEL_IN5)   | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN4) |
+  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN3)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN2) |
+  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN1)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN0)
 };
+
+Input input;
 
 } //Analog
 

@@ -63,6 +63,9 @@
 #define STM32_ADC_ADC1_DMA_PRIORITY         2
 #define STM32_ADC_ADC1_IRQ_PRIORITY         6
 
+#define ADC_DRIVER_EXT_FIELDS \
+  void* customData;
+
 /*
  * EXT driver system settings.
  */

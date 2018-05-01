@@ -22,6 +22,7 @@ CppApplication
     "HAL_USE_SERIAL",
     "HAL_USE_PWM",
     "HAL_USE_SPI",
+    "HAL_USE_ADC",
     "STM32F103xB"
 	]
   cpp.driverFlags: [
@@ -138,7 +139,8 @@ CppApplication
       "ch_extended.h",
       "string_utils.h",
       "string_utils.cpp",
-      "type_traits_ex.h"
+      "type_traits_ex.h",
+      "circularfifo.h"
     ]
   }
   Group { name: "Port"
