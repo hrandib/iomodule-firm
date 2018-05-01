@@ -123,6 +123,14 @@ namespace Utils {
     mask = (mask & 0x02020202) << 3 | (mask & 0x01010101);
     return mask;
   }
+  static constexpr uint32_t Unpack3Bit(uint32_t mask)
+  {
+    mask = (mask & 0x0FC0) << 12 | (mask & 0x003F);
+    mask = (mask & 0x38E38E38) << 6 | (mask & 0xC71C71C7);
+    mask = (mask & 0xA4924924) << 4 | (mask & 0xDB6DB6DB);
+    mask = (mask & 0x12492492) << 2 | (mask & 0x49249249);
+    return mask;
+  }
 }
 
 #endif //TYPE_TRAITS_H
