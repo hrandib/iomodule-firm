@@ -23,6 +23,7 @@
 #define ANALOGIN_H
 
 #include "hal.h"
+#include "chprintf.h"
 #include "ch_extended.h"
 #include "pinlist.h"
 #include "circularfifo.h"
@@ -58,7 +59,7 @@ using namespace Mcudrv;
       adcStart(&AdcDriver_, nullptr);
       adcStartConversion(&AdcDriver_, &adcGroupCfg_, (adcsample_t*)&dmaBuf_, bufDepth);
     }
-    static void AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t n)
+    static void AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t /*n*/)
     {
       Input& inp = *reinterpret_cast<Input*>(adcp->customData);
       sample_buf_t& sb = *reinterpret_cast<sample_buf_t*>(buffer);
@@ -67,11 +68,17 @@ using namespace Mcudrv;
     void main() override
     {
       sample_buf_t buf;
+      size_t counter{};
       while(true) {
         if(fifo_.pop(buf) == false) {
+          sleep(MS2ST(1));
           continue;
         }
-
+        if(++counter == 10000) {
+          counter = 0;
+          chprintf((BaseSequentialStream*)&SD1, "%u %u %u %u %u %u %u %u %u %u\r\n",
+                   buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], buf[8], buf[9]);
+        }
       }
     }
 
