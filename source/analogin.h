@@ -97,7 +97,7 @@ using namespace Mcudrv;
       adcStart(&AdcDriver_, nullptr);
       adcStartConversion(&AdcDriver_, &adcGroupCfg_, (adcsample_t*)&dmaBuf_, dmaBufDepth);
     }
-    static void AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t /*n*/)
+    static void AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t)
     {
       Input& inp = *reinterpret_cast<Input*>(adcp->customData);
       sample_buf_t& sb = *reinterpret_cast<sample_buf_t*>(buffer);
@@ -108,7 +108,7 @@ using namespace Mcudrv;
       Rtos::SemLockGuard{semSamples_};
       return samples_;
     }
-    uint16_t GetDigitalVal()
+    uint16_t GetBinaryVal()
     {
       Rtos::SemLockGuard{semBinaryVal_};
       return binaryVal_;

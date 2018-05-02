@@ -25,6 +25,7 @@
 #include "shell_impl.h"
 #include "analogout.h"
 #include "digitalout.h"
+#include "analogin.h"
 #include "chprintf.h"
 #include <cstdlib>
 #include <string_view>
@@ -34,11 +35,15 @@ using namespace std::literals;
 static THD_WORKING_AREA(SHELL_WA_SIZE, 512);
 
 static void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
   {"setanalog", cmd_setanalog},
+  {"getanalog", cmd_getanalog},
   {"setdigital", cmd_setdigital},
+  {"getdigital", cmd_getdigital},
   {nullptr, nullptr}
 };
 
@@ -87,6 +92,31 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\nExample:"
                   "\r\n\tsetanalog 1 2048");
 }
+
+void cmd_getanalog(BaseSequentialStream *chp, int /*argc*/, char **/*argv[]*/)
+{
+  using namespace Analog;
+  auto samples = Analog::input.GetSamples();
+  for(auto sample : samples) {
+    chprintf(chp, "%4u ", sample);
+  }
+  chprintf(chp, "\r\n");
+}
+
+void cmd_getdigital(BaseSequentialStream *chp, int /*argc*/, char **/*argv[]*/)
+{
+  using namespace Analog;
+  chprintf(chp, "%x\r\n", input.GetBinaryVal());
+  for(size_t i{}; i < 10; ++i) {
+    auto counters = Analog::input.GetCounters();
+    for(auto counter : counters) {
+      chprintf(chp, "%8u ", counter);
+    }
+    chprintf(chp, "\r\n");
+    chThdSleep(MS2ST(1000));
+  }
+}
+
 
 void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
 {
