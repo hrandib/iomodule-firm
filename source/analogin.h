@@ -70,17 +70,22 @@ using namespace Mcudrv;
     using sample_buf_t = std::array<adcsample_t, numChannels>;
     using dma_buf_t = std::array<sample_buf_t, dmaBufDepth>;
     using fifo_t = memory_relaxed_aquire_release::CircularFifo<sample_buf_t, 64>;
+    using counters_buf_t = std::array<uint32_t, numChannels>;
     using InputPins = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pinlist<Pb0, SequenceOf<2>>>;
 
     dma_buf_t dmaBuf_;
     fifo_t fifo_;
     std::array<MovingAverageBuf<adcsample_t, 8>, numChannels> maBuf_;
     ADCDriver& AdcDriver_;
-    std::array<uint32_t, numChannels> counters_;
-    uint16_t digitalVal_;
+    Rtos::BinarySemaphore semSamples_, semCounters_, semBinaryVal_;
+    sample_buf_t samples_;
+    counters_buf_t counters_;
+    uint16_t binaryVal_;
     static const ADCConversionGroup adcGroupCfg_;
   public:
-    Input() : fifo_{}, maBuf_{}, AdcDriver_{ADCD1}, counters_{}, digitalVal_{}
+    Input() : fifo_{}, maBuf_{}, AdcDriver_{ADCD1},
+      semSamples_{false}, semCounters_{false}, semBinaryVal_{false},
+      samples_{}, counters_{}, binaryVal_{}
     {
       AdcDriver_.customData = this;
     }
@@ -98,32 +103,58 @@ using namespace Mcudrv;
       sample_buf_t& sb = *reinterpret_cast<sample_buf_t*>(buffer);
       inp.fifo_.push(sb);
     }
+    sample_buf_t GetSamples()
+    {
+      Rtos::SemLockGuard{semSamples_};
+      return samples_;
+    }
+    uint16_t GetDigitalVal()
+    {
+      Rtos::SemLockGuard{semBinaryVal_};
+      return binaryVal_;
+    }
+    counters_buf_t GetCounters()
+    {
+      Rtos::SemLockGuard{semCounters_};
+      return counters_;
+    }
     void main() override
     {
       sample_buf_t buf;
-      size_t counter{};
+      size_t AdcRefreshCount{};
       while(true) {
         if(fifo_.pop(buf) == false) {
-          sleep(MS2ST(1));
+          sleep(US2ST(500));
           continue;
         }
-        for(size_t i; i < numChannels; ++i) {
+        uint16_t binarySet{}, binaryClear{};
+        for(size_t i{}; i < numChannels; ++i) {
           maBuf_[i] = buf[i];
           buf[i] = maBuf_[i];
           if(buf[i] > highLevelThd) {
-            if(!(digitalVal_ & (1 << i))) {
-              ++counters_[i];
-            }
-            digitalVal_ |= (1U << i);
+            binarySet |= (1U << i);
           }
           if(buf[i] < lowLevelThd) {
-            digitalVal_ &= ~(1U << i);
+            binaryClear |= (1U << i);
           }
         }
-        if(++counter == 10000) {
-          counter = 0;
-          chprintf((BaseSequentialStream*)&SD1, "%u %u %u %u %u %u %u %u %u %u\r\n",
-                          buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], buf[8], buf[9]);
+        uint16_t positiveTransitionMask = ((binaryVal_ ^ binarySet) & ~binaryVal_);
+        if(positiveTransitionMask) {
+          Rtos::SemLockGuard{semCounters_};
+          for(size_t i{}; i < numChannels; ++i) {
+              counters_[i] += (positiveTransitionMask >> i) & 0x01;
+          }
+        }
+        uint16_t binaryTemp = (binaryVal_ | binarySet) & ~binaryClear;
+        if(binaryTemp != binaryVal_) {
+          Rtos::SemLockGuard{semBinaryVal_};
+          binaryVal_ = binaryTemp;
+        }
+        if(++AdcRefreshCount == 20) {
+          AdcRefreshCount = 0;
+          semSamples_.wait();
+          samples_ = buf;
+          semSamples_.signal();
         }
       }
     }
