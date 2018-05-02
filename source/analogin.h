@@ -26,38 +26,71 @@
 #include "chprintf.h"
 #include "ch_extended.h"
 #include "pinlist.h"
+#include "type_traits_ex.h"
 #include "circularfifo.h"
 
 #include <array>
+#include <numeric>
 
 namespace Analog {
 using namespace Mcudrv;
+
+  template<typename T, size_t size>
+  class MovingAverageBuf
+  {
+  private:
+    std::array<T, size> buf_{};
+    size_t index{};
+  public:
+    void operator=(T val)
+    {
+      buf_[index] = val;
+      if constexpr(Utils::IsPowerOf2(size)) {
+        index = (index + 1) & (size - 1);
+      }
+      else {
+        index = (index + 1) % size;
+      }
+    }
+    operator T()
+    {
+      return std::accumulate(begin(buf_), end(buf_), (adcsample_t)0) / size;
+    }
+  };
 
   class Input : Rtos::BaseStaticThread<256>
   {
   public:
     static constexpr size_t numChannels = 10;
-    static constexpr size_t bufDepth = 2;
-    using sample_buf_t = std::array<adcsample_t, numChannels>;
-    using dma_buf_t = std::array<sample_buf_t, bufDepth>;
-    using fifo_t = memory_relaxed_aquire_release::CircularFifo<sample_buf_t, 128>;
+    static constexpr size_t dmaBufDepth = 2;
+
+    static constexpr size_t lowLevelThd = 4096 / 4;
+    static constexpr size_t highLevelThd = 4096 / 2;
   private:
+    using sample_buf_t = std::array<adcsample_t, numChannels>;
+    using dma_buf_t = std::array<sample_buf_t, dmaBufDepth>;
+    using fifo_t = memory_relaxed_aquire_release::CircularFifo<sample_buf_t, 64>;
     using InputPins = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pinlist<Pb0, SequenceOf<2>>>;
+
     dma_buf_t dmaBuf_;
     fifo_t fifo_;
+    std::array<MovingAverageBuf<adcsample_t, 8>, numChannels> maBuf_;
     ADCDriver& AdcDriver_;
+    std::array<uint32_t, numChannels> counters_;
+    uint16_t digitalVal_;
     static const ADCConversionGroup adcGroupCfg_;
   public:
-    Input() : fifo_{}, AdcDriver_{ADCD1}
+    Input() : fifo_{}, maBuf_{}, AdcDriver_{ADCD1}, counters_{}, digitalVal_{}
     {
       AdcDriver_.customData = this;
     }
     void Init()
     {
       InputPins::SetConfig<GpioModes::InputAnalog>();
-      start(NORMALPRIO);
+      setName("AnalogInput");
+      start(HIGHPRIO);
       adcStart(&AdcDriver_, nullptr);
-      adcStartConversion(&AdcDriver_, &adcGroupCfg_, (adcsample_t*)&dmaBuf_, bufDepth);
+      adcStartConversion(&AdcDriver_, &adcGroupCfg_, (adcsample_t*)&dmaBuf_, dmaBufDepth);
     }
     static void AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t /*n*/)
     {
@@ -74,10 +107,23 @@ using namespace Mcudrv;
           sleep(MS2ST(1));
           continue;
         }
+        for(size_t i; i < numChannels; ++i) {
+          maBuf_[i] = buf[i];
+          buf[i] = maBuf_[i];
+          if(buf[i] > highLevelThd) {
+            if(!(digitalVal_ & (1 << i))) {
+              ++counters_[i];
+            }
+            digitalVal_ |= (1U << i);
+          }
+          if(buf[i] < lowLevelThd) {
+            digitalVal_ &= ~(1U << i);
+          }
+        }
         if(++counter == 10000) {
           counter = 0;
           chprintf((BaseSequentialStream*)&SD1, "%u %u %u %u %u %u %u %u %u %u\r\n",
-                   buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], buf[8], buf[9]);
+                          buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], buf[8], buf[9]);
         }
       }
     }
