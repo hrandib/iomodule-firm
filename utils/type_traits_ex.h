@@ -131,6 +131,11 @@ namespace Utils {
     mask = (mask & 0x12492492) << 2 | (mask & 0x49249249);
     return mask;
   }
+
+  static constexpr bool IsPowerOf2(uint32_t val)
+  {
+    return val && !(val & (val - 1));
+  }
 }
 
 #endif //TYPE_TRAITS_H
