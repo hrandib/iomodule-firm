@@ -24,6 +24,8 @@
 #define STRING_UTILS_H
 
 #include "type_traits_ex.h"
+#include <string_view>
+#include <optional>
 
 namespace io {
   template<typename T>
@@ -106,6 +108,7 @@ namespace io {
 
   uint8_t* InsertDot(uint16_t value, uint8_t position, uint8_t* buf);
 
+  std::optional<uint32_t> svtou(std::string_view str);
 }//io
 
 #endif // STRING_UTILS_H
