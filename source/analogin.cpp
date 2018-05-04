@@ -25,6 +25,8 @@
 
 namespace Analog {
 
+  Input input;
+
 const ADCConversionGroup Input::adcGroupCfg_ {
   true, // is circular
   numChannels,
@@ -41,7 +43,61 @@ const ADCConversionGroup Input::adcGroupCfg_ {
   ADC_SQR3_SQ2_N(ADC_CHANNEL_IN0)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN1)
 };
 
-Input input;
+void Input::Init()
+{
+  InputPins::SetConfig<GpioModes::InputAnalog>();
+  start(NORMALPRIO + 10);
+  adcStart(&AdcDriver_, nullptr);
+  adcStartConversion(&AdcDriver_, &adcGroupCfg_, (adcsample_t*)&dmaBuf_, dmaBufDepth);
+}
+
+void Input::AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t)
+{
+  Input& inp = *reinterpret_cast<Input*>(adcp->customData);
+  sample_buf_t& sb = *reinterpret_cast<sample_buf_t*>(buffer);
+  inp.fifo_.push(sb);
+}
+
+void Input::main()
+{
+  setName("AnalogInput");
+  sample_buf_t buf;
+  size_t AdcRefreshCount{};
+  while(true) {
+    if(fifo_.pop(buf) == false) {
+      sleep(US2ST(500));
+      continue;
+    }
+    uint16_t binarySet{}, binaryClear{};
+    for(size_t i{}; i < numChannels; ++i) {
+      maBuf_[i] = buf[i];
+      buf[i] = maBuf_[i];
+      if(buf[i] > highLevelThd) {
+        binarySet |= (1U << i);
+      }
+      if(buf[i] < lowLevelThd) {
+        binaryClear |= (1U << i);
+      }
+    }
+    uint16_t positiveTransitionMask = ((binaryVal_ ^ binarySet) & ~binaryVal_);
+    if(positiveTransitionMask) {
+      Rtos::SemLockGuard{semCounters_};
+      for(size_t i{}; i < numChannels; ++i) {
+        counters_[i] += (positiveTransitionMask >> i) & 0x01;
+      }
+    }
+    uint16_t binaryTemp = (binaryVal_ | binarySet) & ~binaryClear;
+    if(binaryTemp != binaryVal_) {
+      Rtos::SemLockGuard{semBinaryVal_};
+      binaryVal_ = binaryTemp;
+    }
+    if(++AdcRefreshCount == 20) {
+      AdcRefreshCount = 0;
+      semSamples_.wait();
+      samples_ = buf;
+      semSamples_.signal();
+    }
+  }
+}
 
 } //Analog
-
