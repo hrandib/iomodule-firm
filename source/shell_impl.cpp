@@ -135,17 +135,13 @@ void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\n\tgetanalog 0x24");
 }
 
-void cmd_getdigital(BaseSequentialStream *chp, int /*argc*/, char **/*argv[]*/)
+void cmd_getdigital(BaseSequentialStream *chp, int argc, char **/*argv*/)
 {
-  using namespace Analog;
-  chprintf(chp, "%x\r\n", input.GetBinaryVal());
-  for(size_t i{}; i < 10; ++i) {
-    auto counters = Analog::input.GetCounters();
-    for(auto counter : counters) {
-      chprintf(chp, "%8u ", counter);
-    }
-    chprintf(chp, "\r\n");
-    chThdSleep(MS2ST(1000));
+  if(!argc) {
+    chprintf(chp, "%x\r\n", Analog::input.GetBinaryVal());
+  }
+  else {
+    shellUsage(chp, "Get value of the digital input register in hex format");
   }
 }
 
