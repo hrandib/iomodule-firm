@@ -190,5 +190,6 @@ Shell::Shell()
                            0};
   sdStart(&SD1, &sercfg);
   shellInit();
-  chThdCreateStatic(SHELL_WA_SIZE, sizeof(SHELL_WA_SIZE), NORMALPRIO, shellThread, (void*)&shell_cfg1);
+  auto thd = chThdCreateStatic(SHELL_WA_SIZE, sizeof(SHELL_WA_SIZE), NORMALPRIO, shellThread, (void*)&shell_cfg1);
+  chRegSetThreadNameX(thd, "Shell");
 }
