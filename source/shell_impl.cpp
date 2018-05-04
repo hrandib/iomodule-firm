@@ -25,20 +25,26 @@
 #include "shell_impl.h"
 #include "analogout.h"
 #include "digitalout.h"
+#include "analogin.h"
 #include "chprintf.h"
-#include <cstdlib>
-#include <string_view>
+#include "string_utils.h"
 
 using namespace std::literals;
 
 static THD_WORKING_AREA(SHELL_WA_SIZE, 512);
 
 static void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
   {"setanalog", cmd_setanalog},
+  {"getanalog", cmd_getanalog},
   {"setdigital", cmd_setdigital},
+  {"getdigital", cmd_getdigital},
+  {"getcounters", cmd_getcounters},
   {nullptr, nullptr}
 };
 
@@ -72,11 +78,11 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
     if(ch > 3) {
       break;
     }
-    int value = atoi(argv[1]);
-    if(value < 0 || value > 4096) {
+    auto value = io::svtou(argv[1]);
+    if(!value || *value > 4096) {
       break;
     }
-    cmd.SetValue(ch, (uint16_t)value);
+    cmd.SetValue(ch, (uint16_t)*value);
     output.SendMessage(cmd);
     PrintValues();
     return;
@@ -87,6 +93,99 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\nExample:"
                   "\r\n\tsetanalog 1 2048");
 }
+
+void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  using namespace Analog;
+  static constexpr uint16_t AllChannelsMask = Utils::NumberToMask_v<Analog::Input::numChannels>;
+  uint16_t channelMask;
+  do {
+    if(argc == 0) {
+      channelMask = AllChannelsMask;
+    }
+    else if(argc == 1) {
+      auto mask = io::svtou(argv[0]);
+      if(mask && *mask > 0 && *mask <= AllChannelsMask) {
+        channelMask = static_cast<uint16_t>(*mask);
+      }
+      else {
+        break;
+      }
+    }
+    else {
+      break;
+    }
+    auto samples = Analog::input.GetSamples();
+    for(size_t i{}; i < samples.size(); ++i) {
+      if(channelMask & (1U << i)) {
+        chprintf(chp, "%4u ", samples[i]);
+      }
+    }
+    chprintf(chp, "\r\n");
+    return;
+  }
+  while(false);
+  shellUsage(chp, "Get samples array"
+                  "\r\nReturns samples on selected channels or all channels data if no arguments passed"
+                  "\r\n\tgetanalog [channel mask(0x01-0x3FF)]"
+                  "\r\nExamples:"
+                  "\r\nGet values of 3rd and 6th channels"
+                  "\r\n\tgetanalog 0b100100"
+                  "\r\n  or"
+                  "\r\n\tgetanalog 0x24");
+}
+
+void cmd_getdigital(BaseSequentialStream *chp, int argc, char **/*argv*/)
+{
+  if(!argc) {
+    chprintf(chp, "%x\r\n", Analog::input.GetBinaryVal());
+  }
+  else {
+    shellUsage(chp, "Get value of the digital input register in hex format");
+  }
+}
+
+void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  using namespace Analog;
+  static constexpr uint16_t AllChannelsMask = Utils::NumberToMask_v<Analog::Input::numChannels>;
+  uint16_t channelMask;
+  do {
+    if(argc == 0) {
+      channelMask = AllChannelsMask;
+    }
+    else if(argc == 1) {
+      auto mask = io::svtou(argv[0]);
+      if(mask && *mask > 0 && *mask <= AllChannelsMask) {
+        channelMask = static_cast<uint16_t>(*mask);
+      }
+      else {
+        break;
+      }
+    }
+    else {
+      break;
+    }
+    auto counters = Analog::input.GetCounters();
+    for(size_t i{}; i < counters.size(); ++i) {
+      if(channelMask & (1U << i)) {
+        chprintf(chp, "%10u ", counters[i]);
+      }
+    }
+    chprintf(chp, "\r\n");
+    return;
+  }
+  while(false);
+  shellUsage(chp, "Get counters array"
+                  "\r\nReturns selected counters from the array or all counters if no arguments passed"
+                  "\r\n\tgetcounters [channel mask(0x01-0x3FF)]"
+                  "\r\nExamples:"
+                  "\r\nGet values of 2nd and 5th channels"
+                  "\r\n\tgetcounters 0b10010"
+                  "\r\n  or"
+                  "\r\n\tgetcounters 0x12");
+}
+
 
 void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
 {
@@ -100,17 +199,15 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
       return;
     }
     else if(argc == 3 && "set_clear"sv == argv[0]) {
-      //FIXME: not thread safe
-      errno = 0;
-      int32_t setVal = (int32_t)strtoul(argv[1], nullptr, 0);
-      if(errno || setVal < 0 || setVal > 65535) {
+      auto setVal = io::svtou(argv[1]);
+      if(!setVal || *setVal > 65535) {
         break;
       }
-      int32_t clearVal = (int32_t)strtoul(argv[2], nullptr, 0);
-      if(errno || clearVal < 0 || clearVal > 65535) {
+      auto clearVal = io::svtou(argv[2]);
+      if(!clearVal || *clearVal > 65535) {
         break;
       }
-      uint32_t val = (uint32_t)setVal | uint32_t(clearVal << OutputCommand::GetBusWidth());
+      uint32_t val = *setVal | (*clearVal << OutputCommand::GetBusWidth());
       cmd.Set(Mode::SetAndClear, val);
       output.SendMessage(cmd);
       chprintf(chp, "%x\r\n", cmd.GetValue());
@@ -132,13 +229,11 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
       else {
         break;
       }
-      //FIXME: not thread safe
-      errno = 0;
-      int32_t value = (int32_t)strtoul(argv[1], nullptr, 0);
-      if(errno || value < 0 || value > 65535) {
+      auto value = io::svtou(argv[1]);
+      if(!value || *value > 65535) {
         break;
       }
-      cmd.SetValue((uint16_t)value);
+      cmd.SetValue((uint16_t)*value);
       output.SendMessage(cmd);
       chprintf(chp, "%x\r\n", cmd.GetValue());
       return;
@@ -165,5 +260,6 @@ Shell::Shell()
                            0};
   sdStart(&SD1, &sercfg);
   shellInit();
-  chThdCreateStatic(SHELL_WA_SIZE, sizeof(SHELL_WA_SIZE), NORMALPRIO, shellThread, (void*)&shell_cfg1);
+  auto thd = chThdCreateStatic(SHELL_WA_SIZE, sizeof(SHELL_WA_SIZE), NORMALPRIO, shellThread, (void*)&shell_cfg1);
+  chRegSetThreadNameX(thd, "Shell");
 }
