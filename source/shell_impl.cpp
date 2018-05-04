@@ -27,9 +27,7 @@
 #include "digitalout.h"
 #include "analogin.h"
 #include "chprintf.h"
-#include "ch_extended.h"
 #include "string_utils.h"
-#include <cstdlib>
 
 using namespace std::literals;
 
@@ -78,11 +76,11 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
     if(ch > 3) {
       break;
     }
-    int value = atoi(argv[1]);
-    if(value < 0 || value > 4096) {
+    auto value = io::svtou(argv[1]);
+    if(!value || *value > 4096) {
       break;
     }
-    cmd.SetValue(ch, (uint16_t)value);
+    cmd.SetValue(ch, (uint16_t)*value);
     output.SendMessage(cmd);
     PrintValues();
     return;
@@ -131,17 +129,15 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
       return;
     }
     else if(argc == 3 && "set_clear"sv == argv[0]) {
-      //FIXME: not thread safe
-      errno = 0;
-      int32_t setVal = (int32_t)strtoul(argv[1], nullptr, 0);
-      if(errno || setVal < 0 || setVal > 65535) {
+      auto setVal = io::svtou(argv[1]);
+      if(!setVal || *setVal > 65535) {
         break;
       }
-      int32_t clearVal = (int32_t)strtoul(argv[2], nullptr, 0);
-      if(errno || clearVal < 0 || clearVal > 65535) {
+      auto clearVal = io::svtou(argv[2]);
+      if(!clearVal || *clearVal > 65535) {
         break;
       }
-      uint32_t val = (uint32_t)setVal | uint32_t(clearVal << OutputCommand::GetBusWidth());
+      uint32_t val = *setVal | (*clearVal << OutputCommand::GetBusWidth());
       cmd.Set(Mode::SetAndClear, val);
       output.SendMessage(cmd);
       chprintf(chp, "%x\r\n", cmd.GetValue());
@@ -163,13 +159,11 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
       else {
         break;
       }
-      //FIXME: not thread safe
-      errno = 0;
-      int32_t value = (int32_t)strtoul(argv[1], nullptr, 0);
-      if(errno || value < 0 || value > 65535) {
+      auto value = io::svtou(argv[1]);
+      if(!value || *value > 65535) {
         break;
       }
-      cmd.SetValue((uint16_t)value);
+      cmd.SetValue((uint16_t)*value);
       output.SendMessage(cmd);
       chprintf(chp, "%x\r\n", cmd.GetValue());
       return;
