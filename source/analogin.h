@@ -89,77 +89,31 @@ using namespace Mcudrv;
     {
       AdcDriver_.customData = this;
     }
-    void Init()
-    {
-      InputPins::SetConfig<GpioModes::InputAnalog>();
-      start(NORMALPRIO + 10);
-      adcStart(&AdcDriver_, nullptr);
-      adcStartConversion(&AdcDriver_, &adcGroupCfg_, (adcsample_t*)&dmaBuf_, dmaBufDepth);
-    }
-    static void AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t)
-    {
-      Input& inp = *reinterpret_cast<Input*>(adcp->customData);
-      sample_buf_t& sb = *reinterpret_cast<sample_buf_t*>(buffer);
-      inp.fifo_.push(sb);
-    }
-    sample_buf_t GetSamples()
-    {
-      Rtos::SemLockGuard{semSamples_};
-      return samples_;
-    }
-    uint16_t GetBinaryVal()
-    {
-      Rtos::SemLockGuard{semBinaryVal_};
-      return binaryVal_;
-    }
-    counters_buf_t GetCounters()
-    {
-      Rtos::SemLockGuard{semCounters_};
-      return counters_;
-    }
-    void main() override
-    {
-      setName("AnalogInput");
-      sample_buf_t buf;
-      size_t AdcRefreshCount{};
-      while(true) {
-        if(fifo_.pop(buf) == false) {
-          sleep(US2ST(500));
-          continue;
-        }
-        uint16_t binarySet{}, binaryClear{};
-        for(size_t i{}; i < numChannels; ++i) {
-          maBuf_[i] = buf[i];
-          buf[i] = maBuf_[i];
-          if(buf[i] > highLevelThd) {
-            binarySet |= (1U << i);
-          }
-          if(buf[i] < lowLevelThd) {
-            binaryClear |= (1U << i);
-          }
-        }
-        uint16_t positiveTransitionMask = ((binaryVal_ ^ binarySet) & ~binaryVal_);
-        if(positiveTransitionMask) {
-          Rtos::SemLockGuard{semCounters_};
-          for(size_t i{}; i < numChannels; ++i) {
-              counters_[i] += (positiveTransitionMask >> i) & 0x01;
-          }
-        }
-        uint16_t binaryTemp = (binaryVal_ | binarySet) & ~binaryClear;
-        if(binaryTemp != binaryVal_) {
-          Rtos::SemLockGuard{semBinaryVal_};
-          binaryVal_ = binaryTemp;
-        }
-        if(++AdcRefreshCount == 20) {
-          AdcRefreshCount = 0;
-          semSamples_.wait();
-          samples_ = buf;
-          semSamples_.signal();
-        }
-      }
-    }
-
+    void Init();
+    static void AdcCb(ADCDriver* adcp, adcsample_t* buffer, size_t);
+    sample_buf_t GetSamples();
+    uint16_t GetBinaryVal();
+    counters_buf_t GetCounters();
+    void main() override;
   };
+
+  inline Input::sample_buf_t Input::GetSamples()
+  {
+    Rtos::SemLockGuard{semSamples_};
+    return samples_;
+  }
+
+  inline uint16_t Input::GetBinaryVal()
+  {
+    Rtos::SemLockGuard{semBinaryVal_};
+    return binaryVal_;
+  }
+
+  inline Input::counters_buf_t Input::GetCounters()
+  {
+    Rtos::SemLockGuard{semCounters_};
+    return counters_;
+  }
 
   extern Input input;
 } //Analog
