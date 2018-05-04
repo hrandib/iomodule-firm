@@ -37,12 +37,14 @@ static void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
   {"setanalog", cmd_setanalog},
   {"getanalog", cmd_getanalog},
   {"setdigital", cmd_setdigital},
   {"getdigital", cmd_getdigital},
+  {"getcounters", cmd_getcounters},
   {nullptr, nullptr}
 };
 
@@ -92,7 +94,7 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\n\tsetanalog 1 2048");
 }
 
-void cmd_getanalog(BaseSequentialStream *chp, int /*argc*/, char **/*argv[]*/)
+void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[])
 {
   using namespace Analog;
   auto samples = Analog::input.GetSamples();
@@ -114,6 +116,47 @@ void cmd_getdigital(BaseSequentialStream *chp, int /*argc*/, char **/*argv[]*/)
     chprintf(chp, "\r\n");
     chThdSleep(MS2ST(1000));
   }
+}
+
+void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  using namespace Analog;
+  static constexpr uint16_t AllChannelsMask = Utils::NumberToMask_v<Analog::Input::numChannels>;
+  uint16_t channelMask;
+  do {
+    if(argc == 0) {
+      channelMask = AllChannelsMask;
+    }
+    else if(argc == 1) {
+      auto mask = io::svtou(argv[0]);
+      if(mask && *mask > 0 && *mask <= AllChannelsMask) {
+        channelMask = static_cast<uint16_t>(*mask);
+      }
+      else {
+        break;
+      }
+    }
+    else {
+      break;
+    }
+    auto counters = Analog::input.GetCounters();
+    for(size_t i{}; i < counters.size(); ++i) {
+      if(channelMask & (1U << i)) {
+        chprintf(chp, "%10u ", counters[i]);
+      }
+    }
+    chprintf(chp, "\r\n");
+    return;
+  }
+  while(false);
+  shellUsage(chp, "Get counters array"
+                  "\r\nReturns selected counters from the array or all counters if no arguments passed"
+                  "\r\n\tgetcounters [channel mask(0x01-0x3FF)]"
+                  "\r\nExamples:"
+                  "\r\nGet values of 2nd and 5th channels"
+                  "\r\n\tgetcounters 0b10010"
+                  "\r\n  or"
+                  "\r\n\tgetcounters 0x12");
 }
 
 
