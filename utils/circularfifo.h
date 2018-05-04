@@ -20,12 +20,15 @@
 
 #include <atomic>
 #include <cstddef>
+
+#include <type_traits_ex.h>
+
 namespace memory_relaxed_acquire_release {
   template<typename Element, size_t Size>
   class CircularFifo
   {
   public:
-    enum { Capacity = Size + 1 };
+    enum { Capacity = Size };
 
     CircularFifo() : _tail(0), _head(0) {}
     virtual ~CircularFifo() {}
@@ -99,7 +102,12 @@ namespace memory_relaxed_acquire_release {
   template<typename Element, size_t Size>
   size_t CircularFifo<Element, Size>::increment(size_t idx) const
   {
-    return (idx + 1) % Capacity;
+    if constexpr(Utils::IsPowerOf2(Capacity)) {
+      return (idx + 1) & (Capacity - 1);
+    }
+    else {
+      return (idx + 1) % Capacity;
+    }
   }
 
 } // memory_relaxed_acquire_release
