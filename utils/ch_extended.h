@@ -31,6 +31,7 @@ namespace Rtos {
   using chibios_rt::ThreadReference;
   using chibios_rt::BaseStaticThread;
   using chibios_rt::Mailbox;
+  using chibios_rt::BinarySemaphore;
 
   enum class Status {
     Success,
@@ -55,6 +56,20 @@ namespace Rtos {
       System::unlockFromIsr();
     }
   };
+
+  struct SemLockGuard
+  {
+    BinarySemaphore& sem;
+    SemLockGuard(BinarySemaphore& sem_) : sem{sem_}
+    {
+      sem.wait();
+    }
+    ~SemLockGuard()
+    {
+      sem.signal();
+    }
+  };
+
 
   //chibios_rt::ThreadStayPoint implementation is broken
   class ThreadStayPoint

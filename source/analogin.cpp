@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,36 +20,28 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogout.h"
 #include "analogin.h"
-#include "digitalout.h"
-#include "modbus_impl.h"
+#include "type_traits_ex.h"
 
-using namespace Rtos;
-using namespace Mcudrv;
+namespace Analog {
 
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
-static constexpr auto& ain = Analog::input;
-
-static auto Init = [](auto&&... objs) {
-  (objs.Init(), ...);
+const ADCConversionGroup Input::adcGroupCfg_ {
+  true, // is circular
+  numChannels,
+  AdcCb,
+  nullptr,
+  0, 0,           /* CR1, CR2 */
+  0,
+  Utils::Unpack3Bit(Utils::NumberToMask_v<numChannels>) * ADC_SAMPLE_28P5, /* SMPR2 */
+  ADC_SQR1_NUM_CH(numChannels),
+  ADC_SQR2_SQ10_N(ADC_CHANNEL_IN9) | ADC_SQR2_SQ9_N(ADC_CHANNEL_IN8) |
+  ADC_SQR2_SQ8_N(ADC_CHANNEL_IN4) | ADC_SQR2_SQ7_N(ADC_CHANNEL_IN7),
+  ADC_SQR3_SQ6_N(ADC_CHANNEL_IN3)   | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN6) |
+  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN5)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN2) |
+  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN0)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN1)
 };
 
-int main(void) {
-  halInit();
-  System::init();
-  Init(aout, dout, ain);
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
-  }
-}
+Input input;
+
+} //Analog
+
