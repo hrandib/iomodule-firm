@@ -97,11 +97,42 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
 void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[])
 {
   using namespace Analog;
-  auto samples = Analog::input.GetSamples();
-  for(auto sample : samples) {
-    chprintf(chp, "%4u ", sample);
+  static constexpr uint16_t AllChannelsMask = Utils::NumberToMask_v<Analog::Input::numChannels>;
+  uint16_t channelMask;
+  do {
+    if(argc == 0) {
+      channelMask = AllChannelsMask;
+    }
+    else if(argc == 1) {
+      auto mask = io::svtou(argv[0]);
+      if(mask && *mask > 0 && *mask <= AllChannelsMask) {
+        channelMask = static_cast<uint16_t>(*mask);
+      }
+      else {
+        break;
+      }
+    }
+    else {
+      break;
+    }
+    auto samples = Analog::input.GetSamples();
+    for(size_t i{}; i < samples.size(); ++i) {
+      if(channelMask & (1U << i)) {
+        chprintf(chp, "%4u ", samples[i]);
+      }
+    }
+    chprintf(chp, "\r\n");
+    return;
   }
-  chprintf(chp, "\r\n");
+  while(false);
+  shellUsage(chp, "Get samples array"
+                  "\r\nReturns samples on selected channels or all channels data if no arguments passed"
+                  "\r\n\tgetanalog [channel mask(0x01-0x3FF)]"
+                  "\r\nExamples:"
+                  "\r\nGet values of 3rd and 6th channels"
+                  "\r\n\tgetanalog 0b100100"
+                  "\r\n  or"
+                  "\r\n\tgetanalog 0x24");
 }
 
 void cmd_getdigital(BaseSequentialStream *chp, int /*argc*/, char **/*argv[]*/)
