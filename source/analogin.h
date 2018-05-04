@@ -69,7 +69,7 @@ using namespace Mcudrv;
   private:
     using sample_buf_t = std::array<adcsample_t, numChannels>;
     using dma_buf_t = std::array<sample_buf_t, dmaBufDepth>;
-    using fifo_t = memory_relaxed_aquire_release::CircularFifo<sample_buf_t, 64>;
+    using fifo_t = memory_relaxed_acquire_release::CircularFifo<sample_buf_t, 64>;
     using counters_buf_t = std::array<uint32_t, numChannels>;
     using InputPins = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pinlist<Pb0, SequenceOf<2>>>;
 

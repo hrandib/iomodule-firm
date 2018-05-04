@@ -15,12 +15,12 @@
 // it is a "controversy" whether what is tail and what is head
 // http://en.wikipedia.org/wiki/FIFO#Head_or_tail_first
 
-#ifndef CIRCULARFIFO_AQUIRE_RELEASE_H_
-#define CIRCULARFIFO_AQUIRE_RELEASE_H_
+#ifndef CIRCULARFIFO_ACQUIRE_RELEASE_H_
+#define CIRCULARFIFO_ACQUIRE_RELEASE_H_
 
 #include <atomic>
 #include <cstddef>
-namespace memory_relaxed_aquire_release {
+namespace memory_relaxed_acquire_release {
   template<typename Element, size_t Size>
   class CircularFifo
   {
@@ -60,7 +60,7 @@ namespace memory_relaxed_aquire_release {
 
 
 // Pop by Consumer can only update the head (load with relaxed, store with release)
-//     the tail must be accessed with at least aquire
+//     the tail must be accessed with at least acquire
   template<typename Element, size_t Size>
   bool CircularFifo<Element, Size>::pop(Element& item)
   {
@@ -85,7 +85,7 @@ namespace memory_relaxed_aquire_release {
   template<typename Element, size_t Size>
   bool CircularFifo<Element, Size>::wasFull() const
   {
-    const auto next_tail = increment(_tail.load()); // aquire, we dont know who call
+    const auto next_tail = increment(_tail.load()); // acquire, we dont know who call
     return (next_tail == _head.load());
   }
 
@@ -102,5 +102,5 @@ namespace memory_relaxed_aquire_release {
     return (idx + 1) % Capacity;
   }
 
-} // memory_relaxed_aquire_release
-#endif /* CIRCULARFIFO_AQUIRE_RELEASE_H_ */
+} // memory_relaxed_acquire_release
+#endif /* CIRCULARFIFO_acquire_RELEASE_H_ */
