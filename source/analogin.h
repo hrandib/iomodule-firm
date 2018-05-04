@@ -92,8 +92,7 @@ using namespace Mcudrv;
     void Init()
     {
       InputPins::SetConfig<GpioModes::InputAnalog>();
-      setName("AnalogInput");
-      start(HIGHPRIO);
+      start(NORMALPRIO + 10);
       adcStart(&AdcDriver_, nullptr);
       adcStartConversion(&AdcDriver_, &adcGroupCfg_, (adcsample_t*)&dmaBuf_, dmaBufDepth);
     }
@@ -120,6 +119,7 @@ using namespace Mcudrv;
     }
     void main() override
     {
+      setName("AnalogInput");
       sample_buf_t buf;
       size_t AdcRefreshCount{};
       while(true) {
