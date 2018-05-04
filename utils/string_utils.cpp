@@ -75,7 +75,7 @@ namespace io {
           };
           str.remove_prefix(1);
           removeLeadingZeros();
-          if(str.size() > 8) {
+          if(!str.size() || str.size() > 8) {
             return {};
           }
           uint32_t result{};
@@ -96,7 +96,7 @@ namespace io {
           removeLeadingZeros();
           uint32_t result{};
           uint32_t rank{1};
-          if(str.size() > 32) {
+          if(!str.size() || str.size() > 32) {
             return {};
           }
           for(auto it = str.rbegin(); it != str.rend(); ++it) {
