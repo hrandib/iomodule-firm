@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,37 +20,18 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogout.h"
-#include "analogin.h"
 #include "digitalin.h"
-#include "digitalout.h"
 
-using namespace Rtos;
-using namespace Mcudrv;
+namespace Digital {
 
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
-static constexpr auto& ain = Analog::input;
-static constexpr auto& din = Digital::input;
-
-static auto Init = [](auto&&... objs) {
-  (objs.Init(), ...);
-};
-
-int main(void) {
-  halInit();
-  System::init();
-  Init(aout, dout, ain, din);
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
+  void Input::gptCb(GPTDriver* gpt)
+  {
+    auto self = static_cast<Input*>(gpt->customData);
+    self->fifo_.push(Pins::Read());
   }
+
+  const GPTConfig Input::gptconf_{100000, Input::gptCb, 0, 0};
+
+  Input input;
+
 }

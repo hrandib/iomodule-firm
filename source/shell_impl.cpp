@@ -26,6 +26,7 @@
 #include "analogout.h"
 #include "digitalout.h"
 #include "analogin.h"
+#include "digitalin.h"
 #include "chprintf.h"
 #include "string_utils.h"
 
@@ -138,7 +139,7 @@ void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[])
 void cmd_getdigital(BaseSequentialStream *chp, int argc, char **/*argv*/)
 {
   if(!argc) {
-    chprintf(chp, "%x\r\n", Analog::input.GetBinaryVal());
+    chprintf(chp, "%x\r\n", Digital::input.GetBinaryVal());
   }
   else {
     shellUsage(chp, "Get value of the digital input register in hex format");
@@ -147,8 +148,8 @@ void cmd_getdigital(BaseSequentialStream *chp, int argc, char **/*argv*/)
 
 void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  using namespace Analog;
-  static constexpr uint16_t AllChannelsMask = Utils::NumberToMask_v<Analog::Input::numChannels>;
+  using namespace Digital;
+  static constexpr uint16_t AllChannelsMask = Utils::NumberToMask_v<Input::numChannels>;
   uint16_t channelMask;
   do {
     if(argc == 0) {
@@ -166,13 +167,16 @@ void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[])
     else {
       break;
     }
-    auto counters = Analog::input.GetCounters();
+    for(size_t a{}; a < 20; ++a) {
+    auto counters = input.GetCounters();
     for(size_t i{}; i < counters.size(); ++i) {
       if(channelMask & (1U << i)) {
         chprintf(chp, "%10u ", counters[i]);
       }
     }
     chprintf(chp, "\r\n");
+    chThdSleep(S2ST(1));
+    }
     return;
   }
   while(false);
@@ -185,7 +189,6 @@ void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\n  or"
                   "\r\n\tgetcounters 0x12");
 }
-
 
 void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
 {
