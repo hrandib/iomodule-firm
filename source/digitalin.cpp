@@ -24,6 +24,14 @@
 
 namespace Digital {
 
+  void Input::gptCb(GPTDriver* gpt)
+  {
+    auto self = static_cast<Input*>(gpt->customData);
+    self->fifo_.push(Pins::Read());
+  }
+
+  const GPTConfig Input::gptconf_{100000, Input::gptCb, 0, 0};
+
   Input input;
 
 }

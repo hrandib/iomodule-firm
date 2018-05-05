@@ -33,19 +33,27 @@ using namespace Mcudrv;
     static constexpr size_t numChannels = 4 + Analog::Input::numChannels;
   private:
     using Pins = Pinlist<Pc15, Pc14, Pc13, Pb2>;
-    using counters_buf_t = std::array<uint32_t, numChannels >;
+    using counters_buf_t = std::array<uint32_t, numChannels>;
     using internal_counters_buf_t = std::array<uint32_t, 4>;
-
+    GPTDriver& GPTD_;
+    static const GPTConfig gptconf_;
     Rtos::BinarySemaphore semVal_, semCounters_;
+    memory_relaxed_acquire_release::CircularFifo<uint32_t, 4> fifo_;
     internal_counters_buf_t counters_;
     uint16_t binaryVal_;
+    static void gptCb(GPTDriver* gpt);
   public:
-    Input() : semVal_{false}, semCounters_{false}
-    { }
+    Input() : GPTD_{GPTD2}, semVal_{false}, semCounters_{false}, counters_{}, binaryVal_{}
+    {
+      GPTD_.customData = this;
+    }
     void Init()
     {
       Pins::SetConfig<GpioModes::InputFloating>();
+      Pa12::SetConfig<GpioModes::OutputPushPull>();
       start(NORMALPRIO + 9);
+      gptStart(&GPTD_, &gptconf_);
+      gptStartContinuous(&GPTD_, 200); //500Hz
     }
     uint16_t GetBinaryVal() {
       uint16_t result = Analog::input.GetBinaryVal();
@@ -73,9 +81,13 @@ using namespace Mcudrv;
     void main() override
     {
       setName("DigitalInput");
-      uint16_t previousVal{};
+      uint32_t previousVal;
       while(true) {
-        uint16_t val = static_cast<uint16_t>(Pins::Read());
+        uint32_t val;
+        if(fifo_.pop(val) == false) {
+          sleep(MS2ST(1));
+          continue;
+        }
         if(val != previousVal) {
           semCounters_.wait();
           for(size_t i = 0; i < numChannels; ++i) {
@@ -86,14 +98,12 @@ using namespace Mcudrv;
           semCounters_.signal();
           previousVal = val;
           //Din3 shifted according connector position
-          val = (val & ~0b1000) | uint16_t((val & 0b1000) << 9);
+          val = (val & (uint32_t)~0b1000) | uint32_t((val & 0b1000) << 9);
           Rtos::SemLockGuard{semVal_};
-          binaryVal_ = val;
+          binaryVal_ = static_cast<uint16_t>(val);
         }
-        sleep(MS2ST(1));
       }
     }
-
   };
 
   extern Input input;
