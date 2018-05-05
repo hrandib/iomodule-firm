@@ -252,6 +252,8 @@ CppApplication
       "source/analogin.h",
       "source/analogout.cpp",
       "source/analogout.h",
+      "source/digitalin.cpp",
+      "source/digitalin.h",
       "source/digitalout.cpp",
       "source/digitalout.h",
       "source/shell_impl.cpp",
