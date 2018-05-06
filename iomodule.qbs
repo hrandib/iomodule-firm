@@ -96,8 +96,14 @@ CppApplication
     ChibiOS + "test/lib",
     ChibiOS + "test/rt/source/test",
     //Streams
-    ChibiOS + "os/hal/lib/streams"
-	]
+    ChibiOS + "os/hal/lib/streams",
+    //freemodbus
+    "FreeModbus",
+    "FreeModbus/port",
+    "FreeModbus/modbus/include",
+    "FreeModbus/modbus/rtu",
+    "FreeModbus/modbus/functions"
+  ]
   cpp.libraryPaths: [
     ChibiOS + "os/common/startup/ARMCMx/compilers/GCC/ld"
   ]
@@ -297,6 +303,21 @@ CppApplication
       "include/core_cm3.h",
       "include/core_cmInstr.h",
       "include/cmsis_gcc.h"
+    ]
+  }
+  Group {	name: "Modbus"
+    prefix: "Freemodbus/"
+    files: [
+      "port/port.h",
+      "port/portevent.c",
+      "port/portother.c",
+      "port/portserial.c",
+      "port/porttimer.c",
+      "modbus/include/*.h",
+      "modbus/functions/*.c",
+      "modbus/rtu/*.h",
+      "modbus/rtu/*.c",
+      "modbus/mb.c",
     ]
   }
   Group { name: "Test"

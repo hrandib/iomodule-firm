@@ -32,11 +32,16 @@
 #ifndef _MB_PORT_H
 #define _MB_PORT_H
 
+#include "port.h"
+
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
 #endif
 
 /* ----------------------- Defines ------------------------------------------*/
+
+#undef INLINE
+#define INLINE
 
 /* ----------------------- Type definitions ---------------------------------*/
 
@@ -89,17 +94,6 @@ BOOL            xMBPortEventPost( eMBEventType eEvent );
 
 BOOL            xMBPortEventGet(  /*@out@ */ eMBEventType * eEvent );
 
-BOOL            xMBMasterPortEventInit( void );
-
-BOOL            xMBMasterPortEventPost( eMBMasterEventType eEvent );
-
-BOOL            xMBMasterPortEventGet(  /*@out@ */ eMBMasterEventType * eEvent );
-
-void            vMBMasterOsResInit( void );
-
-BOOL            xMBMasterRunResTake( int32_t time );
-
-void            vMBMasterRunResRelease( void );
 
 /* ----------------------- Serial port functions ----------------------------*/
 
@@ -119,16 +113,6 @@ INLINE BOOL     xMBPortSerialPutByte( CHAR ucByte );
 BOOL            xMBMasterPortSerialInit( UCHAR ucPort, ULONG ulBaudRate,
                                    UCHAR ucDataBits, eMBParity eParity );
 
-void            vMBMasterPortClose( void );
-
-void            xMBMasterPortSerialClose( void );
-
-void            vMBMasterPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable );
-
-INLINE BOOL     xMBMasterPortSerialGetByte( CHAR * pucByte );
-
-INLINE BOOL     xMBMasterPortSerialPutByte( CHAR ucByte );
-
 /* ----------------------- Timers functions ---------------------------------*/
 BOOL            xMBPortTimersInit( USHORT usTimeOut50us );
 
@@ -137,30 +121,6 @@ void            xMBPortTimersClose( void );
 INLINE void     vMBPortTimersEnable( void );
 
 INLINE void     vMBPortTimersDisable( void );
-
-BOOL            xMBMasterPortTimersInit( USHORT usTimeOut50us );
-
-void            xMBMasterPortTimersClose( void );
-
-INLINE void     vMBMasterPortTimersT35Enable( void );
-
-INLINE void     vMBMasterPortTimersConvertDelayEnable( void );
-
-INLINE void     vMBMasterPortTimersRespondTimeoutEnable( void );
-
-INLINE void     vMBMasterPortTimersDisable( void );
-
-/* ----------------- Callback for the master error process ------------------*/
-void            vMBMasterErrorCBRespondTimeout( UCHAR ucDestAddress, const UCHAR* pucPDUData,
-                                                USHORT ucPDULength );
-
-void            vMBMasterErrorCBReceiveData( UCHAR ucDestAddress, const UCHAR* pucPDUData,
-                                             USHORT ucPDULength );
-
-void            vMBMasterErrorCBExecuteFunction( UCHAR ucDestAddress, const UCHAR* pucPDUData,
-                                                 USHORT ucPDULength );
-
-void            vMBMasterCBRequestScuuess( void );
 
 /* ----------------------- Callback for the protocol stack ------------------*/
 

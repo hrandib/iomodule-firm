@@ -45,14 +45,14 @@
 #define USART_DE_IDX            ( 4 )
 #define USART_IDX_LAST          ( 1 ) // only one usart
 
-#define UARTDRIVER				UARTD2
+#define UARTDRIVER				UARTD3
 #define BOARD_SERIAL_ALTERNATE	PAL_MODE_STM32_ALTERNATE_PUSHPULL
 #define	BOARD_SERIAL_INPUT		PAL_MODE_INPUT
 #define	BOARD_SERIAL_OUTPUT		PAL_MODE_OUTPUT_PUSHPULL
-#define BOARD_SERIAL_PORT		GPIOA
-#define BOARD_SERIAL_TX			GPIOA_PIN2			// PA2
-#define BOARD_SERIAL_RX			GPIOA_PIN3			// PA3
-#define BOARD_SERIAL_TX_EN		GPIOA_PIN8			// PA8
+#define BOARD_SERIAL_PORT		GPIOB
+#define BOARD_SERIAL_TX			10
+#define BOARD_SERIAL_RX			11
+#define BOARD_SERIAL_TX_EN		12
 #define BOARD_MAX485			1					// MAX485 TX enable control
 
 /* serial transmit event */

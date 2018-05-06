@@ -33,13 +33,13 @@
 #include <hal.h>
 
 /* ----------------------- Modbus includes ----------------------------------*/
-#include "modbus/port/port.h"
+#include "port/port.h"
 #include "modbus/include/mb.h"
 #include "modbus/include/mbport.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 
-#define DEBUG 1
+//#define DEBUG
 
 #ifdef DEBUG
 #include "tm.h"
@@ -50,7 +50,7 @@ static TimeMeasurement tm;
 #define BOARD_LED2		GPIOC_LED
 
 /* ----------------------- Static variables ---------------------------------*/
-static VirtualTimer vt1;
+static virtual_timer_t vt1;
 static systime_t    timerout;
 
 /* ----------------------- Start implementation -----------------------------*/
@@ -115,7 +115,7 @@ vMBPortTimersDelay( USHORT usTimeOutMS )
 
 float fMBPortTimerMesurment ()
 {
-    static const float freqDiv1000 =  (float) halGetCounterFrequency() / 1000.0f;
+    const float freqDiv1000 =  (float) halGetCounterFrequency() / 1000.0f;
 
     return (((float) tm.last) / freqDiv1000);
 }

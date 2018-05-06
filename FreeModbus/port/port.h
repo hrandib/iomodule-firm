@@ -50,6 +50,8 @@
 #define ENTER_CRITICAL_SECTION( )   vMBPortEnterCritical()
 #define EXIT_CRITICAL_SECTION( )    vMBPortExitCritical()
 
+void port_halt(void);
+
 #undef  assert_param
 #undef  assert
 //#define assert( x ) LWIP_ASSERT( #x, x );

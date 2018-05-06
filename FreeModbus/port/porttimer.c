@@ -39,7 +39,7 @@
 
 /* ----------------------- Defines ------------------------------------------*/
 
-#define GPTDRIVER		GPTD4
+#define GPTDRIVER		GPTD3
 #define BOARD_LED2_P	GPIOC
 #define BOARD_LED2		GPIOC_LED
 
@@ -61,7 +61,7 @@ static const GPTConfig gptcfg = {
   0
 };
 
-systime_t    timerout= 0;
+static systime_t timerout = 0;
 
 /* ----------------------- Start implementation -----------------------------*/
 static void timerHandler(GPTDriver *gptp)
