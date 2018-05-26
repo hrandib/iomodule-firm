@@ -49,7 +49,7 @@ static auto Init = [](auto&&... objs) {
 int main(void) {
   halInit();
   System::init();
-  Init(aout, dout, ain, din);
+  Init(aout, dout, ain, din, modbus);
   Shell sh;
   while(true) {
     BaseThread::sleep(S2ST(1));

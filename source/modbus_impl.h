@@ -77,5 +77,6 @@ public:
   }
 };
 
+extern Modbus modbus;
 
 #endif // MODBUS_IMPL_H

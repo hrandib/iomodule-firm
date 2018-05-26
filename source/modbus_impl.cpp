@@ -21,3 +21,5 @@
  */
 
 #include "modbus_impl.h"
+
+Modbus modbus;
