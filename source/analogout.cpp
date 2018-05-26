@@ -46,6 +46,7 @@ namespace Analog {
 
   void Output::main()
   {
+    setName("AnalogOutput");
     while(true) {
       /* Waiting for a queued message then retrieving it.*/
       thread_t *tp = chMsgWait();
