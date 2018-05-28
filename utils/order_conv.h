@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,39 +19,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef ORDER_CONV_H
+#define ORDER_CONV_H
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
+#include <stdint.h>
 
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogout.h"
-#include "analogin.h"
-#include "digitalin.h"
-#include "digitalout.h"
-#include "modbus_impl.h"
-
-using namespace Rtos;
-using namespace Mcudrv;
-
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
-static constexpr auto& ain = Analog::input;
-static constexpr auto& din = Digital::input;
-
-static auto Init = [](auto&&... objs) {
-  (objs.Init(), ...);
-};
-
-int main(void) {
-  halInit();
-  System::init();
-  Init(aout, dout, ain, din, modbus);
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
+namespace Utils {
+#define DECLARE_ORDER_CONV(suffix, bits)                        \
+  constexpr uint ## bits ## _t hton ## suffix(uint ## bits ## _t val) {  \
+    if(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) {             \
+      return __builtin_bswap ## bits(val);                      \
+    }                                                           \
+    else {                                                      \
+      return val;                                               \
+    }                                                           \
+  }                                                             \
+  constexpr uint ## bits ## _t ntoh ## suffix(uint ## bits ## _t val) {  \
+    return hton ## suffix(val);                                                            \
   }
-}
+
+  DECLARE_ORDER_CONV(s, 16)
+  DECLARE_ORDER_CONV(l, 32)
+  DECLARE_ORDER_CONV(ll, 64)
+
+} //Utils
+
+#endif // ORDER_CONV_H

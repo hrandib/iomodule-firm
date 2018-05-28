@@ -146,6 +146,7 @@ namespace Digital {
       palSetPadMode(spicfg_.ssport, spicfg_.sspad, PAL_MODE_OUTPUT_PUSHPULL); // RCLK
       palSetPadMode(GPIOB, 15, PAL_MODE_STM32_ALTERNATE_PUSHPULL);            // MOSI
       spiStart(SPID_, &spicfg_);
+      SpiSend();
       start(NORMALPRIO);
     }
     msg_t SendMessage(OutputCommand& msg)

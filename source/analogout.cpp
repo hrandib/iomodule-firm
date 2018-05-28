@@ -28,8 +28,8 @@ namespace Analog {
   Output output;
 
   const PWMConfig Output::pwmcfg_ {
-    8000000UL,                                    /* 4MHz PWM clock frequency.   */
-    4096,                                         /* Initial PWM period 1ms.      */
+    8000000UL,                                    /* 8MHz PWM clock frequency.   */
+    Resolution,                                   /* Initial PWM period 1ms.      */
     nullptr,
     {
       {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
@@ -46,6 +46,7 @@ namespace Analog {
 
   void Output::main()
   {
+    setName("AnalogOutput");
     while(true) {
       /* Waiting for a queued message then retrieving it.*/
       thread_t *tp = chMsgWait();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,39 +19,64 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef MODBUS_IMPL_H
+#define MODBUS_IMPL_H
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
+#include "mb.h"
 #include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogout.h"
-#include "analogin.h"
-#include "digitalin.h"
-#include "digitalout.h"
-#include "modbus_impl.h"
 
-using namespace Rtos;
-using namespace Mcudrv;
+static const uint8_t *UniqProcessorId = (uint8_t *) 0x1FFFF7E8;
+static const uint8_t UniqProcessorIdLen = 12;
 
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
-static constexpr auto& ain = Analog::input;
-static constexpr auto& din = Digital::input;
+class Modbus : Rtos::BaseStaticThread<512>
+{
+private:
+  enum {
+    DEV_ID = 15
+  };
 
-static auto Init = [](auto&&... objs) {
-  (objs.Init(), ...);
+  bool InitModbus()
+  {
+    eMBErrorCode eStatus;
+
+    eStatus = eMBInit(MB_RTU, DEV_ID, 1, 115200, MB_PAR_NONE);
+    if (eStatus != MB_ENOERR) {
+      return FALSE;
+    }
+
+    eStatus = eMBSetSlaveID(DEV_ID, TRUE, UniqProcessorId, UniqProcessorIdLen);
+    if (eStatus != MB_ENOERR) {
+      return FALSE;
+    }
+
+    eStatus = eMBEnable();
+    if (eStatus != MB_ENOERR) {
+      return FALSE;
+    }
+
+    pxMBPortCBTimerExpired();
+
+    return TRUE;
+  }
+
+public:
+  void Init()
+  {
+    start(NORMALPRIO);
+  }
+  void main() override
+  {
+    setName("Modbus");
+    while(InitModbus() != true) {
+      sleep(MS2ST(300));
+    }
+    sleep(MS2ST(10));
+    while(true) {
+      eMBPoll();
+    }
+  }
 };
 
-int main(void) {
-  halInit();
-  System::init();
-  Init(aout, dout, ain, din, modbus);
-  Shell sh;
-  while(true) {
-    BaseThread::sleep(S2ST(1));
-  }
-}
+extern Modbus modbus;
+
+#endif // MODBUS_IMPL_H
