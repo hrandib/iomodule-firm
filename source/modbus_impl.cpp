@@ -154,7 +154,7 @@ extern "C" {
                 *regBuffer16++ = htons(uint16_t(cmd.GetValue()));
               }
               else {
-                cmd.Set(decltype(cmd)::Mode::Write, *regBuffer16++);
+                cmd.Set(decltype(cmd)::Mode::Write, ntohs(*regBuffer16++));
                 Digital::output.SendMessage(cmd);
               }
             }
@@ -167,7 +167,7 @@ extern "C" {
             }
             //set and clear
             else {
-              cmd.Set(decltype(cmd)::Mode::SetAndClear, regBuffer16[0] || ((uint32_t)regBuffer16[1] << 16));
+              cmd.Set(decltype(cmd)::Mode::SetAndClear, ntohs(regBuffer16[0]) | ((uint32_t)ntohs(regBuffer16[1]) << 16));
               Digital::output.SendMessage(cmd);
               regBuffer16 += 2;
               --usNRegs;
@@ -205,15 +205,10 @@ extern "C" {
         }
         else {
           while(usNRegs > 0) {
-            auto val = *regBuffer16++;
+            auto val = ntohs(*regBuffer16++);
             if(val > Analog::Output::Resolution) {
-              for(auto i = -10; i < 32; ++i) {
-                chprintf((BaseSequentialStream*)&SD1, "%x ", pucRegBuffer[i]);
-              }
-              chprintf((BaseSequentialStream*)&SD1, "\r\n");
               return MB_EINVAL;
             }
-            else
             cmd.SetValue((size_t)iRegIndex, val);
             ++iRegIndex;
             --usNRegs;
