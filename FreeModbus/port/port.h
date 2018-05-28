@@ -50,7 +50,11 @@
 #define ENTER_CRITICAL_SECTION( )   vMBPortEnterCritical()
 #define EXIT_CRITICAL_SECTION( )    vMBPortExitCritical()
 
-void port_halt(void);
+static inline void port_halt(void) {
+  while(TRUE) {
+    ;
+  }
+}
 
 #undef  assert_param
 #undef  assert
