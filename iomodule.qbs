@@ -143,10 +143,11 @@ CppApplication
     prefix: "utils/"
     files: [
       "ch_extended.h",
+      "order_conv.h",
       "string_utils.h",
       "string_utils.cpp",
       "type_traits_ex.h",
-      "circularfifo.h"
+      "circularfifo.h",
     ]
   }
   Group { name: "Port"

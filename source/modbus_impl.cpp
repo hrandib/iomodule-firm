@@ -23,8 +23,13 @@
 #include "modbus_impl.h"
 #include "digitalin.h"
 #include "analogin.h"
+#include "order_conv.h"
 
 #include <array>
+
+using Utils::htons;
+using Utils::ntohs;
+using Utils::htonl;
 
 Modbus modbus;
 
@@ -57,11 +62,13 @@ extern "C" {
     eMBErrorCode eStatus = MB_ENOERR;
     int iRegIndex;
     uint16_t* regBuffer16 = (uint16_t*)pucRegBuffer;
+    /* it already plus one in modbus function method. */
+    --usAddress;
     //Digital inputs data
     if(usAddress == R_DigitalInputStart)
     {
       if(usNRegs == R_DigitalInputSize) {
-        *regBuffer16 = Digital::input.GetBinaryVal();
+        *regBuffer16 = htons(Digital::input.GetBinaryVal());
       }
       else {
         eStatus = MB_ENOREG;
@@ -73,9 +80,10 @@ extern "C" {
       if((usNRegs + iRegIndex) <= R_CounterSize && (usNRegs & 0x01) == 0) {
         auto counters = Digital::input.GetCounters();
         while(usNRegs > 0) {
-          *regBuffer16++ = uint16_t(counters[(size_t)iRegIndex] & 0xFFFF);
-          *regBuffer16++ = uint16_t(counters[(size_t)iRegIndex] >> 16);
-          iRegIndex += 2;
+          uint32_t beVal = htonl(counters[(size_t)iRegIndex]);
+          *regBuffer16++ = uint16_t(beVal & 0xFFFF);
+          *regBuffer16++ = uint16_t(beVal >> 16);
+          ++iRegIndex;
           usNRegs -= 2;
         }
       }
@@ -89,7 +97,7 @@ extern "C" {
       if((usNRegs + iRegIndex) <= R_AnalogInputSize) {
         auto inputs = Analog::input.GetSamples();
         while(usNRegs > 0) {
-          *regBuffer16++ = uint16_t(inputs[(size_t)iRegIndex] & 0xFFFF);
+          *regBuffer16++ = htons(inputs[(size_t)iRegIndex]);
           ++iRegIndex;
           --usNRegs;
         }

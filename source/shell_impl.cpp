@@ -167,7 +167,6 @@ void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[])
     else {
       break;
     }
-    for(size_t a{}; a < 20; ++a) {
     auto counters = input.GetCounters();
     for(size_t i{}; i < counters.size(); ++i) {
       if(channelMask & (1U << i)) {
@@ -175,8 +174,6 @@ void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[])
       }
     }
     chprintf(chp, "\r\n");
-    chThdSleep(S2ST(1));
-    }
     return;
   }
   while(false);
