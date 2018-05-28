@@ -22,7 +22,9 @@
 
 #include "modbus_impl.h"
 #include "digitalin.h"
+#include "digitalout.h"
 #include "analogin.h"
+#include "analogout.h"
 #include "order_conv.h"
 
 #include <array>
@@ -65,8 +67,7 @@ extern "C" {
     /* it already plus one in modbus function method. */
     --usAddress;
     //Digital inputs data
-    if(usAddress == R_DigitalInputStart)
-    {
+    if(usAddress == R_DigitalInputStart) {
       if(usNRegs == R_DigitalInputSize) {
         *regBuffer16 = htons(Digital::input.GetBinaryVal());
       }
@@ -122,11 +123,111 @@ extern "C" {
    *
    * @return result
    */
-  eMBErrorCode eMBRegHoldingCB(UCHAR * /*pucRegBuffer*/, USHORT /*usAddress*/,
-                               USHORT /*usNRegs*/, eMBRegisterMode /*eMode*/)
+  eMBErrorCode eMBRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
+                               USHORT usNRegs, eMBRegisterMode eMode)
   {
-
-    return MB_ENOERR;
+    enum RegType {
+      regReadWrite,
+      regSet,
+      regClear,
+      regToggle
+    };
+    eMBErrorCode eStatus = MB_ENOERR;
+    int iRegIndex;
+    uint16_t* regBuffer16 = (uint16_t*)pucRegBuffer;
+    /* it already plus one in modbus function method. */
+    --usAddress;
+    //Digital output data, write only part (set/clear/toggle)
+    if(usAddress > R_DigitalOutputStart && eMode == MB_REG_READ) {
+      return MB_ENOREG;
+    }
+    if(usAddress >= R_DigitalOutputStart) {
+      iRegIndex = (int)(usAddress - R_DigitalOutputStart);
+      if((usNRegs + iRegIndex) <= R_DigitalOutputSize) {
+        while(usNRegs > 0) {
+          Digital::OutputCommand cmd{};
+          switch(RegType(iRegIndex))
+          {
+          case regReadWrite: {
+              if(eMode == MB_REG_READ) {
+                Digital::output.SendMessage(cmd);
+                *regBuffer16++ = htons(uint16_t(cmd.GetValue()));
+              }
+              else {
+                cmd.Set(decltype(cmd)::Mode::Write, *regBuffer16++);
+                Digital::output.SendMessage(cmd);
+              }
+            }
+            break;
+          case regSet:
+            //only set
+            if(usNRegs == 1) {
+              cmd.Set(decltype(cmd)::Mode::Set, *regBuffer16++);
+              Digital::output.SendMessage(cmd);
+            }
+            //set and clear
+            else {
+              cmd.Set(decltype(cmd)::Mode::SetAndClear, regBuffer16[0] || ((uint32_t)regBuffer16[1] << 16));
+              Digital::output.SendMessage(cmd);
+              regBuffer16 += 2;
+              --usNRegs;
+              ++iRegIndex;
+            }
+            break;
+          case regClear:
+            cmd.Set(decltype(cmd)::Mode::Clear, *regBuffer16++);
+            Digital::output.SendMessage(cmd);
+            break;
+          case regToggle:
+            cmd.Set(decltype(cmd)::Mode::Toggle, *regBuffer16);
+            Digital::output.SendMessage(cmd);
+            break;
+          }
+          --usNRegs;
+          ++iRegIndex;
+        }
+      }
+      else {
+        eStatus = MB_ENOREG;
+      }
+    }
+    else if(usAddress >= R_AnalogOutputStart) {
+      iRegIndex = (int)(usAddress - R_AnalogOutputStart);
+      if((usNRegs + iRegIndex) <= R_AnalogOutputSize) {
+        Analog::OutputCommand cmd{};
+        if(eMode == MB_REG_READ) {
+          Analog::output.SendMessage(cmd);
+          while(usNRegs > 0) {
+            *regBuffer16++ = htons(cmd.GetValue((size_t)iRegIndex));
+            ++iRegIndex;
+            --usNRegs;
+          }
+        }
+        else {
+          while(usNRegs > 0) {
+            auto val = *regBuffer16++;
+            if(val > Analog::Output::Resolution) {
+              for(auto i = -10; i < 32; ++i) {
+                chprintf((BaseSequentialStream*)&SD1, "%x ", pucRegBuffer[i]);
+              }
+              chprintf((BaseSequentialStream*)&SD1, "\r\n");
+              return MB_EINVAL;
+            }
+            else
+            cmd.SetValue((size_t)iRegIndex, val);
+            ++iRegIndex;
+            --usNRegs;
+          }
+          Analog::output.SendMessage(cmd);
+        }
+      }
+      else {
+        eStatus = MB_ENOREG;
+      }
+    }
+    else {
+      eStatus = MB_ENOREG;
+    }
+    return eStatus;
   }
-
 }

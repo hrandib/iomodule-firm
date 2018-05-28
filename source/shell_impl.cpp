@@ -80,7 +80,7 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
       break;
     }
     auto value = io::svtou(argv[1]);
-    if(!value || *value > 4096) {
+    if(!value || *value > Output::Resolution) {
       break;
     }
     cmd.SetValue(ch, (uint16_t)*value);

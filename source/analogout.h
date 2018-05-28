@@ -77,6 +77,7 @@ namespace Analog {
     void main() override;
     void SetValue(pwmchannel_t ch, pwmcnt_t value);
   public:
+    static constexpr size_t Resolution = 4096;
     Output() : PWMD_{&PWMD1}, values_{}
     { }
     void Init();
