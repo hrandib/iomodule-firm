@@ -186,7 +186,8 @@ xMBPortSerialPutByte( CHAR ucByte )
   if (bMBPortIsWithinException() == TRUE) {
     uartStartSendI (&UARTDRIVER, 1, &toSend);
   } else {
-    uartStartSend (&UARTDRIVER, 1, &toSend);
+    size_t n = 1;
+    uartSendTimeout (&UARTDRIVER, &n, &toSend, 1);
   }
   return TRUE;
 }
