@@ -62,7 +62,7 @@ private:
 public:
   void Init()
   {
-    start(NORMALPRIO);
+    start(NORMALPRIO + 1);
   }
   void main() override
   {
@@ -73,6 +73,7 @@ public:
     sleep(MS2ST(10));
     while(true) {
       eMBPoll();
+      sleep(MS2ST(1));
     }
   }
 };
