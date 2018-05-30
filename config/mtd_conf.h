@@ -22,6 +22,6 @@
 #define MTD_CONF_H_
 
 #define MTD_USE_MUTUAL_EXCLUSION  TRUE
-#define MTD_WRITE_BUF_SIZE        (4 + 2)
+#define MTD_WRITE_BUF_SIZE        (16 + 2)
 
 #endif /* MTD_CONF_H_ */

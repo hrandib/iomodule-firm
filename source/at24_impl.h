@@ -25,6 +25,9 @@
 #include "mtd_24aa.hpp"
 #include "nvram_fs.hpp"
 
+void NvramInit(void);
+nvram::File *NvramTryOpen(const char *name, size_t size);
+
 extern nvram::Fs nvram_fs;
 
 #endif // AT24_IMPL_H
