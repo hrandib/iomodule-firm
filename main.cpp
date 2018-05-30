@@ -33,6 +33,7 @@
 #include "digitalin.h"
 #include "digitalout.h"
 #include "modbus_impl.h"
+#include "at24_impl.h"
 
 using namespace Rtos;
 using namespace Mcudrv;
@@ -51,6 +52,8 @@ std::atomic_uint32_t uptimeCounter;
 int main(void) {
   halInit();
   System::init();
+  palSetPadMode(GPIOB, 8, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);   /* SCL */
+  palSetPadMode(GPIOB, 9, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);   /* SDA */
   Init(aout, dout, ain, din, modbus);
   Shell sh;
   systime_t time = chVTGetSystemTimeX();

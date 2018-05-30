@@ -22,4 +22,9 @@
 #ifndef AT24_IMPL_H
 #define AT24_IMPL_H
 
+#include "mtd_24aa.hpp"
+#include "nvram_fs.hpp"
+
+extern nvram::Fs nvram_fs;
+
 #endif // AT24_IMPL_H

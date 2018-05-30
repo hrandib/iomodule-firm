@@ -21,3 +21,38 @@
  */
 
 #include "at24_impl.h"
+
+using namespace nvram;
+
+namespace AT24C08 {
+  enum {
+    ADDRESS = 0xA0 >> 1,
+    WRITETIME = 15,
+    PAGES = 256,
+    PAGESIZE = 4,
+    ADDR_LEN = 2
+  };
+}
+
+static const MtdConfig eecfg = {
+  MS2ST(AT24C08::WRITETIME),
+  MS2ST(AT24C08::WRITETIME * AT24C08::PAGES),
+  AT24C08::PAGES,
+  AT24C08::PAGESIZE,
+  AT24C08::ADDR_LEN,
+  100000,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr
+};
+
+static uint8_t workbuf[MTD_WRITE_BUF_SIZE];
+
+static Mtd24aa nvram_mtd(eecfg, workbuf, MTD_WRITE_BUF_SIZE, &I2CD1, AT24C08::ADDRESS);
+
+Fs nvram_fs(nvram_mtd);

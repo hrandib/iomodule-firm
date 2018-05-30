@@ -26,7 +26,7 @@
 #endif
 
 #if !defined(NVRAM_FS_MAX_FILE_CNT)
-#define NVRAM_FS_MAX_FILE_CNT             3
+#define NVRAM_FS_MAX_FILE_CNT             5
 #endif
 
 #endif /* NVRAM_FS_CONF_H_ */
