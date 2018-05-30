@@ -39,6 +39,7 @@ static void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
   {"setanalog", cmd_setanalog},
@@ -46,6 +47,7 @@ static const ShellCommand commands[] = {
   {"setdigital", cmd_setdigital},
   {"getdigital", cmd_getdigital},
   {"getcounters", cmd_getcounters},
+  {"uptime", cmd_uptime},
   {nullptr, nullptr}
 };
 
@@ -249,6 +251,12 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\n\tsetdigital toggle 666");
 }
 
+void cmd_uptime(BaseSequentialStream *chp, int argc, char **/*argv[]*/)
+{
+  if(!argc) {
+    chprintf(chp, "%u\r\n", uptimeCounter.load());
+  }
+}
 
 Shell::Shell()
 {

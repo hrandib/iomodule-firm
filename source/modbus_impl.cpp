@@ -45,7 +45,9 @@ enum Range {
   R_AnalogOutputStart = 128,
   R_AnalogOutputSize = 4,
   R_DigitalOutputStart = 160,
-  R_DigitalOutputSize = 4
+  R_DigitalOutputSize = 4,
+  R_SystemStatStart = 192,
+  R_SystemStatSize = 2
 };
 
 extern "C" {
@@ -66,8 +68,19 @@ extern "C" {
     uint16_t* regBuffer16 = (uint16_t*)pucRegBuffer;
     /* it already plus one in modbus function method. */
     --usAddress;
+    //Uptime
+    if(usAddress == R_SystemStatStart) {
+      if(usNRegs == R_SystemStatSize) {
+        uint32_t be32 = htonl(uptimeCounter.load());
+        *regBuffer16++ = uint16_t(be32 & 0xFFFF);
+        *regBuffer16++ = uint16_t(be32 >> 16);
+      }
+      else {
+        eStatus = MB_ENOREG;
+      }
+    }
     //Digital inputs data
-    if(usAddress == R_DigitalInputStart) {
+    else if(usAddress == R_DigitalInputStart) {
       if(usNRegs == R_DigitalInputSize) {
         *regBuffer16 = htons(Digital::input.GetBinaryVal());
       }
@@ -81,9 +94,9 @@ extern "C" {
       if((usNRegs + iRegIndex) <= R_CounterSize && (usNRegs & 0x01) == 0) {
         auto counters = Digital::input.GetCounters();
         while(usNRegs > 0) {
-          uint32_t beVal = htonl(counters[(size_t)iRegIndex]);
-          *regBuffer16++ = uint16_t(beVal & 0xFFFF);
-          *regBuffer16++ = uint16_t(beVal >> 16);
+          uint32_t be32 = htonl(counters[(size_t)iRegIndex]);
+          *regBuffer16++ = uint16_t(be32 & 0xFFFF);
+          *regBuffer16++ = uint16_t(be32 >> 16);
           ++iRegIndex;
           usNRegs -= 2;
         }
