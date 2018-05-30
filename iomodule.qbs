@@ -52,7 +52,7 @@ CppApplication
   cpp.linkerFlags: [
 		"--gc-sections",
     "--Map=c:/Projects/output.map",
-    "--defsym=__process_stack_size__=0x100",
+    "--defsym=__process_stack_size__=0x300",
     "--defsym=__main_stack_size__=0x100",
   ]
   cpp.includePaths: [
