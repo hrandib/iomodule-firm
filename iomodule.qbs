@@ -268,20 +268,22 @@ CppApplication
 	}
   Group {	name: "Main"
     files: [
-      "main.cpp",
-      "source/analogin.cpp",
-      "source/analogin.h",
-      "source/analogout.cpp",
-      "source/analogout.h",
-      "source/digitalin.cpp",
-      "source/digitalin.h",
-      "source/digitalout.cpp",
-      "source/digitalout.h",
-      "source/modbus_impl.cpp",
-      "source/modbus_impl.h",
-      "source/shell_impl.cpp",
-      "source/shell_impl.h",
-    ]
+          "main.cpp",
+          "source/analogin.cpp",
+          "source/analogin.h",
+          "source/analogout.cpp",
+          "source/analogout.h",
+          "source/at24_impl.cpp",
+          "source/at24_impl.h",
+          "source/digitalin.cpp",
+          "source/digitalin.h",
+          "source/digitalout.cpp",
+          "source/digitalout.h",
+          "source/modbus_impl.cpp",
+          "source/modbus_impl.h",
+          "source/shell_impl.cpp",
+          "source/shell_impl.h",
+      ]
     excludeFiles: [
 			"**/*_res.c",
 			"**/*_conf_template.c",

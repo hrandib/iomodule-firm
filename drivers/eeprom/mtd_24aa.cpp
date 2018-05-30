@@ -76,13 +76,6 @@ static systime_t calc_timeout(size_t bytes, uint32_t clock) {
  */
 msg_t Mtd24aa::i2c_read(uint8_t *rxbuf, size_t len,
                    uint8_t *writebuf, size_t preamble_len) {
-
-#if defined(STM32F1XX_I2C)
-#error "Ugly workaround for single byte reading is not implemented yet"
-  if (1 == len)
-    return stm32_f1x_read_single_byte(rxbuf, offset);
-#endif /* defined(STM32F1XX_I2C) */
-
   msg_t status;
   systime_t tmo = calc_timeout(len + preamble_len, this->bus_clk);
   osalDbgCheck((nullptr != rxbuf) && (0 != len));
@@ -108,13 +101,6 @@ msg_t Mtd24aa::i2c_read(uint8_t *rxbuf, size_t len,
  */
 msg_t Mtd24aa::i2c_write(const uint8_t *txdata, size_t len,
                       uint8_t *writebuf, size_t preamble_len) {
-
-#if defined(STM32F1XX_I2C)
-#error "Ugly workaround for single byte reading is not implemented yet"
-  if (1 == len)
-    return stm32_f1x_read_single_byte(txdata, offset);
-#endif /* defined(STM32F1XX_I2C) */
-
   msg_t status;
   systime_t tmo = calc_timeout(len + preamble_len, this->bus_clk);
 
