@@ -46,12 +46,17 @@ static auto Init = [](auto&&... objs) {
   (objs.Init(), ...);
 };
 
+std::atomic_uint32_t uptimeCounter;
+
 int main(void) {
   halInit();
   System::init();
   Init(aout, dout, ain, din, modbus);
   Shell sh;
+  systime_t time = chVTGetSystemTimeX();
   while(true) {
-    BaseThread::sleep(S2ST(1));
+    time += S2ST(1);
+    BaseThread::sleepUntil(time);
+    ++uptimeCounter;
   }
 }
