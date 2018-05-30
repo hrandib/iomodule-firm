@@ -60,6 +60,7 @@ CppApplication
     "board",
     "utils",
     "drivers",
+    "drivers/eeprom",
     "source",
     //Startup
     ChibiOS + "os/common/startup/ARMCMx/compilers/GCC",
@@ -88,6 +89,7 @@ CppApplication
     ChibiOS + "os/hal/ports/STM32/LLD/TIMv1",
     ChibiOS + "os/hal/ports/STM32/LLD/USARTv1",
     ChibiOS + "os/hal/ports/STM32/LLD/SPIv1",
+    ChibiOS + "os/hal/ports/STM32/LLD/I2Cv1",
     //cpp support
     ChibiOS + "os/various/cpp_wrappers",
     //Various
@@ -170,14 +172,22 @@ CppApplication
       "hal_lld_f103.h",
       "hal_ext_lld_isr.c",
       "hal_adc_lld.h",
-      "hal_adc_lld.c",
+      "hal_adc_lld.c"
     ]
   }
   Group { name: "Drivers"
     prefix: "drivers/"
     files: [
       "gpio.h",
-      "pinlist.h"
+      "pinlist.h",
+      "eeprom/mtd_24aa.hpp",
+      "eeprom/mtd_24aa.cpp",
+      "eeprom/mtd_base.hpp",
+      "eeprom/mtd_base.cpp",
+      "eeprom/nvram_file.hpp",
+      "eeprom/nvram_file.cpp",
+      "eeprom/nvram_fs.hpp",
+      "eeprom/nvram_fs.cpp"
     ]
   }
   Group { name: "Drivers ChibiOS"
@@ -199,7 +209,9 @@ CppApplication
       "LLD/USARTv1/hal_serial_lld.h",
       "LLD/USARTv1/hal_serial_lld.c",
       "LLD/SPIv1/hal_spi_lld.h",
-      "LLD/SPIv1/hal_spi_lld.c"
+      "LLD/SPIv1/hal_spi_lld.c",
+      "LLD/I2Cv1/hal_i2c_lld.h",
+      "LLD/I2Cv1/hal_i2c_lld.c"
     ]
   }
   Group { name: "RT"
