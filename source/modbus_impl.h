@@ -25,6 +25,10 @@
 #include "mb.h"
 #include "ch_extended.h"
 
+#include <atomic>
+
+extern std::atomic_uint32_t uptimeCounter;
+
 static const uint8_t *UniqProcessorId = (uint8_t *) 0x1FFFF7E8;
 static const uint8_t UniqProcessorIdLen = 12;
 
@@ -62,7 +66,7 @@ private:
 public:
   void Init()
   {
-    start(NORMALPRIO);
+    start(NORMALPRIO + 1);
   }
   void main() override
   {
@@ -73,6 +77,7 @@ public:
     sleep(MS2ST(10));
     while(true) {
       eMBPoll();
+      sleep(MS2ST(1));
     }
   }
 };
