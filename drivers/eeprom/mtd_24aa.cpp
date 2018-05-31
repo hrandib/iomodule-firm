@@ -103,7 +103,7 @@ msg_t Mtd24aa::i2c_write(const uint8_t *txdata, size_t len,
                       uint8_t *writebuf, size_t preamble_len) {
   msg_t status;
   systime_t tmo = calc_timeout(len + preamble_len, this->bus_clk);
-
+  uint8_t addrSuffix = (preamble_len == 1 ? writebuf[preamble_len] : 0);
   if ((nullptr != txdata) && (0 != len))
     memcpy(&writebuf[preamble_len], txdata, len);
 
@@ -111,7 +111,7 @@ msg_t Mtd24aa::i2c_write(const uint8_t *txdata, size_t len,
   i2cAcquireBus(this->i2cp);
 #endif
 
-  status = i2cMasterTransmitTimeout(this->i2cp, this->addr,
+  status = i2cMasterTransmitTimeout(this->i2cp, this->addr | addrSuffix,
                   writebuf, preamble_len + len, nullptr, 0, tmo);
   if (MSG_OK != status)
     i2cflags = i2cGetErrors(this->i2cp);
@@ -163,7 +163,6 @@ size_t Mtd24aa::bus_write(const uint8_t *txdata, size_t len, uint32_t offset) {
   this->acquire();
 
   /* write preamble. Only address bytes for this memory type */
-  addr2buf(writebuf, offset, cfg.addr_len);
   status = i2c_write(txdata, len, writebuf, cfg.addr_len);
 
   wait_op_complete();

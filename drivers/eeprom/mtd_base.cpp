@@ -63,14 +63,18 @@ namespace nvram {
  *
  * @param[in] txbuf pointer to driver transmit buffer
  * @param[in] addr  internal EEPROM device address
+ * @return  MSB bits (I2C address addition for 24cxx)
  */
 void MtdBase::addr2buf(uint8_t *buf, uint32_t addr, size_t addr_len) {
   osalDbgCheck(addr_len <= sizeof(addr));
 
   switch (addr_len) {
-  case 1:
+  case 1: {
     buf[0] = addr & 0xFF;
+    auto addressMask = (cfg.pages * cfg.pagesize) - 1;
+    buf[1] = uint8_t((addr & addressMask) >> 8);
     break;
+  }
   case 2:
     buf[0] = (addr >> 8) & 0xFF;
     buf[1] =  addr       & 0xFF;

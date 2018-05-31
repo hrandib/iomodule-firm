@@ -112,17 +112,17 @@ protected:
   void acquire(void);
   void release(void);
 
-  #if MTD_USE_MUTUAL_EXCLUSION
-    #if CH_CFG_USE_MUTEXES
-      chibios_rt::Mutex             mutex;
-    #elif CH_CFG_USE_SEMAPHORES
-      chibios_rt::CounterSemaphore  semaphore;
-    #endif
-  #endif /* MTD_USE_MUTUAL_EXCLUSION */
-
   const MtdConfig &cfg;
   uint8_t *writebuf;
   size_t writebuf_size;
+
+#if MTD_USE_MUTUAL_EXCLUSION
+  #if CH_CFG_USE_MUTEXES
+    chibios_rt::Mutex             mutex;
+  #elif CH_CFG_USE_SEMAPHORES
+    chibios_rt::CounterSemaphore  semaphore;
+  #endif
+#endif /* MTD_USE_MUTUAL_EXCLUSION */
 };
 
 } /* namespace */
