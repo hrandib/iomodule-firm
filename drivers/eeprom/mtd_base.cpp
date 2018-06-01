@@ -259,20 +259,12 @@ writebuf_size(writebuf_size)
  */
 size_t MtdBase::write(const uint8_t *data, size_t len, uint32_t offset) {
   size_t ret;
-
-  if (nullptr != cfg.hook_start_write)
-    cfg.hook_start_write(this);
-
   if (1 == cfg.pages) { /* FRAM */
     ret = split_by_buffer(data, len, offset);
   }
   else {  /* page organized EEPROM */
     ret = split_by_page(data, len, offset);
   }
-
-  if (nullptr != cfg.hook_stop_write)
-    cfg.hook_stop_write(this);
-
   return ret;
 }
 
@@ -281,15 +273,7 @@ size_t MtdBase::write(const uint8_t *data, size_t len, uint32_t offset) {
  */
 size_t MtdBase::read(uint8_t *rxbuf, size_t len, uint32_t offset) {
   size_t ret;
-
-  if (nullptr != cfg.hook_start_read)
-    cfg.hook_start_read(this);
-
   ret = bus_read(rxbuf, len, offset);
-
-  if (nullptr != cfg.hook_stop_read)
-    cfg.hook_stop_read(this);
-
   return ret;
 }
 

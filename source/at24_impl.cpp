@@ -27,7 +27,7 @@ using namespace nvram;
 namespace CAT24C08 {
   enum {
     ADDRESS = 0xA0 >> 1,
-    WRITETIME = 5,
+    WRITETIME = 20,
     PAGES = 64,
     PAGESIZE = 16,
     ADDR_LEN = 1
@@ -42,45 +42,9 @@ static const MtdConfig eecfg = {
   CAT24C08::ADDR_LEN,
   400000,
   nullptr,
-  nullptr,
-  nullptr,
-  nullptr,
-  nullptr,
-  nullptr,
-  nullptr,
   nullptr
 };
 
 static uint8_t workbuf[MTD_WRITE_BUF_SIZE];
 
-static Mtd24aa nvram_mtd(eecfg, workbuf, MTD_WRITE_BUF_SIZE, &I2CD1, CAT24C08::ADDRESS);
-
-Fs nvram_fs(nvram_mtd);
-
-void NvramInit() {
-  if (OSAL_SUCCESS != nvram_fs.mount()){
-    nvram_fs.mkfs();
-    if (OSAL_SUCCESS != nvram_fs.mount()){
-      osalSysHalt("Storage broken");
-    }
-  }
-}
-
-File *NvramTryOpen(const char *name, size_t size) {
-
-  /* try to open exiting file */
-  File *file = nvram_fs.open(name);
-
-  if (nullptr == file) {
-    /* boot strapping when first run */
-    if (nvram_fs.df() < size)
-      osalSysHalt("Not enough free space in nvram to create file");
-    else {
-      /* No such file. Just create it. */
-      file = nvram_fs.create(name, size);
-      osalDbgCheck(nullptr != file);
-    }
-  }
-
-  return file;
-}
+Mtd24aa nvram_mtd(eecfg, workbuf, MTD_WRITE_BUF_SIZE, &I2CD1, CAT24C08::ADDRESS);

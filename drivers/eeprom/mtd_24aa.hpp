@@ -29,9 +29,6 @@
 
 namespace nvram {
 
-/**
- *
- */
 class Mtd24aa : public MtdBase {
 public:
   Mtd24aa(const MtdConfig &cfg, uint8_t *writebuf, size_t writebuf_size,

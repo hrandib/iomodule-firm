@@ -77,29 +77,24 @@ struct MtdConfig {
    */
   spiselect_t   spi_select;
   spiselect_t   spi_unselect;
-  /**
-   * @brief   Debug hooks. Set to nullptr if unused.
-   */
-  mtdcb_t       hook_start_write;
-  mtdcb_t       hook_stop_write;
-  mtdcb_t       hook_start_read;
-  mtdcb_t       hook_stop_read;
-  mtdcb_t       hook_start_erase;
-  mtdcb_t       hook_stop_erase;
 };
 
-/**
- *
- */
 class MtdBase {
 public:
   MtdBase(const MtdConfig &cfg, uint8_t *writebuf, size_t writebuf_size);
   size_t write(const uint8_t *txdata, size_t len, uint32_t offset);
   size_t read(uint8_t *rxbuf, size_t len, uint32_t offset);
-  uint32_t capacity(void) {return cfg.pages * cfg.pagesize;}
-  uint32_t pagesize(void) {return cfg.pagesize;}
-  uint32_t pagecount(void) {return cfg.pages;}
+  uint32_t capacity(void) {
+    return cfg.pages * cfg.pagesize;
+  }
+  uint32_t pagesize(void) {
+    return cfg.pagesize;
+  }
+  uint32_t pagecount(void) {
+    return cfg.pages;
+  }
   bool is_fram(void);
+  virtual ~MtdBase() {  }
 protected:
   virtual size_t bus_write(const uint8_t *txdata, size_t len, uint32_t offset) = 0;
   virtual size_t bus_read(uint8_t *rxbuf, size_t len, uint32_t offset) = 0;
