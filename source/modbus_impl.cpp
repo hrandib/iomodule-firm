@@ -277,7 +277,7 @@ void Modbus::Init()
   else {
     devID_ = nvID;
   }
-  start(NORMALPRIO + 1);
+  start(NORMALPRIO + 11);
 }
 
 void Modbus::main()
@@ -286,10 +286,8 @@ void Modbus::main()
   while(InitModbus() != true) {
     sleep(MS2ST(300));
   }
-  sleep(MS2ST(10));
   while(true) {
     eMBPoll();
-    sleep(MS2ST(1));
   }
 }
 
