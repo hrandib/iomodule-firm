@@ -32,93 +32,94 @@
 
 namespace nvram {
 
-class MtdBase; /* forward declaration */
+  class MtdBase; /* forward declaration */
 
-typedef void (*mtdcb_t)(MtdBase *mtd);
+  typedef void (*mtdcb_t)(MtdBase* mtd);
 
-typedef void (*spiselect_t)(void);
+  typedef void (*spiselect_t)(void);
 
-/**
- *
- */
-struct MtdConfig {
-  /**
-   * @brief   Time needed (worst case) by IC for single page writing.
-   * @note    Set it to 0 for FRAM.
-   * @note    It is system ticks NOT milliseconds.
-   */
-  systime_t     programtime;
-  /**
-   * @brief   Time needed (worst case) by IC for full erase.
-   * @note    Set it to 0 for FRAM or for memory without auto-erase.
-   * @note    It is system ticks NOT milliseconds.
-   */
-  systime_t     erasetime;
-  /**
-   * @brief   Size of memory array in pages.
-   * @note    Set it to 1 for FRAM.
-   */
-  uint32_t      pages;
-  /**
-   * @brief   Size of single page in bytes.
-   * @note    Set it to whole array size for FRAM.
-   */
-  uint32_t      pagesize;
-  /**
-   * @brief   Address length in bytes.
-   */
-  size_t        addr_len;
-  /**
-   * @brief   Bus clock in Hz for operation timeout calculation.
-   */
-  uint32_t      bus_clk;
-  /**
-   * @brief   SPI Bus (un)select function pointer. Set to nullptr for I2C.
-   */
-  spiselect_t   spi_select;
-  spiselect_t   spi_unselect;
-};
+  struct MtdConfig {
+    /**
+     * @brief   Time needed (worst case) by IC for single page writing.
+     * @note    Set it to 0 for FRAM.
+     * @note    It is system ticks NOT milliseconds.
+     */
+    systime_t     programtime;
+    /**
+     * @brief   Time needed (worst case) by IC for full erase.
+     * @note    Set it to 0 for FRAM or for memory without auto-erase.
+     * @note    It is system ticks NOT milliseconds.
+     */
+    systime_t     erasetime;
+    /**
+     * @brief   Size of memory array in pages.
+     * @note    Set it to 1 for FRAM.
+     */
+    uint32_t      pages;
+    /**
+     * @brief   Size of single page in bytes.
+     * @note    Set it to whole array size for FRAM.
+     */
+    uint32_t      pagesize;
+    /**
+     * @brief   Address length in bytes.
+     */
+    size_t        addr_len;
+    /**
+     * @brief   Bus clock in Hz for operation timeout calculation.
+     */
+    uint32_t      bus_clk;
+    /**
+     * @brief   SPI Bus (un)select function pointer. Set to nullptr for I2C.
+     */
+    spiselect_t   spi_select;
+    spiselect_t   spi_unselect;
+  };
 
-class MtdBase {
-public:
-  MtdBase(const MtdConfig &cfg, uint8_t *writebuf, size_t writebuf_size);
-  size_t write(const uint8_t *txdata, size_t len, uint32_t offset);
-  size_t read(uint8_t *rxbuf, size_t len, uint32_t offset);
-  uint32_t capacity(void) {
-    return cfg.pages * cfg.pagesize;
-  }
-  uint32_t pagesize(void) {
-    return cfg.pagesize;
-  }
-  uint32_t pagecount(void) {
-    return cfg.pages;
-  }
-  bool is_fram(void);
-  virtual ~MtdBase() {  }
-protected:
-  virtual size_t bus_write(const uint8_t *txdata, size_t len, uint32_t offset) = 0;
-  virtual size_t bus_read(uint8_t *rxbuf, size_t len, uint32_t offset) = 0;
+  class MtdBase
+  {
+  public:
+    MtdBase(const MtdConfig& cfg, uint8_t* writebuf, size_t writebuf_size);
+    size_t write(const uint8_t* txdata, size_t len, uint32_t offset);
+    size_t read(uint8_t* rxbuf, size_t len, uint32_t offset);
+    uint32_t capacity(void)
+    {
+      return cfg.pages * cfg.pagesize;
+    }
+    uint32_t pagesize(void)
+    {
+      return cfg.pagesize;
+    }
+    uint32_t pagecount(void)
+    {
+      return cfg.pages;
+    }
+    bool is_fram(void);
+    virtual ~MtdBase() {  }
+  protected:
+    virtual size_t bus_write(const uint8_t* txdata, size_t len, uint32_t offset) = 0;
+    virtual size_t bus_read(uint8_t* rxbuf, size_t len, uint32_t offset) = 0;
 
-  size_t split_by_buffer(const uint8_t *txdata, size_t len, uint32_t offset);
-  size_t split_by_page  (const uint8_t *txdata, size_t len, uint32_t offset);
-  size_t fitted_write(const uint8_t *txdata, size_t len, uint32_t offset);
+    size_t split_by_buffer(const uint8_t* txdata, size_t len, uint32_t offset);
+    size_t split_by_page(const uint8_t* txdata, size_t len, uint32_t offset);
+    size_t fitted_write(const uint8_t* txdata, size_t len, uint32_t offset);
 
-  void addr2buf(uint8_t *buf, uint32_t addr, size_t addr_len);
-  void acquire(void);
-  void release(void);
+    void addr2buf(uint8_t* buf, uint32_t addr, size_t addr_len);
+    void acquire(void);
+    void release(void);
 
-  const MtdConfig &cfg;
-  uint8_t *writebuf;
-  size_t writebuf_size;
+    const MtdConfig& cfg;
+    uint8_t* writebuf;
+    size_t writebuf_size;
 
 #if MTD_USE_MUTUAL_EXCLUSION
-  #if CH_CFG_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chibios_rt::Mutex             mutex;
-  #elif CH_CFG_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chibios_rt::CounterSemaphore  semaphore;
-  #endif
+#endif
 #endif /* MTD_USE_MUTUAL_EXCLUSION */
-};
+  };
 
 } /* namespace */
 

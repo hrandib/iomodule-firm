@@ -29,25 +29,26 @@
 
 namespace nvram {
 
-class Mtd24aa : public MtdBase {
-public:
-  Mtd24aa(const MtdConfig &cfg, uint8_t *writebuf, size_t writebuf_size,
-                                      I2CDriver *i2cp, i2caddr_t addr);
-protected:
-  size_t bus_write(const uint8_t *txdata, size_t len, uint32_t offset);
-  size_t bus_read(uint8_t *rxbuf, size_t len, uint32_t offset);
-private:
-  bool wait_op_complete(void);
-  msg_t i2c_read(uint8_t *rxbuf, size_t len,
-                 uint8_t *writebuf, size_t preamble_len);
-  msg_t i2c_write(const uint8_t *txdata, size_t len,
-                  uint8_t *writebuf, size_t preamble_len);
-  I2CDriver *i2cp;
-  i2caddr_t addr;
-  i2cflags_t i2cflags = 0;
-  uint32_t bus_clk;
-};
+  class Mtd24aa : public MtdBase
+  {
+  public:
+    Mtd24aa(const MtdConfig& cfg, uint8_t* writebuf, size_t writebuf_size,
+            I2CDriver* i2cp, i2caddr_t addr);
+  protected:
+    size_t bus_write(const uint8_t* txdata, size_t len, uint32_t offset);
+    size_t bus_read(uint8_t* rxbuf, size_t len, uint32_t offset);
+  private:
+    bool wait_op_complete(void);
+    msg_t i2c_read(uint8_t* rxbuf, size_t len,
+                   uint8_t* writebuf, size_t preamble_len);
+    msg_t i2c_write(const uint8_t* txdata, size_t len,
+                    uint8_t* writebuf, size_t preamble_len);
+    I2CDriver* i2cp;
+    i2caddr_t addr;
+    i2cflags_t i2cflags = 0;
+    uint32_t bus_clk;
+  };
 
-} /* namespace */
+} //nvram
 
 #endif /* MTD_24AA_HPP_ */
