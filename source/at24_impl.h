@@ -22,37 +22,67 @@
 #ifndef AT24_IMPL_H
 #define AT24_IMPL_H
 
-#define MTD_USE_MUTUAL_EXCLUSION  TRUE
-
+#include "eeprom_conf.h"
 #include "mtd_24aa.hpp"
 #include "chprintf.h"
 
+namespace nvram {
 
 template<typename... Ts>
 static inline void log(const char* str, Ts... ts) {
   chprintf((BaseSequentialStream*)&SD1, str, ts...);
 }
 
+enum class Section {
+  Reserved,
+  Modbus,
+};
+
 namespace CAT24C08 {
   enum {
     ADDRESS = 0xA0 >> 1,
-    WRITETIME = 20,
+    WRITETIME = 5,
     PAGES = 64,
     PAGESIZE = 16,
     ADDR_LEN = 1
   };
 }
 
-#define EEPROM_TYPE CAT24C08
+static const I2CConfig i2cfg1 = {
+    OPMODE_I2C,
+    400000,
+    FAST_DUTY_CYCLE_2
+};
 
 class Eeprom
 {
 private:
+  static constexpr size_t SectionSize = 32;
+  Mtd24aa& dev_;
 public:
-  Eeprom();
-
+  Eeprom(Mtd24aa& dev) : dev_{dev}
+  { }
+  void Init() {
+    palSetPadMode(GPIOB, 8, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);   /* SCL */
+    palSetPadMode(GPIOB, 9, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);   /* SDA */
+    i2cStart(&I2CD1, &i2cfg1);
+  }
+  template<typename T>
+  size_t Write(Section sec, const T& obj)
+  {
+    uint32_t offset = uint32_t(sec) * SectionSize;
+    return dev_.write((uint8_t*)&obj, sizeof(obj), offset);
+  }
+  template<typename T>
+  size_t Read(Section sec, T& obj, size_t size = sizeof(T))
+  {
+    uint32_t offset = uint32_t(sec) * SectionSize;
+    return dev_.read((uint8_t*)&obj, size, offset);
+  }
 };
 
-extern nvram::Mtd24aa nvram_mtd;
+extern Eeprom eeprom;
+
+} //nvram
 
 #endif // AT24_IMPL_H

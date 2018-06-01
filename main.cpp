@@ -38,8 +38,6 @@
 using namespace Rtos;
 using namespace Mcudrv;
 
-using nvram::File;
-
 static constexpr auto& dout = Digital::output;
 static constexpr auto& aout = Analog::output;
 static constexpr auto& ain = Analog::input;
@@ -51,38 +49,22 @@ static auto Init = [](auto&&... objs) {
 
 std::atomic_uint32_t uptimeCounter;
 
-const uint8_t test_string[] = "123";
-static uint8_t read_back_buf[4];
+using namespace std::literals;
+using nvram::eeprom;
 
-static const I2CConfig i2cfg1 = {
-    OPMODE_I2C,
-    400000,
-    FAST_DUTY_CYCLE_2
-};
+const uint8_t test_string[] = "123";
+static std::array<uint8_t, 100> buf;
 
 int main(void) {
   halInit();
   System::init();
-  palSetPadMode(GPIOB, 8, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);   /* SCL */
-  palSetPadMode(GPIOB, 9, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);   /* SDA */
-//  Init(aout, dout, ain, din, modbus);
+  Init(aout, dout, ain, din, modbus, eeprom);
   Shell sh;
-  /* normal test and simple example of usage */
-  i2cStart(&I2CD1, &i2cfg1);
-  NvramInit();
-  File *f = NvramTryOpen("test0", 4);
-  osalDbgCheck(nullptr != f);
-  fileoffset_t status;
-
-  status = f->write(test_string, sizeof(test_string));
-  osalDbgCheck(sizeof(test_string) == status);
-
-  status = f->setPosition(0);
-  osalDbgCheck(FILE_OK == status);
-
-  status = f->read(read_back_buf, sizeof(test_string));
-  chprintf((BaseSequentialStream*)&SD1, (const char*)read_back_buf);
-  osalDbgCheck(sizeof(test_string) == status);
+  const char str[] = "ABCDEFGHIJK";
+  eeprom.Write(nvram::Section::Modbus, str);
+  buf.fill(0);
+  eeprom.Read(nvram::Section::Modbus, buf, sizeof(str));
+  nvram::log("%s", buf.data());
   systime_t time = chVTGetSystemTimeX();
   while(true) {
     time += S2ST(1);

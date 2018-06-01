@@ -19,29 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef EEPROM_CONF_H
+#define EEPROM_CONF_H
 
-#include "at24_impl.h"
+#define MTD_USE_MUTUAL_EXCLUSION  TRUE
+#define EEPROM_TYPE CAT24C08
 
-namespace nvram {
-
-enum {
-  MTD_WRITE_BUF_SIZE = EEPROM_TYPE::PAGESIZE + 2
-};
-
-static const MtdConfig eecfg = {
-  MS2ST(EEPROM_TYPE::WRITETIME),
-  MS2ST(EEPROM_TYPE::WRITETIME * EEPROM_TYPE::PAGES),
-  EEPROM_TYPE::PAGES,
-  EEPROM_TYPE::PAGESIZE,
-  EEPROM_TYPE::ADDR_LEN,
-  nullptr,
-  nullptr
-};
-
-static uint8_t workbuf[MTD_WRITE_BUF_SIZE];
-
-static Mtd24aa nvram_mtd(eecfg, workbuf, MTD_WRITE_BUF_SIZE, &I2CD1, EEPROM_TYPE::ADDRESS);
-
-Eeprom eeprom{nvram_mtd};
-
-}
+#endif // EEPROM_CONF_H

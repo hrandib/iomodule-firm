@@ -9,7 +9,7 @@ CppApplication
 
 	type: ["application", "printsize"]
 	consoleApplication: true
-  cpp.optimization: "none"
+  cpp.optimization: "small"
   cpp.debugInformation: true
   cpp.enableExceptions: false
   cpp.enableRtti: false
@@ -33,7 +33,7 @@ CppApplication
     //"-nostdlib", "-nodefaultlibs"
 	]
   cpp.commonCompilerFlags: [
-    "-flto=8",
+//    "-flto=8",
     "-fdata-sections",
     "-ffunction-sections",
     "-Wno-implicit-fallthrough"
@@ -51,9 +51,9 @@ CppApplication
 	}
   cpp.linkerFlags: [
 		"--gc-sections",
-    "--Map=c:/Projects/output.map",
-    "--defsym=__process_stack_size__=0x300",
-    "--defsym=__main_stack_size__=0x100",
+//    "--Map=c:/Projects/output.map",
+    "--defsym=__process_stack_size__=0x800",
+    "--defsym=__main_stack_size__=0x800",
   ]
   cpp.includePaths: [
     "config",
@@ -136,10 +136,11 @@ CppApplication
     prefix: "config/"
     files: [
       "chconf.h",
+      "eeprom_conf.h",
       "halconf.h",
       "mcuconf.h",
-      "shellconf.h"
-    ]
+      "shellconf.h",
+      ]
   }
   Group { name: "Utils"
     prefix: "utils/"
@@ -184,10 +185,6 @@ CppApplication
       "eeprom/mtd_24aa.cpp",
       "eeprom/mtd_base.hpp",
       "eeprom/mtd_base.cpp",
-      "eeprom/nvram_file.hpp",
-      "eeprom/nvram_file.cpp",
-      "eeprom/nvram_fs.hpp",
-      "eeprom/nvram_fs.cpp"
     ]
   }
   Group { name: "Drivers ChibiOS"
