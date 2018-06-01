@@ -58,7 +58,7 @@ using namespace Mcudrv;
     }
   };
 
-  class Input : Rtos::BaseStaticThread<256>
+  class Input : Rtos::BaseStaticThread<512>
   {
   public:
     static constexpr size_t numChannels = 10;
@@ -69,7 +69,7 @@ using namespace Mcudrv;
   private:
     using sample_buf_t = std::array<adcsample_t, numChannels>;
     using dma_buf_t = std::array<sample_buf_t, dmaBufDepth>;
-    using fifo_t = memory_relaxed_acquire_release::CircularFifo<sample_buf_t, 64>;
+    using fifo_t = memory_relaxed_acquire_release::CircularFifo<sample_buf_t, 128>;
     using counters_buf_t = std::array<uint32_t, numChannels>;
     using InputPins = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pinlist<Pb0, SequenceOf<2>>>;
 

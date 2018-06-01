@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,48 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef EEPROM_CONF_H
+#define EEPROM_CONF_H
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
+#define MTD_USE_MUTUAL_EXCLUSION  TRUE
+#define EEPROM_TYPE CAT24C08
 
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogout.h"
-#include "analogin.h"
-#include "digitalin.h"
-#include "digitalout.h"
-#include "modbus_impl.h"
-#include "at24_impl.h"
-
-using namespace Rtos;
-using namespace Mcudrv;
-
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
-static constexpr auto& ain = Analog::input;
-static constexpr auto& din = Digital::input;
-
-static auto Init = [](auto&&... objs) {
-  (objs.Init(), ...);
-};
-
-std::atomic_uint32_t uptimeCounter;
-
-using namespace std::literals;
-using nvram::eeprom;
-
-int main(void) {
-  halInit();
-  System::init();
-  Init(aout, dout, ain, din, modbus, eeprom);
-  Shell sh;
-  systime_t time = chVTGetSystemTimeX();
-  while(true) {
-    time += S2ST(1);
-    BaseThread::sleepUntil(time);
-    ++uptimeCounter;
-  }
-}
+#endif // EEPROM_CONF_H

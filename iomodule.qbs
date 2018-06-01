@@ -10,7 +10,7 @@ CppApplication
 	type: ["application", "printsize"]
 	consoleApplication: true
   cpp.optimization: "small"
-	cpp.debugInformation: false
+  cpp.debugInformation: true
   cpp.enableExceptions: false
   cpp.enableRtti: false
   cpp.positionIndependentCode: false
@@ -33,7 +33,7 @@ CppApplication
     //"-nostdlib", "-nodefaultlibs"
 	]
   cpp.commonCompilerFlags: [
-    "-flto=8",
+//    "-flto=8",
     "-fdata-sections",
     "-ffunction-sections",
     "-Wno-implicit-fallthrough"
@@ -51,15 +51,16 @@ CppApplication
 	}
   cpp.linkerFlags: [
 		"--gc-sections",
-    "--Map=c:/Projects/output.map",
-    "--defsym=__process_stack_size__=0x100",
-    "--defsym=__main_stack_size__=0x100",
+//    "--Map=c:/Projects/output.map",
+    "--defsym=__process_stack_size__=0x800",
+    "--defsym=__main_stack_size__=0x800",
   ]
   cpp.includePaths: [
     "config",
     "board",
     "utils",
     "drivers",
+    "drivers/eeprom",
     "source",
     //Startup
     ChibiOS + "os/common/startup/ARMCMx/compilers/GCC",
@@ -88,6 +89,7 @@ CppApplication
     ChibiOS + "os/hal/ports/STM32/LLD/TIMv1",
     ChibiOS + "os/hal/ports/STM32/LLD/USARTv1",
     ChibiOS + "os/hal/ports/STM32/LLD/SPIv1",
+    ChibiOS + "os/hal/ports/STM32/LLD/I2Cv1",
     //cpp support
     ChibiOS + "os/various/cpp_wrappers",
     //Various
@@ -134,10 +136,11 @@ CppApplication
     prefix: "config/"
     files: [
       "chconf.h",
+      "eeprom_conf.h",
       "halconf.h",
       "mcuconf.h",
-      "shellconf.h"
-    ]
+      "shellconf.h",
+      ]
   }
   Group { name: "Utils"
     prefix: "utils/"
@@ -170,14 +173,18 @@ CppApplication
       "hal_lld_f103.h",
       "hal_ext_lld_isr.c",
       "hal_adc_lld.h",
-      "hal_adc_lld.c",
+      "hal_adc_lld.c"
     ]
   }
   Group { name: "Drivers"
     prefix: "drivers/"
     files: [
       "gpio.h",
-      "pinlist.h"
+      "pinlist.h",
+      "eeprom/mtd_24aa.hpp",
+      "eeprom/mtd_24aa.cpp",
+      "eeprom/mtd_base.hpp",
+      "eeprom/mtd_base.cpp",
     ]
   }
   Group { name: "Drivers ChibiOS"
@@ -199,7 +206,9 @@ CppApplication
       "LLD/USARTv1/hal_serial_lld.h",
       "LLD/USARTv1/hal_serial_lld.c",
       "LLD/SPIv1/hal_spi_lld.h",
-      "LLD/SPIv1/hal_spi_lld.c"
+      "LLD/SPIv1/hal_spi_lld.c",
+      "LLD/I2Cv1/hal_i2c_lld.h",
+      "LLD/I2Cv1/hal_i2c_lld.c"
     ]
   }
   Group { name: "RT"
@@ -256,20 +265,22 @@ CppApplication
 	}
   Group {	name: "Main"
     files: [
-      "main.cpp",
-      "source/analogin.cpp",
-      "source/analogin.h",
-      "source/analogout.cpp",
-      "source/analogout.h",
-      "source/digitalin.cpp",
-      "source/digitalin.h",
-      "source/digitalout.cpp",
-      "source/digitalout.h",
-      "source/modbus_impl.cpp",
-      "source/modbus_impl.h",
-      "source/shell_impl.cpp",
-      "source/shell_impl.h",
-    ]
+          "main.cpp",
+          "source/analogin.cpp",
+          "source/analogin.h",
+          "source/analogout.cpp",
+          "source/analogout.h",
+          "source/at24_impl.cpp",
+          "source/at24_impl.h",
+          "source/digitalin.cpp",
+          "source/digitalin.h",
+          "source/digitalout.cpp",
+          "source/digitalout.h",
+          "source/modbus_impl.cpp",
+          "source/modbus_impl.h",
+          "source/shell_impl.cpp",
+          "source/shell_impl.h",
+      ]
     excludeFiles: [
 			"**/*_res.c",
 			"**/*_conf_template.c",
