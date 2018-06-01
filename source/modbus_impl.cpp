@@ -26,8 +26,13 @@
 #include "analogin.h"
 #include "analogout.h"
 #include "order_conv.h"
+#include "at24_impl.h"
 
 #include <array>
+
+
+static const uint8_t *UniqProcessorId = (uint8_t *) 0x1FFFF7E8;
+static const uint8_t UniqProcessorIdLen = 12;
 
 using Utils::htons;
 using Utils::ntohs;
@@ -243,13 +248,13 @@ extern "C" {
 bool Modbus::InitModbus()
 {
   eMBErrorCode eStatus;
-
-  eStatus = eMBInit(MB_RTU, DEV_ID, 1, 115200, MB_PAR_NONE);
+  uint8_t devID = (uint8_t)devID_.load();
+  eStatus = eMBInit(MB_RTU, devID, 1, 115200, MB_PAR_NONE);
   if (eStatus != MB_ENOERR) {
     return FALSE;
   }
 
-  eStatus = eMBSetSlaveID(DEV_ID, TRUE, UniqProcessorId, UniqProcessorIdLen);
+  eStatus = eMBSetSlaveID(devID, TRUE, UniqProcessorId, UniqProcessorIdLen);
   if (eStatus != MB_ENOERR) {
     return FALSE;
   }
@@ -266,6 +271,13 @@ bool Modbus::InitModbus()
 
 void Modbus::Init()
 {
+  uint32_t nvID{};
+  if(sizeof(nvID) != nvram::eeprom.Read(nvram::Section::Modbus, nvID) || !nvID || nvID > 246) {
+    devID_ = FALLBACK_ID;
+  }
+  else {
+    devID_ = nvID;
+  }
   start(NORMALPRIO + 1);
 }
 
@@ -280,4 +292,18 @@ void Modbus::main()
     eMBPoll();
     sleep(MS2ST(1));
   }
+}
+
+eMBErrorCode Modbus::SetID(uint8_t id)
+{
+  if(sizeof(uint32_t) != nvram::eeprom.Write(nvram::Section::Modbus, (uint32_t)id)) {
+    return MB_EIO;
+  }
+  devID_ = id;
+  return MB_ENOERR;
+}
+
+uint8_t Modbus::GetID()
+{
+  return (uint8_t)devID_;
 }

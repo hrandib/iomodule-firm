@@ -29,19 +29,17 @@
 
 extern std::atomic_uint32_t uptimeCounter;
 
-static const uint8_t *UniqProcessorId = (uint8_t *) 0x1FFFF7E8;
-static const uint8_t UniqProcessorIdLen = 12;
-
 class Modbus : Rtos::BaseStaticThread<512>
 {
 private:
-  enum {
-    DEV_ID = 15
-  };
+  static constexpr uint8_t FALLBACK_ID = 15;
+  std::atomic_uint32_t devID_;
   bool InitModbus();
 public:
   void Init();
   void main() override;
+  eMBErrorCode SetID(uint8_t id);
+  uint8_t GetID();
 };
 
 extern Modbus modbus;

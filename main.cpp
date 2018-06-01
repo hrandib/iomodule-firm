@@ -55,7 +55,7 @@ using nvram::eeprom;
 int main(void) {
   halInit();
   System::init();
-  Init(aout, dout, ain, din, modbus, eeprom);
+  Init(eeprom, aout, dout, ain, din, modbus);
   Shell sh;
   systime_t time = chVTGetSystemTimeX();
   while(true) {

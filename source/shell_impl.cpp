@@ -27,6 +27,7 @@
 #include "digitalout.h"
 #include "analogin.h"
 #include "digitalin.h"
+#include "modbus_impl.h"
 #include "chprintf.h"
 #include "string_utils.h"
 
@@ -40,6 +41,7 @@ static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_setmbid(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
   {"setanalog", cmd_setanalog},
@@ -48,6 +50,7 @@ static const ShellCommand commands[] = {
   {"getdigital", cmd_getdigital},
   {"getcounters", cmd_getcounters},
   {"uptime", cmd_uptime},
+  {"setmbid", cmd_setmbid},
   {nullptr, nullptr}
 };
 
@@ -256,6 +259,31 @@ void cmd_uptime(BaseSequentialStream *chp, int argc, char **/*argv[]*/)
   if(!argc) {
     chprintf(chp, "%u\r\n", uptimeCounter.load());
   }
+}
+
+void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
+{
+  do {
+    if(!argc) {
+      chprintf(chp, "%u\r\n", modbus.GetID());
+    }
+    else if(argc == 1) {
+      auto id = io::svtou(argv[0]);
+      if(id && *id > 0 && *id < 247) {
+        modbus.SetID((uint8_t)*id);
+      }
+      else {
+        break;
+      }
+    }
+    else {
+      break;
+    }
+    return;
+  } while(false);
+  shellUsage(chp, "Set MODBUS device ID"
+                  "\r\nReturns current device ID if no arguments passed"
+                  "\r\n\tsetmbid [1-246]");
 }
 
 Shell::Shell()
