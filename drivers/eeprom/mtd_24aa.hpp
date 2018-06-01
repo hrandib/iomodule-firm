@@ -24,7 +24,6 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "mtd_conf.h"
 #include "mtd_base.hpp"
 
 namespace nvram {

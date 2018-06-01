@@ -24,22 +24,16 @@
 
 using namespace nvram;
 
-namespace CAT24C08 {
-  enum {
-    ADDRESS = 0xA0 >> 1,
-    WRITETIME = 20,
-    PAGES = 64,
-    PAGESIZE = 16,
-    ADDR_LEN = 1
-  };
-}
+enum {
+  MTD_WRITE_BUF_SIZE = EEPROM_TYPE::PAGESIZE + 2
+};
 
 static const MtdConfig eecfg = {
-  MS2ST(CAT24C08::WRITETIME),
-  MS2ST(CAT24C08::WRITETIME * CAT24C08::PAGES),
-  CAT24C08::PAGES,
-  CAT24C08::PAGESIZE,
-  CAT24C08::ADDR_LEN,
+  MS2ST(EEPROM_TYPE::WRITETIME),
+  MS2ST(EEPROM_TYPE::WRITETIME * EEPROM_TYPE::PAGES),
+  EEPROM_TYPE::PAGES,
+  EEPROM_TYPE::PAGESIZE,
+  EEPROM_TYPE::ADDR_LEN,
   400000,
   nullptr,
   nullptr
@@ -47,4 +41,4 @@ static const MtdConfig eecfg = {
 
 static uint8_t workbuf[MTD_WRITE_BUF_SIZE];
 
-Mtd24aa nvram_mtd(eecfg, workbuf, MTD_WRITE_BUF_SIZE, &I2CD1, CAT24C08::ADDRESS);
+Mtd24aa nvram_mtd(eecfg, workbuf, MTD_WRITE_BUF_SIZE, &I2CD1, EEPROM_TYPE::ADDRESS);

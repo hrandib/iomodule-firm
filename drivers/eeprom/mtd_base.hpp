@@ -24,8 +24,6 @@
 #include "ch.hpp"
 #include "hal.h"
 
-#include "mtd_conf.h"
-
 #if !defined(MTD_USE_MUTUAL_EXCLUSION)
 #define MTD_USE_MUTUAL_EXCLUSION                FALSE
 #endif

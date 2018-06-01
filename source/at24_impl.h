@@ -22,12 +22,37 @@
 #ifndef AT24_IMPL_H
 #define AT24_IMPL_H
 
+#define MTD_USE_MUTUAL_EXCLUSION  TRUE
+
 #include "mtd_24aa.hpp"
-#include "nvram_fs.hpp"
+#include "chprintf.h"
 
-void NvramInit(void);
-nvram::File *NvramTryOpen(const char *name, size_t size);
 
-extern nvram::Fs nvram_fs;
+template<typename... Ts>
+static inline void log(const char* str, Ts... ts) {
+  chprintf((BaseSequentialStream*)&SD1, str, ts...);
+}
+
+namespace CAT24C08 {
+  enum {
+    ADDRESS = 0xA0 >> 1,
+    WRITETIME = 20,
+    PAGES = 64,
+    PAGESIZE = 16,
+    ADDR_LEN = 1
+  };
+}
+
+#define EEPROM_TYPE CAT24C08
+
+class Eeprom
+{
+private:
+public:
+  Eeprom();
+
+};
+
+extern nvram::Mtd24aa nvram_mtd;
 
 #endif // AT24_IMPL_H
