@@ -52,19 +52,11 @@ std::atomic_uint32_t uptimeCounter;
 using namespace std::literals;
 using nvram::eeprom;
 
-const uint8_t test_string[] = "123";
-static std::array<uint8_t, 100> buf;
-
 int main(void) {
   halInit();
   System::init();
   Init(aout, dout, ain, din, modbus, eeprom);
   Shell sh;
-  const char str[] = "ABCDEFGHIJK";
-  eeprom.Write(nvram::Section::Modbus, str);
-  buf.fill(0);
-  eeprom.Read(nvram::Section::Modbus, buf, sizeof(str));
-  nvram::log("%s", buf.data());
   systime_t time = chVTGetSystemTimeX();
   while(true) {
     time += S2ST(1);
