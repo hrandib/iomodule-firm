@@ -38,48 +38,10 @@ private:
   enum {
     DEV_ID = 15
   };
-
-  bool InitModbus()
-  {
-    eMBErrorCode eStatus;
-
-    eStatus = eMBInit(MB_RTU, DEV_ID, 1, 115200, MB_PAR_NONE);
-    if (eStatus != MB_ENOERR) {
-      return FALSE;
-    }
-
-    eStatus = eMBSetSlaveID(DEV_ID, TRUE, UniqProcessorId, UniqProcessorIdLen);
-    if (eStatus != MB_ENOERR) {
-      return FALSE;
-    }
-
-    eStatus = eMBEnable();
-    if (eStatus != MB_ENOERR) {
-      return FALSE;
-    }
-
-    pxMBPortCBTimerExpired();
-
-    return TRUE;
-  }
-
+  bool InitModbus();
 public:
-  void Init()
-  {
-    start(NORMALPRIO + 1);
-  }
-  void main() override
-  {
-    setName("Modbus");
-    while(InitModbus() != true) {
-      sleep(MS2ST(300));
-    }
-    sleep(MS2ST(10));
-    while(true) {
-      eMBPoll();
-      sleep(MS2ST(1));
-    }
-  }
+  void Init();
+  void main() override;
 };
 
 extern Modbus modbus;

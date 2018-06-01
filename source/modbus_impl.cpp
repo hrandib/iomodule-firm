@@ -239,3 +239,45 @@ extern "C" {
     return eStatus;
   }
 }
+
+bool Modbus::InitModbus()
+{
+  eMBErrorCode eStatus;
+
+  eStatus = eMBInit(MB_RTU, DEV_ID, 1, 115200, MB_PAR_NONE);
+  if (eStatus != MB_ENOERR) {
+    return FALSE;
+  }
+
+  eStatus = eMBSetSlaveID(DEV_ID, TRUE, UniqProcessorId, UniqProcessorIdLen);
+  if (eStatus != MB_ENOERR) {
+    return FALSE;
+  }
+
+  eStatus = eMBEnable();
+  if (eStatus != MB_ENOERR) {
+    return FALSE;
+  }
+
+  pxMBPortCBTimerExpired();
+
+  return TRUE;
+}
+
+void Modbus::Init()
+{
+  start(NORMALPRIO + 1);
+}
+
+void Modbus::main()
+{
+  setName("Modbus");
+  while(InitModbus() != true) {
+    sleep(MS2ST(300));
+  }
+  sleep(MS2ST(10));
+  while(true) {
+    eMBPoll();
+    sleep(MS2ST(1));
+  }
+}
