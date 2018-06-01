@@ -34,7 +34,6 @@ static const MtdConfig eecfg = {
   EEPROM_TYPE::PAGES,
   EEPROM_TYPE::PAGESIZE,
   EEPROM_TYPE::ADDR_LEN,
-  400000,
   nullptr,
   nullptr
 };

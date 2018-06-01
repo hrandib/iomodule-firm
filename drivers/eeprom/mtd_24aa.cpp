@@ -86,7 +86,7 @@ namespace nvram {
     }
 #endif /* defined(STM32F1XX_I2C) */
     msg_t status;
-    systime_t tmo = calc_timeout(len + preamble_len, this->bus_clk);
+    systime_t tmo = calc_timeout(len + preamble_len, i2cp->config->clock_speed);
     uint8_t addrSuffix = (preamble_len == 1 ? writebuf[1] : 0);
     osalDbgCheck((nullptr != rxbuf) && (0 != len));
 #if I2C_USE_MUTUAL_EXCLUSION
@@ -112,7 +112,7 @@ namespace nvram {
                            uint8_t* writebuf, size_t preamble_len)
   {
     msg_t status;
-    systime_t tmo = calc_timeout(len + preamble_len, this->bus_clk);
+    systime_t tmo = calc_timeout(len + preamble_len, i2cp->config->clock_speed);
     uint8_t addrSuffix = (preamble_len == 1 ? writebuf[1] : 0);
     if((nullptr != txdata) && (0 != len)) {
       memcpy(&writebuf[preamble_len], txdata, len);
@@ -190,7 +190,7 @@ namespace nvram {
     MtdBase(cfg, writebuf,  writebuf_size),
     i2cp(i2cp),
     addr(addr),
-    bus_clk(cfg.bus_clk)
+    i2cflags{}
   {
     return;
   }

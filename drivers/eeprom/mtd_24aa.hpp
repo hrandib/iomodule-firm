@@ -44,8 +44,7 @@ namespace nvram {
                     uint8_t* writebuf, size_t preamble_len);
     I2CDriver* i2cp;
     i2caddr_t addr;
-    i2cflags_t i2cflags = 0;
-    uint32_t bus_clk;
+    i2cflags_t i2cflags;
   };
 
 } //nvram

@@ -64,10 +64,6 @@ namespace nvram {
      */
     size_t        addr_len;
     /**
-     * @brief   Bus clock in Hz for operation timeout calculation.
-     */
-    uint32_t      bus_clk;
-    /**
      * @brief   SPI Bus (un)select function pointer. Set to nullptr for I2C.
      */
     spiselect_t   spi_select;
