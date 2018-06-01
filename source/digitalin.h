@@ -27,7 +27,7 @@
 namespace Digital {
 using namespace Mcudrv;
 
-  class Input : Rtos::BaseStaticThread<64>
+  class Input : Rtos::BaseStaticThread<128>
   {
   public:
     static constexpr size_t numChannels = 4 + Analog::Input::numChannels;
@@ -38,7 +38,7 @@ using namespace Mcudrv;
     GPTDriver& GPTD_;
     static const GPTConfig gptconf_;
     Rtos::BinarySemaphore semVal_, semCounters_;
-    memory_relaxed_acquire_release::CircularFifo<uint32_t, 4> fifo_;
+    memory_relaxed_acquire_release::CircularFifo<uint32_t, 8> fifo_;
     internal_counters_buf_t counters_;
     uint16_t binaryVal_;
     static void gptCb(GPTDriver* gpt);
@@ -81,7 +81,7 @@ using namespace Mcudrv;
     void main() override
     {
       setName("DigitalInput");
-      uint32_t previousVal;
+      uint32_t previousVal{};
       while(true) {
         uint32_t val;
         if(fifo_.pop(val) == false) {
