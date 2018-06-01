@@ -271,7 +271,7 @@ bool Modbus::InitModbus()
 void Modbus::Init()
 {
   uint32_t nvID{};
-  if(sizeof(nvID) != nvram::eeprom.Read(nvram::Section::Modbus, nvID) || !nvID || nvID > 246) {
+  if(sizeof(nvID) != nvram::eeprom.Read(nvram::Section::Modbus, nvID) || !nvID || nvID >= MB_ADDRESS_MAX) {
     devID_ = FALLBACK_ID;
   }
   else {
@@ -295,9 +295,13 @@ void Modbus::main()
 
 eMBErrorCode Modbus::SetID(uint8_t id)
 {
+  if(!id || id >= MB_ADDRESS_MAX) {
+    return MB_EINVAL;
+  }
   if(sizeof(uint32_t) != nvram::eeprom.Write(nvram::Section::Modbus, (uint32_t)id)) {
     return MB_EIO;
   }
+  eMBSetSlaveID(id, TRUE, UniqProcessorId, UniqProcessorIdLen);
   devID_ = id;
   return MB_ENOERR;
 }

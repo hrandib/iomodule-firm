@@ -270,7 +270,10 @@ void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
     else if(argc == 1) {
       auto id = io::svtou(argv[0]);
       if(id && *id > 0 && *id < 247) {
-        modbus.SetID((uint8_t)*id);
+        eMBErrorCode status = modbus.SetID((uint8_t)*id);
+        if(status != MB_ENOERR) {
+          chprintf(chp, "Error: %u\r\n", status);
+        }
       }
       else {
         break;

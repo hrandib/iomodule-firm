@@ -411,6 +411,7 @@ eMBErrorCode    eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
 eMBErrorCode    eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress,
                                   USHORT usNDiscrete );
 
+void SetMBAddress(UCHAR id);
 #ifdef __cplusplus
 PR_END_EXTERN_C
 #endif

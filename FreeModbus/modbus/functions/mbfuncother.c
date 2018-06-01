@@ -74,6 +74,7 @@ eMBSetSlaveID( UCHAR ucSlaveID, BOOL xIsRunning,
     {
         eStatus = MB_ENORES;
     }
+    SetMBAddress(ucSlaveID);
     return eStatus;
 }
 

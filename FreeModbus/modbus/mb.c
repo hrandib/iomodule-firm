@@ -333,6 +333,11 @@ eMBDisable( void )
     return eStatus;
 }
 
+void SetMBAddress(UCHAR id)
+{
+  ucMBAddress = id;
+}
+
 eMBErrorCode eMBPoll( void )
 {
     static UCHAR   *ucMBFrame;
