@@ -75,16 +75,30 @@ static systime_t calc_timeout(size_t bytes, uint32_t clock) {
  *
  */
 msg_t Mtd24aa::i2c_read(uint8_t *rxbuf, size_t len,
-                   uint8_t *writebuf, size_t preamble_len) {
+                   uint8_t *writebuf, size_t preamble_len)
+{
+#if defined(STM32F1XX_I2C)
+  bool rewind = false;
+  if (1 == len) {
+    len = 2;
+    //if last byte requested
+    if(*(uint16_t*)writebuf == (cfg.pages * cfg.pagesize) - 1) {
+      --writebuf[0];
+      rewind = true;
+    }
+  }
+#endif /* defined(STM32F1XX_I2C) */
+
   msg_t status;
   systime_t tmo = calc_timeout(len + preamble_len, this->bus_clk);
+  uint8_t addrSuffix = (preamble_len == 1 ? writebuf[1] : 0);
   osalDbgCheck((nullptr != rxbuf) && (0 != len));
 
 #if I2C_USE_MUTUAL_EXCLUSION
   i2cAcquireBus(this->i2cp);
 #endif
 
-  status = i2cMasterTransmitTimeout(this->i2cp, this->addr,
+  status = i2cMasterTransmitTimeout(this->i2cp, this->addr | addrSuffix,
                     writebuf, preamble_len, rxbuf, len, tmo);
   if (MSG_OK != status)
     i2cflags = i2cGetErrors(this->i2cp);
@@ -92,7 +106,11 @@ msg_t Mtd24aa::i2c_read(uint8_t *rxbuf, size_t len,
 #if I2C_USE_MUTUAL_EXCLUSION
   i2cReleaseBus(this->i2cp);
 #endif
-
+#if defined(STM32F1XX_I2C)
+  if(rewind) {
+    rxbuf[0] = rxbuf[1];
+  }
+#endif /* defined(STM32F1XX_I2C) */
   return status;
 }
 
@@ -103,7 +121,7 @@ msg_t Mtd24aa::i2c_write(const uint8_t *txdata, size_t len,
                       uint8_t *writebuf, size_t preamble_len) {
   msg_t status;
   systime_t tmo = calc_timeout(len + preamble_len, this->bus_clk);
-  uint8_t addrSuffix = (preamble_len == 1 ? writebuf[preamble_len] : 0);
+  uint8_t addrSuffix = (preamble_len == 1 ? writebuf[1] : 0);
   if ((nullptr != txdata) && (0 != len))
     memcpy(&writebuf[preamble_len], txdata, len);
 
@@ -133,23 +151,6 @@ bool Mtd24aa::wait_op_complete(void) {
   return OSAL_SUCCESS;
 }
 
-/*
- * Ugly workaround.
- * Stupid I2C cell in STM32F1x does not allow to read single byte.
- * So we must read 2 bytes and return needed one.
- */
-msg_t Mtd24aa::stm32_f1x_read_single_byte(const uint8_t *txbuf, size_t txbytes,
-                                         uint8_t *rxbuf, systime_t tmo) {
-  uint8_t tmp[2];
-  msg_t status;
-
-  osalSysHalt("Unrealized untested");
-  status = i2cMasterTransmitTimeout(this->i2cp, this->addr,
-                                    txbuf, txbytes, tmp, 2, tmo);
-  rxbuf[0] = tmp[0];
-  return status;
-}
-
 /**
  * @brief   Accepts data that can be fitted in single page boundary (for EEPROM)
  *          or can be placed in write buffer (for FRAM)
@@ -162,9 +163,9 @@ size_t Mtd24aa::bus_write(const uint8_t *txdata, size_t len, uint32_t offset) {
 
   this->acquire();
 
+  *(uint32_t*)writebuf = offset;
   /* write preamble. Only address bytes for this memory type */
   status = i2c_write(txdata, len, writebuf, cfg.addr_len);
-
   wait_op_complete();
   this->release();
 

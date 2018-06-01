@@ -45,8 +45,6 @@ private:
                  uint8_t *writebuf, size_t preamble_len);
   msg_t i2c_write(const uint8_t *txdata, size_t len,
                   uint8_t *writebuf, size_t preamble_len);
-  msg_t stm32_f1x_read_single_byte(const uint8_t *txbuf, size_t txbytes,
-                                   uint8_t *rxbuf, systime_t tmo);
   I2CDriver *i2cp;
   i2caddr_t addr;
   i2cflags_t i2cflags = 0;
