@@ -47,6 +47,16 @@ namespace CAT24C08 {
   };
 }
 
+namespace AT24C02 {
+  enum {
+    ADDRESS = 0xA0 >> 1,
+    WRITETIME = 5,
+    PAGES = 32,
+    PAGESIZE = 8,
+    ADDR_LEN = 1
+  };
+}
+
 static const I2CConfig i2cfg1 = {
     OPMODE_I2C,
     400000,

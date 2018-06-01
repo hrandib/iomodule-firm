@@ -79,7 +79,7 @@ namespace nvram {
     if(1 == len) {
       len = 2;
       //if last byte requested
-      if(*(uint16_t*)writebuf == (cfg.pages * cfg.pagesize) - 1) {
+      if(*(uint16_t*)writebuf == capacity() - 1) {
         --writebuf[0];
         rewind = true;
       }

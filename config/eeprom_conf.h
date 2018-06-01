@@ -23,6 +23,6 @@
 #define EEPROM_CONF_H
 
 #define MTD_USE_MUTUAL_EXCLUSION  TRUE
-#define EEPROM_TYPE CAT24C08
+#define EEPROM_TYPE AT24C02 // available: CAT24C08
 
 #endif // EEPROM_CONF_H
