@@ -22,7 +22,6 @@
 #ifndef AT24_IMPL_H
 #define AT24_IMPL_H
 
-#include "eeprom_conf.h"
 #include "mtd_24aa.hpp"
 #include "chprintf.h"
 

@@ -191,8 +191,6 @@ namespace nvram {
     i2cp(i2cp),
     addr(addr),
     i2cflags{}
-  {
-    return;
-  }
+  { }
 
 } //nvram

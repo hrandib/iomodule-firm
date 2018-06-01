@@ -10,7 +10,7 @@ CppApplication
 	type: ["application", "printsize"]
 	consoleApplication: true
   cpp.optimization: "small"
-  cpp.debugInformation: true
+  cpp.debugInformation: false
   cpp.enableExceptions: false
   cpp.enableRtti: false
   cpp.positionIndependentCode: false
@@ -33,7 +33,7 @@ CppApplication
     //"-nostdlib", "-nodefaultlibs"
 	]
   cpp.commonCompilerFlags: [
-//    "-flto=8",
+    "-flto=4",
     "-fdata-sections",
     "-ffunction-sections",
     "-Wno-implicit-fallthrough"

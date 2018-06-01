@@ -26,7 +26,6 @@
 #include "analogin.h"
 #include "analogout.h"
 #include "order_conv.h"
-#include "at24_impl.h"
 
 #include <array>
 

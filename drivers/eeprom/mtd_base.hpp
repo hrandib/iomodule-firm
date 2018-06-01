@@ -23,6 +23,7 @@
 
 #include "ch.hpp"
 #include "hal.h"
+#include "eeprom_conf.h"
 
 #if !defined(MTD_USE_MUTUAL_EXCLUSION)
 #define MTD_USE_MUTUAL_EXCLUSION                FALSE

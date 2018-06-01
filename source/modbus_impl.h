@@ -24,7 +24,7 @@
 
 #include "mb.h"
 #include "ch_extended.h"
-
+#include "at24_impl.h"
 #include <atomic>
 
 extern std::atomic_uint32_t uptimeCounter;
