@@ -208,7 +208,9 @@ CppApplication
       "LLD/SPIv1/hal_spi_lld.h",
       "LLD/SPIv1/hal_spi_lld.c",
       "LLD/I2Cv1/hal_i2c_lld.h",
-      "LLD/I2Cv1/hal_i2c_lld.c"
+      "LLD/I2Cv1/hal_i2c_lld.c",
+      "LLD/EXTIv1/hal_ext_lld.c",
+      "LLD/EXTIv1/hal_ext_lld.h",
     ]
   }
   Group { name: "RT"
