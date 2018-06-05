@@ -185,6 +185,8 @@ CppApplication
       "eeprom/mtd_24aa.cpp",
       "eeprom/mtd_base.hpp",
       "eeprom/mtd_base.cpp",
+      "sdi_base.cpp",
+      "sdi_base.h",
     ]
   }
   Group { name: "Drivers ChibiOS"
