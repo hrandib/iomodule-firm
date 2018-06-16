@@ -21,3 +21,67 @@
  */
 
 #include "sdi_base.h"
+#include "chprintf.h"
+
+#define TX_PORT GPIOA
+#define TX_PIN 12
+#define RX_PORT GPIOB
+#define RX_PIN 5
+
+namespace Sdi {
+
+static Rtos::Mailbox<int32_t, 8> mbExti;
+
+static void extcb1(EXTDriver*, expchannel_t channel) {
+  Rtos::SysLockGuardFromISR lock{};
+  mbExti.postI((int32_t)channel);
+}
+
+static const EXTConfig extcfg = {
+  {
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOA, extcb1},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr},
+    {EXT_CH_MODE_DISABLED, nullptr}
+  }
+};
+
+void SlaveBase::Init()
+{
+  palSetPadMode(TX_PORT, TX_PIN, PAL_MODE_OUTPUT_PUSHPULL);
+  palSetPadMode(RX_PORT, RX_PIN, PAL_MODE_INPUT);
+  extStart(&EXTD1, &extcfg);
+  start(NORMALPRIO);
+}
+
+void SlaveBase::main() {
+  static constexpr systime_t period = S2ST(3);
+  int32_t val;
+  systime_t time = Rtos::System::getTime() + period;
+  while(true) {
+    if(MSG_OK == mbExti.fetch(&val, 1)) {
+      chprintf((BaseSequentialStream*)&SD1, "EXTI event: %x\r\n", val);
+    }
+    if(auto now = Rtos::System::getTime(); now >= time) {
+      time += period;
+      palTogglePad(TX_PORT, TX_PIN);
+    }
+  }
+}
+
+SlaveBase sdi;
+
+} //Sdi
+

@@ -34,6 +34,7 @@
 #include "digitalout.h"
 #include "modbus_impl.h"
 #include "at24_impl.h"
+#include "sdi_base.h"
 
 using namespace Rtos;
 using namespace Mcudrv;
@@ -42,6 +43,7 @@ static constexpr auto& dout = Digital::output;
 static constexpr auto& aout = Analog::output;
 static constexpr auto& ain = Analog::input;
 static constexpr auto& din = Digital::input;
+static constexpr auto& sdi = Sdi::sdi;
 
 static auto Init = [](auto&&... objs) {
   (objs.Init(), ...);
@@ -55,7 +57,7 @@ using nvram::eeprom;
 int main(void) {
   halInit();
   System::init();
-  Init(eeprom, aout, dout, ain, din, modbus);
+  Init(eeprom, aout, dout, ain, din, modbus, sdi);
   Shell sh;
   systime_t time = chVTGetSystemTimeX();
   while(true) {

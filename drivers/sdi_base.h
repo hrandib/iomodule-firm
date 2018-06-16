@@ -22,14 +22,24 @@
 #ifndef SDI_BASE_H
 #define SDI_BASE_H
 
+#include "ch_extended.h"
+#include "hal.h"
+
 namespace Sdi
 {
-  class SlaveBase
+  class SlaveBase : Rtos::BaseStaticThread<256>
   {
   private:
-  public:
 
+  public:
+    SlaveBase()
+    {  }
+    void Init();
+    void main() override;
   };
+
+  extern SlaveBase sdi;
+
 } //Sdi
 
 #endif // SDI_BASE_H

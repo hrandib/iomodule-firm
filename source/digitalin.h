@@ -50,7 +50,6 @@ using namespace Mcudrv;
     void Init()
     {
       Pins::SetConfig<GpioModes::InputFloating>();
-      Pa12::SetConfig<GpioModes::OutputPushPull>();
       start(NORMALPRIO + 9);
       gptStart(&GPTD_, &gptconf_);
       gptStartContinuous(&GPTD_, 200); //500Hz
