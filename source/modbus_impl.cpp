@@ -155,7 +155,8 @@ extern "C" {
     /* it already plus one in modbus function method. */
     --usAddress;
     //Digital output data, write only part (set/clear/toggle)
-    if(usAddress > R_DigitalOutputStart && eMode == MB_REG_READ) {
+    if(eMode == MB_REG_READ &&
+       (usAddress > R_DigitalOutputStart || (usAddress == R_DigitalOutputStart && usNRegs > 1))) {
       return MB_ENOREG;
     }
     if(usAddress >= R_DigitalOutputStart) {
