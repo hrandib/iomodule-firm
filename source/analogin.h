@@ -99,19 +99,19 @@ using namespace Mcudrv;
 
   inline Input::sample_buf_t Input::GetSamples()
   {
-    Rtos::SemLockGuard{semSamples_};
+    Rtos::SemLockGuard lock{semSamples_};
     return samples_;
   }
 
   inline uint16_t Input::GetBinaryVal()
   {
-    Rtos::SemLockGuard{semBinaryVal_};
+    Rtos::SemLockGuard lock{semBinaryVal_};
     return binaryVal_;
   }
 
   inline Input::counters_buf_t Input::GetCounters()
   {
-    Rtos::SemLockGuard{semCounters_};
+    Rtos::SemLockGuard lock{semCounters_};
     return counters_;
   }
 

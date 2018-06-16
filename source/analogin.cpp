@@ -81,14 +81,14 @@ void Input::main()
     }
     uint16_t positiveTransitionMask = ((binaryVal_ ^ binarySet) & ~binaryVal_);
     if(positiveTransitionMask) {
-      Rtos::SemLockGuard{semCounters_};
+      Rtos::SemLockGuard lock{semCounters_};
       for(size_t i{}; i < numChannels; ++i) {
         counters_[i] += (positiveTransitionMask >> i) & 0x01;
       }
     }
     uint16_t binaryTemp = (binaryVal_ | binarySet) & ~binaryClear;
     if(binaryTemp != binaryVal_) {
-      Rtos::SemLockGuard{semBinaryVal_};
+      Rtos::SemLockGuard lock{semBinaryVal_};
       binaryVal_ = binaryTemp;
     }
     if(++AdcRefreshCount == 20) {

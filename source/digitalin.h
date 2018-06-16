@@ -99,7 +99,7 @@ using namespace Mcudrv;
           previousVal = val;
           //Din3 shifted according connector position
           val = (val & (uint32_t)~0b1000) | uint32_t((val & 0b1000) << 9);
-          Rtos::SemLockGuard{semVal_};
+          Rtos::SemLockGuard lock{semVal_};
           binaryVal_ = static_cast<uint16_t>(val);
         }
       }
