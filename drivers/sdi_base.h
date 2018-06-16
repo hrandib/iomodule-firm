@@ -32,8 +32,6 @@ namespace Sdi
   private:
 
   public:
-    SlaveBase()
-    {  }
     void Init();
     void main() override;
   };
