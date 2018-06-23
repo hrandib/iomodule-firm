@@ -27,7 +27,7 @@
 
 namespace Sdi
 {
-  class SlaveBase : Rtos::BaseStaticThread<256>
+  class SlaveBase : Rtos::BaseStaticThread<512>
   {
   private:
 
