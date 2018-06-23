@@ -38,6 +38,8 @@ enum Timings { //in microseconds
   PeriodResetPulse = 480,
   PeriodPresenceWait = 20,
   PeriodPresencePulse = 90,
+  PeriodBitSampling = 25,
+  PeriodMaxTimeout = 0xFF00
 };
 
 static enum class FSM {
@@ -47,7 +49,7 @@ static enum class FSM {
   presenceStart,
   presenceEnd,
   readCommand,
-
+  processCommand
 } fsm;
 
 static void extcb1(EXTDriver* extp, expchannel_t channel) {
@@ -57,7 +59,8 @@ static void extcb1(EXTDriver* extp, expchannel_t channel) {
     if(!palReadPad(RX_PORT, RX_PIN)) {
       fsm = FSM::reset;
       Rtos::SysLockGuardFromISR lock{};
-      gptStartOneShotI(&GPTD4, 0xFFFF);
+      gptStopTimerI(&GPTD4);
+      gptStartOneShotI(&GPTD4, PeriodMaxTimeout);
       mbExti.postI("Reset Start");
     }
     break;
@@ -77,18 +80,30 @@ static void extcb1(EXTDriver* extp, expchannel_t channel) {
       }
     }
     break;
+  case FSM::readCommand: {
+    Rtos::SysLockGuardFromISR lock{};
+    gptStopTimerI(&GPTD4);
+    if(!palReadPad(RX_PORT, RX_PIN)) {
+      gptStartOneShotI(&GPTD4, PeriodBitSampling);
+      extChannelDisableI(extp, channel);
+    }
+    else {
+      gptStartOneShotI(&GPTD4, PeriodMaxTimeout);
+    }
+  }
+    break;
   default: {
     fsm = FSM::waitReset;
     Rtos::SysLockGuardFromISR lock{};
     mbExti.postI("EXTI callback default. FSM value:");
     mbExti.postI((char*)fsm);
     extChannelDisableI(extp, channel);
-    }
   }
+  } //switch
 }
 
 
-static void gptCb(GPTDriver* /*gpt*/)
+static void gptCb(GPTDriver* gpt)
 {
   switch(fsm) {
   case FSM::presenceWait: {
@@ -96,7 +111,7 @@ static void gptCb(GPTDriver* /*gpt*/)
     palSetPad(TX_PORT, TX_PIN);
     Rtos::SysLockGuardFromISR lock{};
     mbExti.postI("Presence Start");
-    gptStartOneShotI(&GPTD4, PeriodPresencePulse);
+    gptStartOneShotI(gpt, PeriodPresencePulse);
   }
     break;
   case FSM::presenceStart: {
@@ -104,15 +119,36 @@ static void gptCb(GPTDriver* /*gpt*/)
     palClearPad(TX_PORT, TX_PIN);
     Rtos::SysLockGuardFromISR lock{};
     mbExti.postI("Presence End");
-    gptStopTimerI(&GPTD4);
-    gptStartOneShotI(&GPTD4, 80);
+    gptStopTimerI(gpt);
+    gptStartOneShotI(gpt, 80);
     }
     break;
   case FSM::presenceEnd: {
     fsm = FSM::readCommand;
+    bitCount = 0;
+    bitBuf = 0;
     Rtos::SysLockGuardFromISR lock{};
     extChannelEnableI(&EXTD1, RX_PIN);
     mbExti.postI("Read command");
+    }
+    break;
+  case FSM::readCommand:
+    if((uint16_t)gptGetCounterX(gpt) >= PeriodMaxTimeout) {
+      fsm = FSM::waitReset;
+      Rtos::SysLockGuardFromISR lock{};
+      mbExti.postI("Timeout");
+    }
+    if(bitCount < 8) {
+      bitBuf |= palReadPad(RX_PORT, RX_PIN) << bitCount++;
+      Rtos::SysLockGuardFromISR lock{};
+      extChannelEnableI(&EXTD1, RX_PIN);
+      mbExti.postI((char*)bitBuf);
+    }
+    else {
+      fsm = FSM::processCommand;
+      Rtos::SysLockGuardFromISR lock{};
+      mbExti.postI("Command:");
+      mbExti.postI((char*)(bitBuf & 0xFF));
     }
     break;
   default: {
