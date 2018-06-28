@@ -52,6 +52,13 @@ static enum class FSM {
   processCommand
 } fsm;
 
+enum class Command {
+  SearchRom = 0xF0,
+  ReadRom = 0x33,
+  MatchRom = 0x55,
+  SkipRom = 0xCC
+};
+
 static void extcb1(EXTDriver* extp, expchannel_t channel) {
   static uint16_t counter;
   switch(fsm) {
@@ -112,7 +119,7 @@ static void gptCb(GPTDriver* gpt)
     Rtos::SysLockGuardFromISR lock{};
     mbExti.postI("Presence Start");
     gptStartOneShotI(gpt, PeriodPresencePulse);
-  }
+    }
     break;
   case FSM::presenceStart: {
     fsm = FSM::presenceEnd;
@@ -142,7 +149,7 @@ static void gptCb(GPTDriver* gpt)
       bitBuf |= palReadPad(RX_PORT, RX_PIN) << bitCount++;
       Rtos::SysLockGuardFromISR lock{};
       extChannelEnableI(&EXTD1, RX_PIN);
-      mbExti.postI((char*)bitBuf);
+//      mbExti.postI((char*)bitBuf);
     }
     else {
       fsm = FSM::processCommand;
