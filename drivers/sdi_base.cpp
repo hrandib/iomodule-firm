@@ -167,7 +167,7 @@ static void ProcessCommand(From from)
   }
 }
 
-static void extcb1(EXTDriver* extp, expchannel_t channel) {
+void SlaveBase::ExtCb(EXTDriver* extp, expchannel_t channel) {
   static uint16_t counter;
   switch(fsm) {
     case FSM::waitReset:
@@ -223,7 +223,7 @@ static void extcb1(EXTDriver* extp, expchannel_t channel) {
 }
 
 
-static void gptCb(GPTDriver* gpt)
+void SlaveBase::GptCb(GPTDriver* gpt)
 {
   switch(fsm) {
   case FSM::presenceWait: {
@@ -285,16 +285,16 @@ static void gptCb(GPTDriver* gpt)
   }
 }
 
-const GPTConfig gptconf{1000000, gptCb, 0, 0};
+const GPTConfig SlaveBase::gptconf_{1000000, GptCb, 0, 0};
 
-static const EXTConfig extcfg = {
+const EXTConfig SlaveBase::extcfg_{
   {
     {EXT_CH_MODE_DISABLED, nullptr},
     {EXT_CH_MODE_DISABLED, nullptr},
     {EXT_CH_MODE_DISABLED, nullptr},
     {EXT_CH_MODE_DISABLED, nullptr},
     {EXT_CH_MODE_DISABLED, nullptr},
-    {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOB, extcb1},
+    {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOB, ExtCb},
     {EXT_CH_MODE_DISABLED, nullptr},
     {EXT_CH_MODE_DISABLED, nullptr},
     {EXT_CH_MODE_DISABLED, nullptr},
@@ -312,8 +312,8 @@ void SlaveBase::Init()
 {
   palSetPadMode(TX_PORT, TX_PIN, PAL_MODE_OUTPUT_PUSHPULL);
   palSetPadMode(RX_PORT, RX_PIN, PAL_MODE_INPUT);
-  gptStart(&GPTD4, &gptconf);
-  extStart(&EXTD1, &extcfg);
+  gptStart(&GPTD4, &gptconf_);
+  extStart(&EXTD1, &extcfg_);
   start(NORMALPRIO);
 }
 
