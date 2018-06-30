@@ -29,9 +29,6 @@
 #define RX_PORT GPIOB
 #define RX_PIN 5
 
-//Device id w/o CRC8 part (56 bit)
-const uint8_t TestId[8] = {0x0C, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x85};
-
 namespace Sdi {
 
 static Rtos::Mailbox<const char*, 16> mbExti;
@@ -52,20 +49,20 @@ void SlaveBase::WriteZero()
   palSetPad(TX_PORT, TX_PIN);
   Rtos::SysLockGuardFromISR lock{};
   extChannelDisableI(&EXTD1, RX_PIN);
-  gptStopTimerI(&GPTD4);
-  gptStartOneShotI(&GPTD4, PeriodZeroPulse);
+  gptStopTimerI(GPTD_);
+  gptStartOneShotI(GPTD_, PeriodZeroPulse);
 }
 
-static bool GetIdBit(size_t bitPos)
+bool SlaveBase::GetIdBit(size_t bitPos)
 {
-  return TestId[bitPos >> 3] & (1 << (bitPos & 0x07));
+  return fullId_[bitPos >> 3] & (1 << (bitPos & 0x07));
 }
 
 void SlaveBase::ReadBit()
 {
   Rtos::SysLockGuardFromISR lock{};
-  gptStopTimerI(&GPTD4);
-  gptStartOneShotI(&GPTD4, PeriodBitSampling);
+  gptStopTimerI(GPTD_);
+  gptStartOneShotI(GPTD_, PeriodBitSampling);
 }
 
 void SlaveBase::SearchRom(From from)

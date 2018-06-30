@@ -93,6 +93,7 @@ namespace Sdi
     void WriteOne();
     void WriteZero();
     void ReadBit();
+    bool GetIdBit(size_t bitPos);
     void ProcessCommand(From from);
     void SearchRom(From from);
   public:
