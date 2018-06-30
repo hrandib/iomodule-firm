@@ -60,7 +60,6 @@ namespace Sdi
   {
   public:
     using FullId_t = std::array<uint8_t, 8>;
-
   private:
     enum class FSM {
       waitReset,
@@ -71,7 +70,6 @@ namespace Sdi
       readCommand,
       processCommand,
     };
-
     enum class From {
       Exti,
       Gpt
@@ -96,6 +94,8 @@ namespace Sdi
     bool GetIdBit(size_t bitPos);
     void ProcessCommand(From from);
     void SearchRom(From from);
+  protected:
+    virtual void CommandHandler();
   public:
     SlaveBase(Family family, const Id& id);
     void Init();

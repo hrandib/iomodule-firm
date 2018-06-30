@@ -48,7 +48,7 @@ void SlaveBase::WriteZero()
 {
   palSetPad(TX_PORT, TX_PIN);
   Rtos::SysLockGuardFromISR lock{};
-  extChannelDisableI(&EXTD1, RX_PIN);
+  extChannelDisableI(EXTD_, RX_PIN);
   gptStopTimerI(GPTD_);
   gptStartOneShotI(GPTD_, PeriodZeroPulse);
 }
@@ -115,8 +115,13 @@ void SlaveBase::SearchRom(From from)
   else {
     WriteOne();
     Rtos::SysLockGuardFromISR lock{};
-    extChannelEnableI(&EXTD1, RX_PIN);
+    extChannelEnableI(EXTD_, RX_PIN);
   }
+}
+
+void SlaveBase::CommandHandler()
+{
+
 }
 
 void SlaveBase::ProcessCommand(From from)
@@ -125,6 +130,9 @@ void SlaveBase::ProcessCommand(From from)
   case Command::SearchRom:
     SearchRom(from);
     break;
+//  case Command::MatchRom:
+//    CommandHandler();
+//    break;
   default:
     Rtos::SysLockGuardFromISR lock{};
     mbExti.postI("Unknown command");
@@ -237,7 +245,7 @@ void SlaveBase::GptCb(GPTDriver* gpt)
       sb.bitBuf_ = 0;
     } {
       Rtos::SysLockGuardFromISR lock{};
-      extChannelEnableI(&EXTD1, RX_PIN);
+      extChannelEnableI(sb.EXTD_, RX_PIN);
     }
     break;
   case FSM::processCommand:

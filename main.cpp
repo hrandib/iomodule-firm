@@ -44,7 +44,7 @@ static constexpr auto& aout = Analog::output;
 static constexpr auto& ain = Analog::input;
 static constexpr auto& din = Digital::input;
 
-static Sdi::SlaveBase sdi{Sdi::Family::DS1996, {{0x01, 0x02, 0x03, 0x04, 0x05, 0x06 }}};
+static Sdi::SlaveBase sdi{Sdi::Family::DS1996, {{ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 }}};
 
 static auto Init = [](auto&&... objs) {
   (objs.Init(), ...);
