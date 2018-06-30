@@ -81,6 +81,9 @@
 #define STM32_EXT_EXTI18_IRQ_PRIORITY       6
 #define STM32_EXT_EXTI19_IRQ_PRIORITY       6
 
+#define EXTI_DRIVER_EXT_FIELDS \
+  void* customData;
+
 /*
  * GPT driver system settings.
  */
