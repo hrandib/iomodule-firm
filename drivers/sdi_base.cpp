@@ -29,40 +29,11 @@
 #define RX_PIN 5
 
 //Device id w/o CRC8 part (56 bit)
-const uint8_t sdiId[8] = {0x0C, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x85};
+const uint8_t TestId[8] = {0x0C, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x85};
 
 namespace Sdi {
 
 static Rtos::Mailbox<const char*, 16> mbExti;
-static uint8_t bitCount;
-static uint32_t bitBuf;
-
-enum Timings { //in microseconds
-  PeriodResetPulse = 480,
-  PeriodPresenceWait = 20,
-  PeriodPresencePulse = 90,
-  PeriodBitSampling = 25,
-  PeriodZeroPulse = 50,
-  PeriodMaxTimeout = 0xFF00
-};
-
-static enum class FSM {
-  waitReset,
-  reset,
-  presenceWait,
-  presenceStart,
-  presenceEnd,
-  readCommand,
-  processCommand,
-} fsm;
-
-static enum class Command {
-  NOP,
-  SearchRom = 0xF0,
-  ReadRom = 0x33,
-  MatchRom = 0x55,
-  SkipRom = 0xCC
-} cmd;
 
 void Log(const char* msg)
 {
@@ -70,12 +41,12 @@ void Log(const char* msg)
   mbExti.postI(msg);
 }
 
-static void WriteOne()
+void SlaveBase::WriteOne()
 {
   palClearPad(TX_PORT, TX_PIN);
 }
 
-static void WriteZero()
+void SlaveBase::WriteZero()
 {
   palSetPad(TX_PORT, TX_PIN);
   Rtos::SysLockGuardFromISR lock{};
@@ -86,22 +57,17 @@ static void WriteZero()
 
 static bool GetIdBit(size_t bitPos)
 {
-  return sdiId[bitPos >> 3] & (1 << (bitPos & 0x07));
+  return TestId[bitPos >> 3] & (1 << (bitPos & 0x07));
 }
 
-static void ReadBit()
+void SlaveBase::ReadBit()
 {
   Rtos::SysLockGuardFromISR lock{};
   gptStopTimerI(&GPTD4);
   gptStartOneShotI(&GPTD4, PeriodBitSampling);
 }
 
-enum class From {
-  Exti,
-  Gpt
-};
-
-static void SearchRom(From from)
+void SlaveBase::SearchRom(From from)
 {
   static enum State {
     WriteNormal,
@@ -113,13 +79,13 @@ static void SearchRom(From from)
     switch(state) {
     case WriteNormal:
       state = WriteComplement;
-      if(!GetIdBit(bitCount)) {
+      if(!GetIdBit(bitCount_)) {
         WriteZero();
       }
       break;
     case WriteComplement:
       state = ReadMaster;
-      if(GetIdBit(bitCount)) {
+      if(GetIdBit(bitCount_)) {
         WriteZero();
       }
       break;
@@ -131,21 +97,21 @@ static void SearchRom(From from)
   }
   else if(state == ResultMaster) {
 //    Log("Result Master");
-    if(palReadPad(RX_PORT, RX_PIN) == GetIdBit(bitCount)) {
+    if(palReadPad(RX_PORT, RX_PIN) == GetIdBit(bitCount_)) {
       state = WriteNormal;
-      ++bitCount;
-      if(bitCount == 64) {
-        fsm = FSM::waitReset;
-        bitCount = 0;
-        bitBuf = 0;
+      ++bitCount_;
+      if(bitCount_ == 64) {
+        fsm_ = FSM::waitReset;
+        bitCount_ = 0;
+        bitBuf_ = 0;
 //        Log("Bitcount");
       }
     }
     else {
       state = WriteNormal;
-      fsm = FSM::waitReset;
-      bitCount = 0;
-      bitBuf = 0;
+      fsm_ = FSM::waitReset;
+      bitCount_ = 0;
+      bitBuf_ = 0;
     }
   }
   else {
@@ -155,9 +121,9 @@ static void SearchRom(From from)
   }
 }
 
-static void ProcessCommand(From from)
+void SlaveBase::ProcessCommand(From from)
 {
-  switch(cmd) {
+  switch(cmd_) {
   case Command::SearchRom:
     SearchRom(from);
     break;
@@ -169,25 +135,27 @@ static void ProcessCommand(From from)
 
 void SlaveBase::ExtCb(EXTDriver* extp, expchannel_t channel) {
   static uint16_t counter;
+  SlaveBase& sb = *static_cast<SlaveBase*>(extp->customData);
+  auto& fsm = sb.fsm_;
   switch(fsm) {
     case FSM::waitReset:
     if(!palReadPad(RX_PORT, RX_PIN)) {
       fsm = FSM::reset;
       Rtos::SysLockGuardFromISR lock{};
-      gptStopTimerI(&GPTD4);
-      gptStartOneShotI(&GPTD4, PeriodMaxTimeout);
+      gptStopTimerI(sb.GPTD_);
+      gptStartOneShotI(sb.GPTD_, PeriodMaxTimeout);
 //      mbExti.postI("Reset Start");
     }
     break;
   case FSM::reset:
     if(palReadPad(RX_PORT, RX_PIN)) {
-      counter = (uint16_t)gptGetCounterX(&GPTD4);
+      counter = (uint16_t)gptGetCounterX(sb.GPTD_);
       if(counter > PeriodResetPulse) {
         fsm = FSM::presenceWait;
         Rtos::SysLockGuardFromISR lock{};
         extChannelDisableI(extp, channel);
-        gptStopTimerI(&GPTD4);
-        gptStartOneShotI(&GPTD4, PeriodPresenceWait);
+        gptStopTimerI(sb.GPTD_);
+        gptStartOneShotI(sb.GPTD_, PeriodPresenceWait);
 //        mbExti.postI("Reset End");
       }
       else {
@@ -197,19 +165,19 @@ void SlaveBase::ExtCb(EXTDriver* extp, expchannel_t channel) {
     break;
   case FSM::readCommand: {
     Rtos::SysLockGuardFromISR lock{};
-    gptStopTimerI(&GPTD4);
+    gptStopTimerI(sb.GPTD_);
     if(!palReadPad(RX_PORT, RX_PIN)) {
-      gptStartOneShotI(&GPTD4, PeriodBitSampling);
+      gptStartOneShotI(sb.GPTD_, PeriodBitSampling);
       extChannelDisableI(extp, channel);
     }
     else {
-      gptStartOneShotI(&GPTD4, PeriodMaxTimeout);
+      gptStartOneShotI(sb.GPTD_, PeriodMaxTimeout);
     }
   }
     break;
   case FSM::processCommand:
     if(!palReadPad(RX_PORT, RX_PIN)) {
-      ProcessCommand(From::Exti);
+      sb.ProcessCommand(From::Exti);
     }
     break;
   default: {
@@ -225,6 +193,8 @@ void SlaveBase::ExtCb(EXTDriver* extp, expchannel_t channel) {
 
 void SlaveBase::GptCb(GPTDriver* gpt)
 {
+  SlaveBase& sb = *static_cast<SlaveBase*>(gpt->customData);
+  auto& fsm = sb.fsm_;
   switch(fsm) {
   case FSM::presenceWait: {
     fsm = FSM::presenceStart;
@@ -245,10 +215,10 @@ void SlaveBase::GptCb(GPTDriver* gpt)
     break;
   case FSM::presenceEnd: {
     fsm = FSM::readCommand;
-    bitCount = 0;
-    bitBuf = 0;
+    sb.bitCount_ = 0;
+    sb.bitBuf_ = 0;
     Rtos::SysLockGuardFromISR lock{};
-    extChannelEnableI(&EXTD1, RX_PIN);
+    extChannelEnableI(sb.EXTD_, RX_PIN);
 //    mbExti.postI("Read command");
     }
     break;
@@ -258,31 +228,42 @@ void SlaveBase::GptCb(GPTDriver* gpt)
       Rtos::SysLockGuardFromISR lock{};
       mbExti.postI("Timeout");
     }
-    if(bitCount < 7) {
-      bitBuf |= palReadPad(RX_PORT, RX_PIN) << bitCount++;
+    if(sb.bitCount_ < 7) {
+      sb.bitBuf_ |= palReadPad(RX_PORT, RX_PIN) << sb.bitCount_++;
     }
     else {
-      bitBuf |= palReadPad(RX_PORT, RX_PIN) << bitCount;
+      sb.bitBuf_ |= palReadPad(RX_PORT, RX_PIN) << sb.bitCount_;
       fsm = FSM::processCommand;
-      cmd = Command(bitBuf);
-      bitCount = 0;
-      bitBuf = 0;
+      sb.cmd_ = Command(sb.bitBuf_);
+      sb.bitCount_ = 0;
+      sb.bitBuf_ = 0;
     } {
       Rtos::SysLockGuardFromISR lock{};
       extChannelEnableI(&EXTD1, RX_PIN);
     }
     break;
   case FSM::processCommand:
-    ProcessCommand(From::Gpt);
+    sb.ProcessCommand(From::Gpt);
     break;
   default: {
     Rtos::SysLockGuardFromISR lock{};
-    extChannelEnableI(&EXTD1, RX_PIN);
+    extChannelEnableI(sb.EXTD_, RX_PIN);
     mbExti.postI("GPT callback default. FSM value:");
     mbExti.postI((char*)fsm);
     fsm = FSM::waitReset;
     }
   }
+}
+
+SlaveBase::SlaveBase(Family family, const Id& id) : EXTD_{&EXTD1}, GPTD_{&GPTD4}, bitBuf_{}, bitCount_{}, fsm_{}, cmd_{}
+{
+  EXTD_->customData = GPTD_->customData = static_cast<SlaveBase*>(this);
+  palSetPadMode(TX_PORT, TX_PIN, PAL_MODE_OUTPUT_PUSHPULL);
+  palSetPadMode(RX_PORT, RX_PIN, PAL_MODE_INPUT);
+
+  fullId_[0] = static_cast<uint8_t>(family);
+  std::copy(id.cbegin(), id.cend(), &fullId_[1]);
+  FillCrc(fullId_);
 }
 
 const GPTConfig SlaveBase::gptconf_{1000000, GptCb, 0, 0};
@@ -310,10 +291,8 @@ const EXTConfig SlaveBase::extcfg_{
 
 void SlaveBase::Init()
 {
-  palSetPadMode(TX_PORT, TX_PIN, PAL_MODE_OUTPUT_PUSHPULL);
-  palSetPadMode(RX_PORT, RX_PIN, PAL_MODE_INPUT);
-  gptStart(&GPTD4, &gptconf_);
-  extStart(&EXTD1, &extcfg_);
+  gptStart(GPTD_, &gptconf_);
+  extStart(EXTD_, &extcfg_);
   start(NORMALPRIO);
 }
 
@@ -331,7 +310,11 @@ void SlaveBase::main() {
   }
 }
 
-SlaveBase sdi;
+void SlaveBase::FillCrc(SlaveBase::FullId_t& id)
+{
+
+}
+
 
 } //Sdi
 

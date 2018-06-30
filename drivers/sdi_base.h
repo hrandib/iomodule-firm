@@ -41,35 +41,68 @@ namespace Sdi
 
   struct DeviceDescriptor;
 
+  enum Timings { //in microseconds
+    PeriodResetPulse = 480,
+    PeriodPresenceWait = 20,
+    PeriodPresencePulse = 90,
+    PeriodBitSampling = 25,
+    PeriodZeroPulse = 50,
+    PeriodMaxTimeout = 0xFF00
+  };
+
+  enum class Command {
+    NOP,
+    SearchRom = 0xF0,
+    ReadRom = 0x33,
+    MatchRom = 0x55,
+    SkipRom = 0xCC
+  };
+
   class SlaveBase : Rtos::BaseStaticThread<512>
   {
   public:
     using FullId_t = std::array<uint8_t, 8>;
 
   private:
+    enum class FSM {
+      waitReset,
+      reset,
+      presenceWait,
+      presenceStart,
+      presenceEnd,
+      readCommand,
+      processCommand,
+    };
+
+    enum class From {
+      Exti,
+      Gpt
+    };
+
     static const EXTConfig extcfg_;
     static const GPTConfig gptconf_;
     static void ExtCb(EXTDriver* extp, expchannel_t channel);
     static void GptCb(GPTDriver* gpt);
 
+    EXTDriver* const EXTD_;
+    GPTDriver* const GPTD_;
     std::array<uint8_t, 8> fullId_;
+    uint32_t bitBuf_;
+    uint8_t bitCount_;
+    FSM fsm_;
+    Command cmd_;
+
+    void WriteOne();
+    void WriteZero();
+    void ReadBit();
+    void ProcessCommand(From from);
+    void SearchRom(From from);
   public:
-    SlaveBase() = default;
-    SlaveBase(Family family, const Id& id)
-    {
-      fullId_[0] = static_cast<uint8_t>(family);
-      std::copy(id.cbegin(), id.cend(), &fullId_[1]);
-      FillCrc(fullId_);
-    }
+    SlaveBase(Family family, const Id& id);
     void Init();
     void main() override;
-    static void FillCrc(FullId_t& id)
-    {
-
-    }
+    static void FillCrc(FullId_t& id);
   };
-
-  extern SlaveBase sdi;
 
 } //Sdi
 
