@@ -94,15 +94,13 @@ void SlaveBase::SearchRom(From from)
     }
   }
   else if(state == ResultMaster) {
-//    Log("Result Master");
     if(palReadPad(RX_PORT, RX_PIN) == GetIdBit(bitCount_)) {
       state = WriteNormal;
       ++bitCount_;
       if(bitCount_ == 64) {
-        fsm_ = FSM::waitReset;
+        fsm_ = FSM::readCommand;
         bitCount_ = 0;
         bitBuf_ = 0;
-//        Log("Bitcount");
       }
     }
     else {
@@ -110,6 +108,7 @@ void SlaveBase::SearchRom(From from)
       fsm_ = FSM::waitReset;
       bitCount_ = 0;
       bitBuf_ = 0;
+      Log("Excluded");
     }
   }
   else {
@@ -119,23 +118,52 @@ void SlaveBase::SearchRom(From from)
   }
 }
 
-void SlaveBase::CommandHandler()
+void SlaveBase::MatchRom(From from)
 {
-
+  if(from == From::Exti) {
+    ReadBit();
+  }
+  else if(palReadPad(RX_PORT, RX_PIN) == GetIdBit(bitCount_)) {
+    ++bitCount_;
+    if(bitCount_ == 64) {
+      fsm_ = FSM::readCommand;
+      bitCount_ = 0;
+      bitBuf_ = 0;
+    }
+  }
+  else {
+    fsm_ = FSM::waitReset;
+    bitCount_ = 0;
+    bitBuf_ = 0;
+    Log("Excluded");
+  }
 }
 
-void SlaveBase::ProcessCommand(From from)
+bool SlaveBase::FunctionCommandHandler(From from)
+{
+  Log((char*)cmd_);
+  return false;
+}
+
+void SlaveBase::RomCommandHandler(From from)
 {
   switch(cmd_) {
+  case Command::NOP: case Command::ReadRom:
+    break;
   case Command::SearchRom:
     SearchRom(from);
     break;
-//  case Command::MatchRom:
-//    CommandHandler();
-//    break;
+  case Command::MatchRom:
+    MatchRom(from);
+    break;
+  case Command::SkipRom:
+    fsm_ = FSM::readCommand;
+    break;
   default:
-    Rtos::SysLockGuardFromISR lock{};
-    mbExti.postI("Unknown command");
+    if(!FunctionCommandHandler(from)) {
+      Rtos::SysLockGuardFromISR lock{};
+      mbExti.postI("Unknown command");
+    }
   }
 }
 
@@ -183,7 +211,7 @@ void SlaveBase::ExtCb(EXTDriver* extp, expchannel_t channel) {
     break;
   case FSM::processCommand:
     if(!palReadPad(RX_PORT, RX_PIN)) {
-      sb.ProcessCommand(From::Exti);
+      sb.RomCommandHandler(From::Exti);
     }
     break;
   default: {
@@ -195,7 +223,6 @@ void SlaveBase::ExtCb(EXTDriver* extp, expchannel_t channel) {
   }
   } //switch
 }
-
 
 void SlaveBase::GptCb(GPTDriver* gpt)
 {
@@ -249,13 +276,13 @@ void SlaveBase::GptCb(GPTDriver* gpt)
     }
     break;
   case FSM::processCommand:
-    sb.ProcessCommand(From::Gpt);
+    sb.RomCommandHandler(From::Gpt);
     break;
   default: {
     Rtos::SysLockGuardFromISR lock{};
     extChannelEnableI(sb.EXTD_, RX_PIN);
     mbExti.postI("GPT callback default. FSM value:");
-    mbExti.postI((char*)fsm);
+    mbExti.postI((char*)gptGetCounterX(gpt));
     fsm = FSM::waitReset;
     }
   }

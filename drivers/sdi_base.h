@@ -43,8 +43,8 @@ namespace Sdi
     PeriodResetPulse = 480,
     PeriodPresenceWait = 20,
     PeriodPresencePulse = 90,
-    PeriodBitSampling = 25,
-    PeriodZeroPulse = 50,
+    PeriodBitSampling = 20,
+    PeriodZeroPulse = 40,
     PeriodMaxTimeout = 0xFF00
   };
 
@@ -92,10 +92,11 @@ namespace Sdi
     void WriteZero();
     void ReadBit();
     bool GetIdBit(size_t bitPos);
-    void ProcessCommand(From from);
+    void RomCommandHandler(From from);
     void SearchRom(From from);
+    void MatchRom(From from);
   protected:
-    virtual void CommandHandler();
+    virtual bool FunctionCommandHandler(From from);
   public:
     SlaveBase(Family family, const Id& id);
     void Init();
