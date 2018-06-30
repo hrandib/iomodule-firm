@@ -60,6 +60,7 @@ int main(void) {
   System::init();
   Init(eeprom, aout, dout, ain, din, modbus, sdi);
   Shell sh;
+  chprintf((BaseSequentialStream*)&SD1, "CRC: %x/r/n", sdi.GetCrc());
   systime_t time = chVTGetSystemTimeX();
   while(true) {
     time += S2ST(1);

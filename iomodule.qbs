@@ -151,6 +151,8 @@ CppApplication
       "string_utils.cpp",
       "type_traits_ex.h",
       "circularfifo.h",
+      "crc8.h",
+      "crc8.cpp",
     ]
   }
   Group { name: "Port"

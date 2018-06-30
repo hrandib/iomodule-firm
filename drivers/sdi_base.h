@@ -39,8 +39,6 @@ namespace Sdi
     DS18B20 = 0x28
   };
 
-  struct DeviceDescriptor;
-
   enum Timings { //in microseconds
     PeriodResetPulse = 480,
     PeriodPresenceWait = 20,
@@ -102,6 +100,10 @@ namespace Sdi
     void Init();
     void main() override;
     static void FillCrc(FullId_t& id);
+    uint8_t GetCrc()
+    {
+      return fullId_.back();
+    }
   };
 
 } //Sdi

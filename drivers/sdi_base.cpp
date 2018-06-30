@@ -22,6 +22,7 @@
 
 #include "sdi_base.h"
 #include "chprintf.h"
+#include "crc8.h"
 
 #define TX_PORT GPIOA
 #define TX_PIN 12
@@ -312,7 +313,8 @@ void SlaveBase::main() {
 
 void SlaveBase::FillCrc(SlaveBase::FullId_t& id)
 {
-
+  Crc::Crc8_NoLUT crc{};
+  id.back() = crc(id.data(), (uint8_t)id.size() - 1).GetResult();
 }
 
 
