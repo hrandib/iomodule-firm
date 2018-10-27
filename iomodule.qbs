@@ -9,7 +9,7 @@ CppApplication
 
   property int BoardV1: 1
   property int BoardV2_Simplified: 2
-  property int BoardVersion: BoardV1
+  property int BoardVersion: BoardV2_Simplified
 
 	type: ["application", "printsize"]
 	consoleApplication: true

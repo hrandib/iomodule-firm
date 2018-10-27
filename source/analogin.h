@@ -58,10 +58,18 @@ using namespace Mcudrv;
     }
   };
 
+#if BOARD_VER == 1
+  static constexpr size_t INPUT_CH_NUMBER = 10;
+  using InputPinsSequence = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pinlist<Pb0, SequenceOf<2>>>;
+#elif BOARD_VER == 2
+  static constexpr size_t INPUT_CH_NUMBER = 5;
+  using InputPinsSequence = Pinlist<Pa0, SequenceOf<INPUT_CH_NUMBER>>;
+#endif
+
   class Input : Rtos::BaseStaticThread<512>
   {
   public:
-    static constexpr size_t numChannels = 10;
+    static constexpr size_t numChannels = INPUT_CH_NUMBER;
     static constexpr size_t dmaBufDepth = 2;
 
     static constexpr size_t lowLevelThd = 4096 / 4;
@@ -71,7 +79,7 @@ using namespace Mcudrv;
     using dma_buf_t = std::array<sample_buf_t, dmaBufDepth>;
     using fifo_t = memory_relaxed_acquire_release::CircularFifo<sample_buf_t, 128>;
     using counters_buf_t = std::array<uint32_t, numChannels>;
-    using InputPins = Pinlist<Pinlist<Pa0, SequenceOf<8>>, Pinlist<Pb0, SequenceOf<2>>>;
+    using InputPins = InputPinsSequence;
 
     dma_buf_t dmaBuf_;
     fifo_t fifo_;
