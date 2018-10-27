@@ -112,6 +112,15 @@ CppApplication
     "FreeModbus/modbus/rtu",
     "FreeModbus/modbus/functions"
   ]
+  Properties {
+    condition: BoardVersion == BoardV1
+    cpp.includePaths: outer.concat("source/V1")
+  }
+  Properties {
+    condition: BoardVersion == BoardV2_Simplified
+    cpp.includePaths: outer.concat("source/V2")
+  }
+
   cpp.libraryPaths: [
     ChibiOS + "os/common/startup/ARMCMx/compilers/GCC/ld"
   ]
@@ -280,8 +289,6 @@ CppApplication
           "source/analogout.h",
           "source/at24_impl.cpp",
           "source/at24_impl.h",
-          "source/digitalin.cpp",
-          "source/digitalin.h",
           "source/digitalout.cpp",
           "source/digitalout.h",
           "source/modbus_impl.cpp",
@@ -296,6 +303,22 @@ CppApplication
 			"**/*.html",
 		]
 	}
+  Group { name: "Main - Board V1"
+    condition: BoardVersion == BoardV1
+    prefix: "source/V1/"
+    files: [
+      "digitalin.h",
+      "digitalin.cpp",
+    ]
+  }
+  Group { name: "Main - Board V2"
+    condition: BoardVersion == BoardV2_Simplified
+    prefix: "source/V2/"
+    files: [
+      "digitalin.h",
+      "digitalin.cpp",
+    ]
+  }
   Group {	name: "Various"
     condition: true
     prefix: ChibiOS + "os/various/"
