@@ -7,6 +7,10 @@ CppApplication
 {
   property string ChibiOS: "ChibiOS/"
 
+  property int BoardV1: 1
+  property int BoardV2_Simplified: 2
+  property int BoardVersion: BoardV1
+
 	type: ["application", "printsize"]
 	consoleApplication: true
   cpp.optimization: "small"
@@ -23,8 +27,10 @@ CppApplication
     "HAL_USE_PWM",
     "HAL_USE_SPI",
     "HAL_USE_ADC",
-    "STM32F103xB"
-	]
+    "STM32F103xB",
+    "BOARD_VER=" + BoardVersion
+  ]
+
   cpp.driverFlags: [
 		"-mcpu=cortex-m3",
 		"-ggdb3",
