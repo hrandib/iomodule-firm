@@ -289,8 +289,6 @@ CppApplication
           "source/analogout.h",
           "source/at24_impl.cpp",
           "source/at24_impl.h",
-          "source/digitalout.cpp",
-          "source/digitalout.h",
           "source/modbus_impl.cpp",
           "source/modbus_impl.h",
           "source/shell_impl.cpp",
@@ -309,6 +307,8 @@ CppApplication
     files: [
       "digitalin.h",
       "digitalin.cpp",
+      "digitalout.h",
+      "digitalout.cpp",
     ]
   }
   Group { name: "Main - Board V2"
@@ -317,6 +317,8 @@ CppApplication
     files: [
       "digitalin.h",
       "digitalin.cpp",
+      "digitalout.h",
+      "digitalout.cpp",
     ]
   }
   Group {	name: "Various"
