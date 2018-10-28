@@ -25,10 +25,14 @@
 #include "ch_extended.h"
 #include "hal.h"
 #include "type_traits_ex.h"
+#include "pinlist.h"
 #include <utility>
 #include <array>
 
 namespace Digital {
+
+  using namespace Mcudrv;
+
   class OutputCommand
   {
   public:
@@ -40,15 +44,15 @@ namespace Digital {
       Toggle
     };
   private:
-    static constexpr size_t busWidth_ = 16;
-    using ex_value_t = Utils::SelectSize_t<busWidth_ * 2>;
+    static constexpr size_t busWidth = 9;
+    using ex_value_t = Utils::SelectSize_t<busWidth * 2>;
     ex_value_t value_;
     Mode mode_;
   public:
-    using value_type = Utils::SelectSize_t<busWidth_>;
+    using value_type = Utils::SelectSize_t<busWidth>;
     static constexpr size_t GetBusWidth()
     {
-      return busWidth_;
+      return busWidth;
     }
     std::pair<Mode, ex_value_t> Get() const
     {
@@ -72,7 +76,7 @@ namespace Digital {
     }
     Rtos::Status Set(Mode mode, ex_value_t value)
     {
-      if(mode != Mode::SetAndClear && value > Utils::NumberToMask_v<busWidth_>) {
+      if(mode != Mode::SetAndClear && value > Utils::NumberToMask_v<busWidth>) {
         return Rtos::Status::Failure;
       }
       SetValue(value);
@@ -84,12 +88,9 @@ namespace Digital {
   class Output : Rtos::BaseStaticThread<256>
   {
   private:
-    using pinmap_t = std::array<uint16_t, OutputCommand::GetBusWidth()>;
+    using Pins = Pinlist<Pa5, Pa6, Pa7, Pb0, Pb1, Pb2, Pb13, Pb14, Pb15>;
     using value_t = OutputCommand::value_type;
-    static const SPIConfig spicfg_;
-    static const pinmap_t pinMap_;
-    SPIDriver* const SPID_;
-    value_t mappedVal_, rawVal_;
+    value_t prevVal_, curVal_;
     void main() override
     {
       using Mode = OutputCommand::Mode;
@@ -100,65 +101,41 @@ namespace Digital {
         value_t value = static_cast<value_t>(cmd.GetValue());
         switch(cmd.GetMode()) {
         case Mode::Set:
-          rawVal_ |= value;
+          curVal_ |= value;
           break;
         case Mode::Clear:
-          rawVal_ &= ~value;
+          curVal_ &= ~value;
           break;
         case Mode::SetAndClear:
-          rawVal_ |= value & Utils::NumberToMask_v<OutputCommand::GetBusWidth()>;
-          rawVal_ &= ~static_cast<value_t>(cmd.GetValue() >> OutputCommand::GetBusWidth());
+          curVal_ |= value & Utils::NumberToMask_v<OutputCommand::GetBusWidth()>;
+          curVal_ &= ~static_cast<value_t>(cmd.GetValue() >> OutputCommand::GetBusWidth());
           break;
         case Mode::Write:
-          rawVal_ = value;
+          curVal_ = value;
           break;
         case Mode::Toggle:
-          rawVal_ ^= value;
+          curVal_ ^= value;
           break;
         }
-        cmd.SetValue(rawVal_);
+        cmd.SetValue(curVal_);
         chMsgRelease(tp, MSG_OK);
-        if(auto temp = Remap(rawVal_); mappedVal_ != temp) {
-          mappedVal_ = temp;
-          SpiSend();
+        if(prevVal_ != curVal_) {
+          prevVal_ = curVal_;
+          Pins::Write(curVal_);
         }
       }
     }
-    void SpiSend()
-    {
-      spiSelect(SPID_);
-      spiStartSend(SPID_, 1, &mappedVal_);
-    }
-    static uint16_t Remap(uint16_t val)
-    {
-      uint16_t result{};
-      for(size_t i{}; i < pinMap_.size(); ++i) {
-        result |= val & (1UL << i) ? pinMap_[i] : 0;
-      }
-      return result;
-    }
   public:
-    Output() : SPID_{&SPID2}, mappedVal_{}, rawVal_{}
+    Output() : prevVal_{}, curVal_{}
     { }
     void Init()
     {
-      palSetPadMode(GPIOB, 13, PAL_MODE_STM32_ALTERNATE_PUSHPULL);            // CLK
-      palSetPadMode(spicfg_.ssport, spicfg_.sspad, PAL_MODE_OUTPUT_PUSHPULL); // RCLK
-      palSetPadMode(GPIOB, 15, PAL_MODE_STM32_ALTERNATE_PUSHPULL);            // MOSI
-      spiStart(SPID_, &spicfg_);
-      SpiSend();
+      Pins::SetConfig<GpioModes::OutputPushPull>();
       start(NORMALPRIO);
     }
     msg_t SendMessage(OutputCommand& msg)
     {
       return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
-    }
-    ~Output() override
-    {
-      spiStop(SPID_);
-      palSetPadMode(GPIOB, 13, PAL_MODE_INPUT_PULLDOWN);                      // CLK
-      palSetPadMode(spicfg_.ssport, spicfg_.sspad, PAL_MODE_INPUT_PULLDOWN);  // RCLK
-      palSetPadMode(GPIOB, 15, PAL_MODE_INPUT_PULLDOWN);                      // MOSI
     }
   };
 

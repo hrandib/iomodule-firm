@@ -196,6 +196,7 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
 {
   using namespace Digital;
   using Mode = OutputCommand::Mode;
+  static constexpr size_t valueMask = Utils::NumberToMask_v<OutputCommand::GetBusWidth()>;
   OutputCommand cmd{};
   do {
     if(argc == 0) {
@@ -205,11 +206,11 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
     }
     else if(argc == 3 && "set_clear"sv == argv[0]) {
       auto setVal = io::svtou(argv[1]);
-      if(!setVal || *setVal > 65535) {
+      if(!setVal || *setVal > valueMask) {
         break;
       }
       auto clearVal = io::svtou(argv[2]);
-      if(!clearVal || *clearVal > 65535) {
+      if(!clearVal || *clearVal > valueMask) {
         break;
       }
       uint32_t val = *setVal | (*clearVal << OutputCommand::GetBusWidth());
@@ -235,7 +236,7 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
         break;
       }
       auto value = io::svtou(argv[1]);
-      if(!value || *value > 65535) {
+      if(!value || *value > valueMask) {
         break;
       }
       cmd.SetValue((uint16_t)*value);
@@ -247,6 +248,7 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
   shellUsage(chp, "Set state of the digital output register"
                   "\r\npossible modes: set, clear, set_clear, write, toggle"
                   "\r\nReturns modified register value"
+             //TODO: get mask at compile time
                   "\r\n\tsetdigital [mode] [mask(0-65535)]"
                   "\r\nExamples:"
                   "\r\n\tsetdigital set 0x2020"
