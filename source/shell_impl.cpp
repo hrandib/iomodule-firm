@@ -23,7 +23,6 @@
 #include "hal.h"
 #include "shell.h"
 #include "shell_impl.h"
-#include "analogout.h"
 #include "digitalout.h"
 #include "analogin.h"
 #include "digitalin.h"
@@ -31,11 +30,16 @@
 #include "chprintf.h"
 #include "string_utils.h"
 
+#if BOARD_VER == 1
+#include "analogout.h"
+#endif
+
 using namespace std::literals;
 
 static THD_WORKING_AREA(SHELL_WA_SIZE, 512);
-
+#if BOARD_VER == 1
 static void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[]);
+#endif
 static void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
@@ -44,7 +48,9 @@ static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setmbid(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
+#if BOARD_VER == 1
   {"setanalog", cmd_setanalog},
+#endif
   {"getanalog", cmd_getanalog},
   {"setdigital", cmd_setdigital},
   {"getdigital", cmd_getdigital},
@@ -63,6 +69,7 @@ static const ShellConfig shell_cfg1 = {
   128
 };
 
+#if BOARD_VER == 1
 void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
 {
   using namespace Analog;
@@ -99,6 +106,7 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\nExample:"
                   "\r\n\tsetanalog 1 2048");
 }
+#endif
 
 void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[])
 {

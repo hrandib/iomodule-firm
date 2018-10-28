@@ -24,11 +24,13 @@
 #include "digitalin.h"
 #include "digitalout.h"
 #include "analogin.h"
-#include "analogout.h"
 #include "order_conv.h"
 
-#include <array>
+#if BOARD_VER == 1
+#include "analogout.h"
+#endif
 
+#include <array>
 
 static const uint8_t *UniqProcessorId = (uint8_t *) 0x1FFFF7E8;
 static const uint8_t UniqProcessorIdLen = 12;
@@ -209,6 +211,7 @@ extern "C" {
         eStatus = MB_ENOREG;
       }
     }
+#if BOARD_VER == 1
     else if(usAddress >= R_AnalogOutputStart) {
       iRegIndex = (int)(usAddress - R_AnalogOutputStart);
       if((usNRegs + iRegIndex) <= R_AnalogOutputSize) {
@@ -238,6 +241,7 @@ extern "C" {
         eStatus = MB_ENOREG;
       }
     }
+#endif
     else {
       eStatus = MB_ENOREG;
     }
