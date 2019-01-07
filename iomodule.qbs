@@ -9,7 +9,7 @@ CppApplication
 
   property int BoardV1: 1
   property int BoardV2_Simplified: 2
-  property int BoardVersion: BoardV2_Simplified
+  property int BoardVersion: BoardV1
 
 	type: ["application", "printsize"]
 	consoleApplication: true
@@ -33,7 +33,7 @@ CppApplication
 
   cpp.driverFlags: [
 		"-mcpu=cortex-m3",
-		"-ggdb3",
+//		"-ggdb3",
     "--specs=nano.specs"
 		/*"-Wa,--defsym,THUMB2=1"*/
     //"-nostdlib", "-nodefaultlibs"
