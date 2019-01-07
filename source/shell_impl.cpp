@@ -23,7 +23,6 @@
 #include "hal.h"
 #include "shell.h"
 #include "shell_impl.h"
-#include "analogout.h"
 #include "digitalout.h"
 #include "analogin.h"
 #include "digitalin.h"
@@ -31,11 +30,16 @@
 #include "chprintf.h"
 #include "string_utils.h"
 
+#if BOARD_VER == 1
+#include "analogout.h"
+#endif
+
 using namespace std::literals;
 
 static THD_WORKING_AREA(SHELL_WA_SIZE, 512);
-
+#if BOARD_VER == 1
 static void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[]);
+#endif
 static void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
@@ -44,7 +48,9 @@ static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setmbid(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
+#if BOARD_VER == 1
   {"setanalog", cmd_setanalog},
+#endif
   {"getanalog", cmd_getanalog},
   {"setdigital", cmd_setdigital},
   {"getdigital", cmd_getdigital},
@@ -63,6 +69,7 @@ static const ShellConfig shell_cfg1 = {
   128
 };
 
+#if BOARD_VER == 1
 void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
 {
   using namespace Analog;
@@ -99,6 +106,7 @@ void cmd_setanalog(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\nExample:"
                   "\r\n\tsetanalog 1 2048");
 }
+#endif
 
 void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[])
 {
@@ -196,6 +204,7 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
 {
   using namespace Digital;
   using Mode = OutputCommand::Mode;
+  static constexpr size_t valueMask = Utils::NumberToMask_v<OutputCommand::GetBusWidth()>;
   OutputCommand cmd{};
   do {
     if(argc == 0) {
@@ -205,11 +214,11 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
     }
     else if(argc == 3 && "set_clear"sv == argv[0]) {
       auto setVal = io::svtou(argv[1]);
-      if(!setVal || *setVal > 65535) {
+      if(!setVal || *setVal > valueMask) {
         break;
       }
       auto clearVal = io::svtou(argv[2]);
-      if(!clearVal || *clearVal > 65535) {
+      if(!clearVal || *clearVal > valueMask) {
         break;
       }
       uint32_t val = *setVal | (*clearVal << OutputCommand::GetBusWidth());
@@ -235,7 +244,7 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
         break;
       }
       auto value = io::svtou(argv[1]);
-      if(!value || *value > 65535) {
+      if(!value || *value > valueMask) {
         break;
       }
       cmd.SetValue((uint16_t)*value);
@@ -247,6 +256,7 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
   shellUsage(chp, "Set state of the digital output register"
                   "\r\npossible modes: set, clear, set_clear, write, toggle"
                   "\r\nReturns modified register value"
+             //TODO: get mask at compile time
                   "\r\n\tsetdigital [mode] [mask(0-65535)]"
                   "\r\nExamples:"
                   "\r\n\tsetdigital set 0x2020"

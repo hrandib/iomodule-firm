@@ -28,13 +28,23 @@
 #include "hal.h"
 #include "pinlist.h"
 #include "shell_impl.h"
-#include "analogout.h"
 #include "analogin.h"
 #include "digitalin.h"
 #include "digitalout.h"
 #include "modbus_impl.h"
 #include "at24_impl.h"
 #include "sdi_base.h"
+
+#if BOARD_VER == 1
+#include "analogout.h"
+#else
+// Just the stub
+namespace Analog {
+  static struct Output {
+    void Init() {}
+  } output;
+}
+#endif
 
 using namespace Rtos;
 using namespace Mcudrv;

@@ -7,6 +7,10 @@ CppApplication
 {
   property string ChibiOS: "ChibiOS/"
 
+  property int BoardV1: 1
+  property int BoardV2_Simplified: 2
+  property int BoardVersion: BoardV1
+
 	type: ["application", "printsize"]
 	consoleApplication: true
   cpp.optimization: "small"
@@ -23,11 +27,13 @@ CppApplication
     "HAL_USE_PWM",
     "HAL_USE_SPI",
     "HAL_USE_ADC",
-    "STM32F103xB"
-	]
+    "STM32F103xB",
+    "BOARD_VER=" + BoardVersion
+  ]
+
   cpp.driverFlags: [
 		"-mcpu=cortex-m3",
-		"-ggdb3",
+//		"-ggdb3",
     "--specs=nano.specs"
 		/*"-Wa,--defsym,THUMB2=1"*/
     //"-nostdlib", "-nodefaultlibs"
@@ -106,6 +112,15 @@ CppApplication
     "FreeModbus/modbus/rtu",
     "FreeModbus/modbus/functions"
   ]
+  Properties {
+    condition: BoardVersion == BoardV1
+    cpp.includePaths: outer.concat("source/V1")
+  }
+  Properties {
+    condition: BoardVersion == BoardV2_Simplified
+    cpp.includePaths: outer.concat("source/V2")
+  }
+
   cpp.libraryPaths: [
     ChibiOS + "os/common/startup/ARMCMx/compilers/GCC/ld"
   ]
@@ -274,14 +289,8 @@ CppApplication
           "main.cpp",
           "source/analogin.cpp",
           "source/analogin.h",
-          "source/analogout.cpp",
-          "source/analogout.h",
           "source/at24_impl.cpp",
           "source/at24_impl.h",
-          "source/digitalin.cpp",
-          "source/digitalin.h",
-          "source/digitalout.cpp",
-          "source/digitalout.h",
           "source/modbus_impl.cpp",
           "source/modbus_impl.h",
           "source/shell_impl.cpp",
@@ -294,6 +303,28 @@ CppApplication
 			"**/*.html",
 		]
 	}
+  Group { name: "Main - Board V1"
+    condition: BoardVersion == BoardV1
+    prefix: "source/V1/"
+    files: [
+      "digitalin.h",
+      "digitalin.cpp",
+      "digitalout.h",
+      "digitalout.cpp",
+      "analogout.cpp",
+      "analogout.h",
+    ]
+  }
+  Group { name: "Main - Board V2"
+    condition: BoardVersion == BoardV2_Simplified
+    prefix: "source/V2/"
+    files: [
+      "digitalin.h",
+      "digitalin.cpp",
+      "digitalout.h",
+      "digitalout.cpp",
+    ]
+  }
   Group {	name: "Various"
     condition: true
     prefix: ChibiOS + "os/various/"
