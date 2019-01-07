@@ -190,7 +190,7 @@ void SlaveBase::ExtCb(EXTDriver* extp, expchannel_t channel) {
         extChannelDisableI(extp, channel);
         gptStopTimerI(sb.GPTD_);
         gptStartOneShotI(sb.GPTD_, PeriodPresenceWait);
-//        mbExti.postI("Reset End");
+        mbExti.postI("Reset End");
       }
       else {
         fsm = FSM::waitReset;
@@ -241,7 +241,7 @@ void SlaveBase::GptCb(GPTDriver* gpt)
     fsm = FSM::presenceEnd;
     palClearPad(TX_PORT, TX_PIN);
     Rtos::SysLockGuardFromISR lock{};
-//    mbExti.postI("Presence End");
+    mbExti.postI("Presence End");
     gptStopTimerI(gpt);
     gptStartOneShotI(gpt, 80);
     }
@@ -252,7 +252,7 @@ void SlaveBase::GptCb(GPTDriver* gpt)
     sb.bitBuf_ = 0;
     Rtos::SysLockGuardFromISR lock{};
     extChannelEnableI(sb.EXTD_, RX_PIN);
-//    mbExti.postI("Read command");
+    mbExti.postI("Read command");
     }
     break;
   case FSM::readCommand:

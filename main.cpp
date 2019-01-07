@@ -54,7 +54,7 @@ static constexpr auto& aout = Analog::output;
 static constexpr auto& ain = Analog::input;
 static constexpr auto& din = Digital::input;
 
-static Sdi::SlaveBase sdi{Sdi::Family::DS1996, {{ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 }}};
+static Sdi::SlaveBase sdi{Sdi::Family::DS1996, { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 }};
 
 static auto Init = [](auto&&... objs) {
   (objs.Init(), ...);
@@ -70,7 +70,7 @@ int main(void) {
   System::init();
   Init(eeprom, aout, dout, ain, din, modbus, sdi);
   Shell sh;
-  chprintf((BaseSequentialStream*)&SD1, "CRC: %x/r/n", sdi.GetCrc());
+  chprintf((BaseSequentialStream*)&SD1, "CRC: %x\r\n", sdi.GetCrc());
   systime_t time = chVTGetSystemTimeX();
   while(true) {
     time += S2ST(1);
