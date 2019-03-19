@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,59 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
+#ifndef EXECUTOR_IMPL_H
+#define EXECUTOR_IMPL_H
 
 #include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogin.h"
-#include "digitalin.h"
-#include "digitalout.h"
-#include "modbus_impl.h"
 #include "at24_impl.h"
-#include "executor_impl.h"
+#include <atomic>
 
-#if BOARD_VER == 1
-#include "analogout.h"
-#else
-// Just the stub
-namespace Analog {
-  static struct Output {
-    void Init() {}
-  } output;
-}
-#endif
+extern std::atomic_uint32_t uptimeCounter;
 
-using namespace Rtos;
-using namespace Mcudrv;
-
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
-static constexpr auto& ain = Analog::input;
-static constexpr auto& din = Digital::input;
-
-static auto Init = [](auto&&... objs) {
-  (objs.Init(), ...);
+class Executor : Rtos::BaseStaticThread<512>
+{
+private:
+  uint16_t oldRegBuffer16;
+  void Process();
+public:
+  void Init();
+  void main() override;
 };
 
-std::atomic_uint32_t uptimeCounter;
+extern Executor executor;
 
-using namespace std::literals;
-using nvram::eeprom;
-
-int main(void) {
-  halInit();
-  System::init();
-  Init(eeprom, aout, dout, ain, din, modbus, executor);
-  Shell sh;
-  systime_t time = chVTGetSystemTimeX();
-  while(true) {
-    time += S2ST(1);
-    BaseThread::sleepUntil(time);
-    ++uptimeCounter;
-  }
-}
+#endif // EXECUTOR_IMPL_H

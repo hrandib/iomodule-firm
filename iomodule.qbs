@@ -287,6 +287,8 @@ CppApplication
           "source/analogin.h",
           "source/at24_impl.cpp",
           "source/at24_impl.h",
+          "source/executor_impl.cpp",
+          "source/executor_impl.h",
           "source/modbus_impl.cpp",
           "source/modbus_impl.h",
           "source/shell_impl.cpp",
@@ -409,7 +411,7 @@ CppApplication
 			filePath: "-"
 		}
 		prepare: {
-      var sizePath = "c:/Tools/gccarm_6.3.1/bin/arm-none-eabi-size.exe";
+      var sizePath = "C:/ArmEmbedded/7 2018-q2-update/bin/arm-none-eabi-size.exe";
 			var args = [input.filePath];
 			var cmd = new Command(sizePath, args);
 			cmd.description = "File size: " + FileInfo.fileName(input.filePath);
