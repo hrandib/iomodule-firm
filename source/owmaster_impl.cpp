@@ -56,7 +56,7 @@ void OWMaster::Init()
 
 void OWMaster::main()
 {
-  setName("I2CMaster");
+  setName("OWMaster");
   sleep(MS2ST(300));
 
   while(true) {
