@@ -289,6 +289,8 @@ CppApplication
           "source/at24_impl.h",
           "source/executor_impl.cpp",
           "source/executor_impl.h",
+          "source/i2cmaster_impl.cpp",
+          "source/i2cmaster_impl.h",
           "source/modbus_impl.cpp",
           "source/modbus_impl.h",
           "source/shell_impl.cpp",

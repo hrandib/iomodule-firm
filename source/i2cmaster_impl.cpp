@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dmytro Shestakov
+ * Copyright (c) 2018 Dmytro Shestakov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,59 +20,48 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-
-#include "ch_extended.h"
-#include "hal.h"
-#include "pinlist.h"
-#include "shell_impl.h"
-#include "analogin.h"
+#include "i2cmaster_impl.h"
 #include "digitalin.h"
 #include "digitalout.h"
-#include "modbus_impl.h"
-#include "at24_impl.h"
-#include "executor_impl.h"
-#include "i2cmaster_impl.h"
+#include "analogin.h"
+#include "order_conv.h"
+#include "chprintf.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
-#else
-// Just the stub
-namespace Analog {
-  static struct Output {
-    void Init() {}
-  } output;
-}
 #endif
 
-using namespace Rtos;
-using namespace Mcudrv;
+#include <array>
 
-static constexpr auto& dout = Digital::output;
-static constexpr auto& aout = Analog::output;
-static constexpr auto& ain = Analog::input;
-static constexpr auto& din = Digital::input;
+using Utils::htons;
+using Utils::ntohs;
+using Utils::htonl;
 
-static auto Init = [](auto&&... objs) {
-  (objs.Init(), ...);
-};
+I2CMaster i2cMaster;
 
-std::atomic_uint32_t uptimeCounter;
+extern "C" {
 
-using namespace std::literals;
-using nvram::eeprom;
+void I2CMaster::Process()
+{
 
-int main(void) {
-  halInit();
-  System::init();
-  Init(eeprom, aout, dout, ain, din, modbus, executor, i2cMaster);
-  Shell sh;
-  systime_t time = chVTGetSystemTimeX();
+
+  return;
+}
+
+void I2CMaster::Init()
+{
+  start(NORMALPRIO + 12);
+}
+
+void I2CMaster::main()
+{
+  setName("I2CMaster");
+  sleep(MS2ST(300));
+
   while(true) {
-    time += S2ST(1);
-    BaseThread::sleepUntil(time);
-    ++uptimeCounter;
+    Process();
+    sleep(MS2ST(100));
   }
 }
+
+} // extern C
