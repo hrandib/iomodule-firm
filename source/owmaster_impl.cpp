@@ -26,6 +26,7 @@
 #include "analogin.h"
 #include "order_conv.h"
 #include "chprintf.h"
+#include "onewire.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -41,27 +42,62 @@ OWMaster owMaster;
 
 extern "C" {
 
+static systime_t lastNetScan = {0};
+static systime_t lastNetQueryTemp = {0};
+static uint8_t lastScanIndx = 0;
+
 void OWMaster::Process()
 {
+  OWire::DS18B20Driver.Process();
 
+  if (!OWire::owDriver.Ready())
+    return;
+
+  // scan network. 60 min between scans
+  if (lastNetScan == 0 || chVTGetSystemTimeX() - lastNetScan > 60 * 60 * 1000) {
+    OWire::owDriver.Search(); // search all devices
+    lastNetScan = chVTGetSystemTimeX();
+    chprintf((BaseSequentialStream*)&SD1, "OW network scan\r\n");
+    return;
+  }
+
+  // start convert. 60 sec between temperature measuring
+  if (lastNetQueryTemp == 0 || chVTGetSystemTimeX() - lastNetQueryTemp > 60 * 1000) {
+    OWire::DS18B20Driver.StartConvert(); // start convert over all network
+    lastScanIndx = 0;
+    lastNetQueryTemp = chVTGetSystemTimeX();
+    chprintf((BaseSequentialStream*)&SD1, "OW start convert\r\n");
+    return;
+  }
+
+  if (OWire::DS18B20Driver.ReadScratchPad(id[lastScanIndx], &sp)) {
+    temp[lastScanIndx] = sp.temp;
+
+    if (sp.resolition != OWire::DS18B20Res12bit) {
+      OWire::DS18B20Driver.SetResolution(id[lastScanIndx], OWire::DS18B20Res12bit);
+    }
+
+    lastScanIndx++;
+    if (lastScanIndx > maxScanIndx)
+      lastScanIndx = 0;
+  }
 
   return;
 }
 
-void OWMaster::Init()
-{
-
+void OWMaster::Init() {
+  OWire::owDriver.Init(Pb5, Pa12); // Rx, Tx
+  OWire::DS18B20Driver.Init(OWDriver);
   start(NORMALPRIO + 12);
 }
 
-void OWMaster::main()
-{
+void OWMaster::main() {
   setName("OWMaster");
   sleep(MS2ST(300));
 
   while(true) {
     Process();
-    sleep(MS2ST(100));
+    sleep(MS2ST(1));
   }
 }
 

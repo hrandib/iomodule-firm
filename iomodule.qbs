@@ -194,13 +194,15 @@ CppApplication
   Group { name: "Drivers"
     prefix: "drivers/"
     files: [
-      "gpio.h",
-      "pinlist.h",
-      "eeprom/mtd_24aa.hpp",
-      "eeprom/mtd_24aa.cpp",
-      "eeprom/mtd_base.hpp",
-      "eeprom/mtd_base.cpp",
-    ]
+          "gpio.h",
+          "onewire.c",
+          "onewire.h",
+          "pinlist.h",
+          "eeprom/mtd_24aa.hpp",
+          "eeprom/mtd_24aa.cpp",
+          "eeprom/mtd_base.hpp",
+          "eeprom/mtd_base.cpp",
+      ]
   }
   Group { name: "Drivers ChibiOS"
     prefix: ChibiOS + "os/hal/ports/STM32/"
@@ -289,10 +291,10 @@ CppApplication
           "source/at24_impl.h",
           "source/executor_impl.cpp",
           "source/executor_impl.h",
-          "source/i2cmaster_impl.cpp",
-          "source/i2cmaster_impl.h",
           "source/modbus_impl.cpp",
           "source/modbus_impl.h",
+          "source/owmaster_impl.cpp",
+          "source/owmaster_impl.h",
           "source/shell_impl.cpp",
           "source/shell_impl.h",
       ]
