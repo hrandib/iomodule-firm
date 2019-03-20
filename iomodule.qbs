@@ -195,7 +195,7 @@ CppApplication
     prefix: "drivers/"
     files: [
           "gpio.h",
-          "onewire.c",
+          "onewire.cpp",
           "onewire.h",
           "pinlist.h",
           "eeprom/mtd_24aa.hpp",

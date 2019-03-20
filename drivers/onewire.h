@@ -9,10 +9,11 @@
 #define ONEWIRE_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "gpio.h"
 
 namespace OWire {
-
+/*
   #define OW_SEARCH_ROM			0xF0
   #define OW_READ_ROM				0x33
   #define OW_MATCH_ROM			0x55
@@ -46,17 +47,22 @@ namespace OWire {
 
   /*
    * SEARCH Algorithm
-   */
+   *
 
   uint8_t ow_search_start();
   uint8_t ow_search_next();
   uint8_t ow_search_done();
   uint8_t *ow_search_result();
+*/
 
   class OWDriver {
   private:
+    bool Reset();
     bool ReadBit(bool *bit);
+    bool Read2Bit(uint8_t *bit);
     bool WriteBit(bool bit);
+    bool ReadByte(uint8_t *bit);
+    bool WriteByte(uint8_t bit);
 
     bool SearchStart();
     bool SearchNext();
@@ -67,7 +73,6 @@ namespace OWire {
     void Process();
     bool Ready();
 
-    bool Reset();
     bool Write(uint8_t data, size_t dataLen);
     bool Read(uint8_t data, size_t maxDataLen, size_t *dataLen);
 

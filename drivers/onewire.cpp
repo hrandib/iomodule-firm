@@ -6,13 +6,14 @@
  */
 
 #include "onewire.h"
-#include "crc8.h"
-#include "csection.h"
+//#include "crc8.h"
+//#include "csection.h"
 
-#include "stm32f10x.h"
+//#include "stm32f10x.h"
 
 #include <string.h> //for memset
 
+/*
 volatile uint32_t ow_timing 	= 0;
 static uint8_t rom_tmp[8] 		= {0};
 static uint8_t read_tmp 		= 0;
@@ -20,7 +21,7 @@ static uint8_t write_tmp 		= 0;
 
 /*
  *	GPIO CONFIG
- */
+ *
 
 #define OW_GPIO_CLOCK			RCC_APB2Periph_GPIOA
 #define OW_GPIO_BASE			GPIOA
@@ -37,7 +38,7 @@ static uint8_t write_tmp 		= 0;
 
 /*
  * Basic Delays
- */
+ *
 
 #define OW_DELAY480				ow_timing = 48
 #define OW_DELAY410				ow_timing = 41
@@ -47,7 +48,7 @@ static uint8_t write_tmp 		= 0;
 
 /*
  * Handler states
- */
+ *
 
 #define OW_HANDLER_STATE_NONE 			0
 
@@ -79,7 +80,7 @@ static uint8_t handler_status 			= OW_HANDLER_STATUS_NONE;
 
 /*
  * SEARCH Params
- */
+ *
 
 #define OW_SEARCH_STATE_START 						0
 #define OW_SEARCH_STATE_NEXT 						1
@@ -106,7 +107,7 @@ static void ow_search_handler();
 
 /*
  *
- */
+ *
 
 void ow_init()
 {
@@ -196,7 +197,7 @@ void ow_handler()
 
 /*
  * RESET
- */
+ *
 
 	case OW_HANDLER_STATE_RESET:
 		handler_status = OW_HANDLER_STATUS_NONE;
@@ -238,7 +239,7 @@ void ow_handler()
 
 /*
  * READ BIT
- */
+ *
 
 	case OW_HANDLER_STATE_READ_BIT:
 		CSECTION_LOCK(CSECTION_OW);
@@ -281,7 +282,7 @@ void ow_handler()
 
 /*
  * WRITE BIT
- */
+ *
 
 	case OW_HANDLER_STATE_WRITE_BIT:
 		CSECTION_LOCK(CSECTION_OW);
@@ -322,7 +323,7 @@ void ow_handler()
 
 /*
  * READ
- */
+ *
 
 	case OW_HANDLER_STATE_READ:
 		read_tmp = 0;
@@ -353,7 +354,7 @@ void ow_handler()
 
 /*
  * WRITE
- */
+ *
 
 	case OW_HANDLER_STATE_WRITE:
 		t1 = 8;
@@ -387,7 +388,7 @@ void ow_handler()
 
 /*
  * SEARCH Algorithm
- */
+ *
 
 uint8_t ow_search_start()
 {
@@ -597,4 +598,155 @@ uint8_t *ow_search_result()
 		return rom_tmp;
 
 	return NULL;
+}
+
+/**/
+
+enum OwOperation {
+  owopDone,
+  owopReset,
+  owopReadBit,
+  owopRead2Bit,
+  owopReadByte,
+  owopWriteBit,
+  owopWriteByte
+};
+
+static enum OwOperation CurrentOperation = owopDone;
+static uint8_t CurrentOperationPhase = 0;
+static uint8_t CurrentOperationValue = 0;
+
+void TimerHandler() {
+  switch (CurrentOperation) {
+    case owopDone:
+      TimerDisable();
+      break;
+
+    case owopReset:
+      switch (CurrentOperationPhase) {
+        case 0:
+          setbit(txPin);
+          TimerSetIntervalMks(150);
+          CurrentOperationValue = 0;
+          CurrentOperationPhase++;
+          break;
+        case 1:
+          CurrentOperationValue = readbit(rxPin);
+          TimerSetIntervalMks(200);
+          CurrentOperationPhase++;
+        break;
+        case 2:
+          TimerDisable();
+          CurrentOperation = owopDone;
+        break;
+      }
+    break;
+
+    case owopReadBit:
+      switch (CurrentOperationPhase) {
+        case 0:
+          setbit(txPin);
+          TimerSetIntervalMks(10);
+          CurrentOperationValue = 0;
+          CurrentOperationPhase++;
+          break;
+        case 1:
+          CurrentOperationValue = readbit(rxPin);
+          TimerSetIntervalMks(10);
+          CurrentOperationPhase++;
+        break;
+        case 2:
+          TimerDisable();
+          CurrentOperation = owopDone;
+        break;
+      }
+    break;
+
+    case owopWriteBit:
+      switch (CurrentOperationPhase) {
+        case 0:
+          if (CurrentOperationValue)
+            setbit(txPin);
+          TimerSetIntervalMks(45);
+          CurrentOperationPhase++;
+          break;
+        case 1:
+          setbit(txPin);
+          TimerSetIntervalMks(10);
+          CurrentOperationPhase++;
+        break;
+        case 2:
+          TimerDisable();
+          CurrentOperation = owopDone;
+        break;
+      }
+    break;
+
+    default:
+      TimerDisable();
+    break;
+  }
+  return;
+}
+
+
+
+
+namespace OWire {
+
+bool OWDriver::Reset() {
+  if (!readbit(rxPin))
+    return false;
+
+  resetbit(txPin);
+  CurrentOperation = owopReset;
+  CurrentOperationPhase = 0;
+  TimerSetIntervalMks(5);
+
+  return true;
+}
+
+bool OWDriver::ReadBit(bool *bit) {
+  *bit = false;
+  if (!readbit(rxPin))
+    return false;
+
+  resetbit(txPin);
+  CurrentOperation = owopReadBit;
+  CurrentOperationPhase = 0;
+  TimerSetIntervalMks(5);
+
+  return true;
+}
+
+bool OWDriver::Read2Bit(uint8_t *bit) {
+  *bit = 0x0;
+
+  return true;
+}
+
+bool OWDriver::WriteBit(bool bit) {
+  if (!readbit(rxPin))
+    return false;
+
+  resetbit(txPin);
+  CurrentOperation = owopWriteBit;
+  CurrentOperationPhase = 0;
+  CurrentOperationValue = bit;
+  TimerSetIntervalMks(5);
+
+  return true;
+}
+
+bool OWDriver::ReadByte(uint8_t *bit) {
+  *bit = 0;
+
+  return true;
+}
+
+bool OWDriver::WriteByte(uint8_t bit) {
+
+  return true;
+}
+
 }
