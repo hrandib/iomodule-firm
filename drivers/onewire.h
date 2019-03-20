@@ -57,7 +57,7 @@ namespace OWire {
 
   class OWDriver {
   private:
-    bool Reset();
+    bool Reset(bool *noNetwork);
     bool ReadBit(bool *bit);
     bool Read2Bit(uint8_t *bit);
     bool WriteBit(bool bit);

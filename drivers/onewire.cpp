@@ -684,6 +684,7 @@ void TimerHandler() {
 
     default:
       TimerDisable();
+      CurrentOperation = owopDone;
     break;
   }
   return;
@@ -694,7 +695,8 @@ void TimerHandler() {
 
 namespace OWire {
 
-bool OWDriver::Reset() {
+bool OWDriver::Reset(bool *networkHaveDevice) {
+  *networkHaveDevice = false;
   if (!readbit(rxPin))
     return false;
 
@@ -702,6 +704,16 @@ bool OWDriver::Reset() {
   CurrentOperation = owopReset;
   CurrentOperationPhase = 0;
   TimerSetIntervalMks(5);
+
+  sleep(MS2ST(1)); //ms
+
+  if (CurrentOperation != owopDone){
+    TimerDisable();
+    CurrentOperation = owopDone;
+    return false;
+  }
+
+  *networkHaveDevice = (CurrentOperationValue == 0);
 
   return true;
 }
