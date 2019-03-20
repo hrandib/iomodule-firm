@@ -34,7 +34,7 @@
 #include "modbus_impl.h"
 #include "at24_impl.h"
 #include "executor_impl.h"
-#include "i2cmaster_impl.h"
+#include "owmaster_impl.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -67,7 +67,7 @@ using nvram::eeprom;
 int main(void) {
   halInit();
   System::init();
-  Init(eeprom, aout, dout, ain, din, modbus, executor, i2cMaster);
+  Init(eeprom, aout, dout, ain, din, modbus, executor, owMaster);
   Shell sh;
   systime_t time = chVTGetSystemTimeX();
   while(true) {

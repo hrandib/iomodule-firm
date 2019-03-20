@@ -50,7 +50,7 @@ void OWMaster::Process()
 
 void OWMaster::Init()
 {
-  I2CDriver
+
   start(NORMALPRIO + 12);
 }
 

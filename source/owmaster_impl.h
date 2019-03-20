@@ -28,7 +28,7 @@
 
 extern std::atomic_uint32_t uptimeCounter;
 
-class I2CMaster : Rtos::BaseStaticThread<512>
+class OWMaster : Rtos::BaseStaticThread<512>
 {
 private:
   void Process();
@@ -37,6 +37,6 @@ public:
   void main() override;
 };
 
-extern I2CMaster i2cMaster;
+extern OWMaster owMaster;
 
 #endif // I2CMASTER_IMPL_H
