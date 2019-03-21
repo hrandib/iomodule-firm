@@ -10,7 +10,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "gpio.h"
+#include "ch_extended.h"
+#include "hal.h"
+#include "hal_pal.h"
 
 namespace OWire {
 /*
@@ -54,9 +56,10 @@ namespace OWire {
   uint8_t ow_search_done();
   uint8_t *ow_search_result();
 */
-
   class OWDriver {
   private:
+    GPTDriver* const GPTD_;
+
     bool Reset(bool *noNetwork);
     bool ReadBit(bool *bit);
     bool Read2Bit(uint8_t *bit);
@@ -69,7 +72,7 @@ namespace OWire {
     bool SearchDone();
     bool SearchResult();
   public:
-    void Init(TPin rxPin, TPin txPin);
+    void Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin);
     void Process();
     bool Ready();
 

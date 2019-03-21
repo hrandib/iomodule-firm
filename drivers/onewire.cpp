@@ -612,160 +612,181 @@ enum OwOperation {
   owopWriteByte
 };
 
-static enum OwOperation CurrentOperation = owopDone;
-static uint8_t CurrentOperationPhase = 0;
-static uint8_t CurrentOperationValue = 0;
-
-void TimerSetIntervalMks(uint32_t timemks) {
-
-  return;
-}
-
-void TimerDisable() {
-
-  return;
-}
-
-void TimerHandler() {
-  TimerDisable();
-  switch (CurrentOperation) {
-    case owopDone:
-      TimerDisable();
-      break;
-
-    case owopReset:
-      switch (CurrentOperationPhase) {
-        case 0:
-          setbit(txPin);
-          TimerSetIntervalMks(150);
-          CurrentOperationValue = 0;
-          CurrentOperationPhase++;
-          break;
-        case 1:
-          CurrentOperationValue = readbit(rxPin);
-          TimerSetIntervalMks(200);
-          CurrentOperationPhase++;
-        break;
-        case 2:
-          CurrentOperation = owopDone;
-        break;
-      }
-    break;
-
-    case owopReadBit:
-      switch (CurrentOperationPhase) {
-        case 0:
-          setbit(txPin);
-          TimerSetIntervalMks(10);
-          CurrentOperationValue = 0;
-          CurrentOperationPhase++;
-          break;
-        case 1:
-          CurrentOperationValue = readbit(rxPin);
-          TimerSetIntervalMks(10);
-          CurrentOperationPhase++;
-        break;
-        case 2:
-          CurrentOperation = owopDone;
-        break;
-      }
-    break;
-
-    case owopWriteBit:
-      switch (CurrentOperationPhase) {
-        case 0:
-          if (CurrentOperationValue)
-            setbit(txPin);
-          TimerSetIntervalMks(45);
-          CurrentOperationPhase++;
-          break;
-        case 1:
-          setbit(txPin);
-          TimerSetIntervalMks(10);
-          CurrentOperationPhase++;
-        break;
-        case 2:
-          CurrentOperation = owopDone;
-        break;
-      }
-    break;
-
-    default:
-      CurrentOperation = owopDone;
-    break;
-  }
-  return;
-}
-
-
-
-
 namespace OWire {
 
-bool OWDriver::Reset(bool *networkHaveDevice) {
-  *networkHaveDevice = false;
-  if (!readbit(rxPin))
-    return false;
+  // Timer
 
-  resetbit(txPin);
-  CurrentOperation = owopReset;
-  CurrentOperationPhase = 0;
-  TimerSetIntervalMks(5);
+  static enum OwOperation CurrentOperation = owopDone;
+  static uint8_t CurrentOperationPhase = 0;
+  static uint8_t CurrentOperationValue = 0;
 
-  sleep(MS2ST(1)); //ms
+  // global declarations for use in class and timer callback
+  static GPIO_TypeDef *txPort;
+  static uint8_t txPin;
+  static GPIO_TypeDef *rxPort;
+  static uint8_t rxPin;
 
-  if (CurrentOperation != owopDone){
-    TimerDisable();
-    CurrentOperation = owopDone;
-    return false;
+  void TimerSetIntervalMks(uint32_t timemks) {
+
+    return;
   }
 
-  *networkHaveDevice = (CurrentOperationValue == 0);
+  void TimerHandler(GPTDriver* gpt) {
+    OWDriver& owd = *static_cast<OWDriver*>(gpt->customData);
 
-  return true;
-}
+    gptStopTimerI(gpt);
 
-bool OWDriver::ReadBit(bool *bit) {
-  *bit = false;
-  if (!readbit(rxPin))
-    return false;
+    switch (CurrentOperation) {
+      case owopDone:
+        break;
 
-  resetbit(txPin);
-  CurrentOperation = owopReadBit;
-  CurrentOperationPhase = 0;
-  TimerSetIntervalMks(5);
+      case owopReset:
+        switch (CurrentOperationPhase) {
+          case 0:
+            palSetPad(txPort, txPin);
+            CurrentOperationValue = 0;
+            CurrentOperationPhase++;
+            gptStartOneShotI(gpt, 150);
+            break;
+          case 1:
+            CurrentOperationValue = palReadPad(rxPort, rxPin);
+            CurrentOperationPhase++;
+            gptStartOneShotI(gpt, 200);
+          break;
+          case 2:
+            CurrentOperation = owopDone;
+          break;
+        }
+      break;
 
-  return true;
-}
+      case owopReadBit:
+        switch (CurrentOperationPhase) {
+          case 0:
+            palSetPad(txPort, txPin);
+            CurrentOperationValue = 0;
+            CurrentOperationPhase++;
+            gptStartOneShotI(gpt, 10);
+            break;
+          case 1:
+            CurrentOperationValue = palReadPad(rxPort, rxPin);
+            CurrentOperationPhase++;
+            gptStartOneShotI(gpt, 10);
+          break;
+          case 2:
+            CurrentOperation = owopDone;
+          break;
+        }
+      break;
 
-bool OWDriver::Read2Bit(uint8_t *bit) {
-  *bit = 0x0;
+      case owopWriteBit:
+        switch (CurrentOperationPhase) {
+          case 0:
+            if (CurrentOperationValue)
+              palSetPad(txPort, txPin);
+            CurrentOperationPhase++;
+            gptStartOneShotI(gpt, 45);
+            break;
+          case 1:
+            palSetPad(txPort, txPin);
+            CurrentOperationPhase++;
+            gptStartOneShotI(gpt, 10);
+          break;
+          case 2:
+            CurrentOperation = owopDone;
+          break;
+        }
+      break;
 
-  return true;
-}
+      default:
+        CurrentOperation = owopDone;
+      break;
+    }
+    return;
+  }
 
-bool OWDriver::WriteBit(bool bit) {
-  if (!readbit(rxPin))
-    return false;
+  const GPTConfig gptconf_{1000000, TimerHandler, 0, 0};
 
-  resetbit(txPin);
-  CurrentOperation = owopWriteBit;
-  CurrentOperationPhase = 0;
-  CurrentOperationValue = bit;
-  TimerSetIntervalMks(5);
 
-  return true;
-}
+  // OWDriver
 
-bool OWDriver::ReadByte(uint8_t *bit) {
-  *bit = 0;
+  bool OWDriver::Reset(bool *networkHaveDevice) {
+    *networkHaveDevice = false;
+    if (palReadPad(rxPort, rxPin) != PAL_HIGH)
+      return false;
 
-  return true;
-}
+    palClearPad(txPort, txPin);
+    CurrentOperation = owopReset;
+    CurrentOperationPhase = 0;
+    TimerSetIntervalMks(5);
 
-bool OWDriver::WriteByte(uint8_t bit) {
+    sleep(MS2ST(1)); //ms
 
-  return true;
-}
+    if (CurrentOperation != owopDone){
+      TimerDisable();
+      CurrentOperation = owopDone;
+      return false;
+    }
+
+    *networkHaveDevice = (CurrentOperationValue == 0);
+
+    return true;
+  }
+
+  bool OWDriver::ReadBit(bool *bit) {
+    *bit = false;
+    if (palReadPad(rxPort, rxPin) != PAL_HIGH)
+      return false;
+
+    palClearPad(txPort, txPin);
+    CurrentOperation = owopReadBit;
+    CurrentOperationPhase = 0;
+    TimerSetIntervalMks(5);
+
+    return true;
+  }
+
+  bool OWDriver::Read2Bit(uint8_t *bit) {
+    *bit = 0x0;
+
+    return true;
+  }
+
+  bool OWDriver::WriteBit(bool bit) {
+    if (palReadPad(rxPort, rxPin) != PAL_HIGH)
+      return false;
+
+    palClearPad(txPort, txPin);
+    CurrentOperation = owopWriteBit;
+    CurrentOperationPhase = 0;
+    CurrentOperationValue = bit;
+    TimerSetIntervalMks(5);
+
+    return true;
+  }
+
+  bool OWDriver::ReadByte(uint8_t *bit) {
+    *bit = 0;
+
+    return true;
+  }
+
+  bool OWDriver::WriteByte(uint8_t bit) {
+
+    return true;
+  }
+
+  void OWDriver::Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin) {
+    txPort = _txPort;
+    txPin  = _txPin;
+    rxPort = _rxPort;
+    rxPin  = _rxPin;
+
+    GPTD_->customData = static_cast<OWDriver*>(this);
+    gptStart(GPTD_, &gptconf_);
+
+    palSetPadMode(txPort, txPin, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPadMode(rxPort, rxPin, PAL_MODE_INPUT);
+    palSetPad(txPort, txPin);
+  }
 
 }

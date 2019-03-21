@@ -86,7 +86,7 @@ void OWMaster::Process()
 }
 
 void OWMaster::Init() {
-  OWire::owDriver.Init(Pb5, Pa12); // Rx, Tx
+  OWire::owDriver.Init(GPIOA, 12, GPIOB, 5);
 //  OWire::DS18B20Driver.Init(OWDriver);
   start(NORMALPRIO + 12);
 }
