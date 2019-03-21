@@ -46,6 +46,7 @@ static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setmbid(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_ow(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
 #if BOARD_VER == 1
@@ -57,6 +58,7 @@ static const ShellCommand commands[] = {
   {"getcounters", cmd_getcounters},
   {"uptime", cmd_uptime},
   {"setmbid", cmd_setmbid},
+  {"ow", cmd_ow},
   {nullptr, nullptr}
 };
 
@@ -297,6 +299,11 @@ void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
   shellUsage(chp, "Set MODBUS device ID"
                   "\r\nReturns current device ID if no arguments passed"
                   "\r\n\tsetmbid [1-246]");
+}
+
+void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
+{
+  shellUsage(chp, "list one wire devices. search one wire devices");
 }
 
 Shell::Shell()
