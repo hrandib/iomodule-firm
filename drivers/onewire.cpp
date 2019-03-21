@@ -626,11 +626,6 @@ namespace OWire {
   static GPIO_TypeDef *rxPort;
   static uint8_t rxPin;
 
-  void TimerSetIntervalMks(uint32_t timemks) {
-
-    return;
-  }
-
   void TimerHandler(GPTDriver* gpt) {
     OWDriver& owd = *static_cast<OWDriver*>(gpt->customData);
 
@@ -717,12 +712,12 @@ namespace OWire {
     palClearPad(txPort, txPin);
     CurrentOperation = owopReset;
     CurrentOperationPhase = 0;
-    TimerSetIntervalMks(5);
+    gptStartOneShotI(GPTD_, 5);
 
     sleep(MS2ST(1)); //ms
 
     if (CurrentOperation != owopDone){
-      TimerDisable();
+      gptStopTimerI(GPTD_);
       CurrentOperation = owopDone;
       return false;
     }
@@ -740,7 +735,7 @@ namespace OWire {
     palClearPad(txPort, txPin);
     CurrentOperation = owopReadBit;
     CurrentOperationPhase = 0;
-    TimerSetIntervalMks(5);
+    gptStartOneShotI(GPTD_, 5);
 
     return true;
   }
@@ -759,7 +754,7 @@ namespace OWire {
     CurrentOperation = owopWriteBit;
     CurrentOperationPhase = 0;
     CurrentOperationValue = bit;
-    TimerSetIntervalMks(5);
+    gptStartOneShotI(GPTD_, 5);
 
     return true;
   }
@@ -775,6 +770,10 @@ namespace OWire {
     return true;
   }
 
+  OWDriver::OWDriver():  GPTD_{&GPTD4}{
+
+  }
+
   void OWDriver::Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin) {
     txPort = _txPort;
     txPin  = _txPin;
@@ -783,6 +782,7 @@ namespace OWire {
 
     GPTD_->customData = static_cast<OWDriver*>(this);
     gptStart(GPTD_, &gptconf_);
+    gptStopTimerI(GPTD_);
 
     palSetPadMode(txPort, txPin, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPadMode(rxPort, rxPin, PAL_MODE_INPUT);

@@ -72,6 +72,7 @@ namespace OWire {
     bool SearchDone();
     bool SearchResult();
   public:
+    OWDriver();
     void Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin);
     void Process();
     bool Ready();
