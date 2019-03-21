@@ -48,7 +48,7 @@ static uint8_t lastScanIndx = 0;
 
 void OWMaster::Process()
 {
-  OWire::DS18B20Driver.Process();
+//  OWire::DS18B20Driver.Process();
 
   if (!OWire::owDriver.Ready())
     return;
@@ -60,7 +60,7 @@ void OWMaster::Process()
     chprintf((BaseSequentialStream*)&SD1, "OW network scan\r\n");
     return;
   }
-
+/*
   // start convert. 60 sec between temperature measuring
   if (lastNetQueryTemp == 0 || chVTGetSystemTimeX() - lastNetQueryTemp > 60 * 1000) {
     OWire::DS18B20Driver.StartConvert(); // start convert over all network
@@ -81,13 +81,13 @@ void OWMaster::Process()
     if (lastScanIndx > maxScanIndx)
       lastScanIndx = 0;
   }
-
+*/
   return;
 }
 
 void OWMaster::Init() {
   OWire::owDriver.Init(Pb5, Pa12); // Rx, Tx
-  OWire::DS18B20Driver.Init(OWDriver);
+//  OWire::DS18B20Driver.Init(OWDriver);
   start(NORMALPRIO + 12);
 }
 
