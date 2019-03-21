@@ -616,6 +616,16 @@ static enum OwOperation CurrentOperation = owopDone;
 static uint8_t CurrentOperationPhase = 0;
 static uint8_t CurrentOperationValue = 0;
 
+void TimerSetIntervalMks(uint32_t timemks) {
+
+  return;
+}
+
+void TimerDisable() {
+
+  return;
+}
+
 void TimerHandler() {
   TimerDisable();
   switch (CurrentOperation) {
