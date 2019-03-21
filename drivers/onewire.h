@@ -59,6 +59,7 @@ namespace OWire {
   class OWDriver {
   private:
     GPTDriver* const GPTD_;
+    Rtos::BaseThread *parentThread;
 
     bool Reset(bool *noNetwork);
     bool ReadBit(bool *bit);
@@ -73,7 +74,7 @@ namespace OWire {
     bool SearchResult();
   public:
     OWDriver();
-    void Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin);
+    void Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin, Rtos::BaseThread *_parentThread);
     void Process();
     bool Ready();
 

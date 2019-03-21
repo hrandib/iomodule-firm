@@ -714,7 +714,7 @@ namespace OWire {
     CurrentOperationPhase = 0;
     gptStartOneShotI(GPTD_, 5);
 
-    sleep(MS2ST(1)); //ms
+    parentThread->sleep(MS2ST(1)); //ms
 
     if (CurrentOperation != owopDone){
       gptStopTimerI(GPTD_);
@@ -774,11 +774,13 @@ namespace OWire {
 
   }
 
-  void OWDriver::Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin) {
+  void OWDriver::Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin, Rtos::BaseThread *_parentThread) {
     txPort = _txPort;
     txPin  = _txPin;
     rxPort = _rxPort;
     rxPin  = _rxPin;
+
+    parentThread = _parentThread;
 
     GPTD_->customData = static_cast<OWDriver*>(this);
     gptStart(GPTD_, &gptconf_);
@@ -789,4 +791,26 @@ namespace OWire {
     palSetPad(txPort, txPin);
   }
 
+  bool OWDriver::Ready() {
+    return (CurrentOperation == owopDone) && (palReadPad(rxPort, rxPin) != PAL_HIGH);
+  }
+
+  bool OWDriver::Search() {
+    if (!Ready())
+      return false;
+
+    bool haveDevice = false;
+    if (!Reset(&haveDevice))
+        return false;
+
+    if (!haveDevice)
+      return true;
+
+
+
+    return true;
+  }
+
+
+  OWDriver owDriver;
 }
