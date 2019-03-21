@@ -770,6 +770,11 @@ namespace OWire {
     return true;
   }
 
+  bool OWDriver::SearchStart() {
+
+    return true;
+  }
+
   OWDriver::OWDriver():  GPTD_{&GPTD4}{
 
   }
@@ -806,6 +811,8 @@ namespace OWire {
     if (!haveDevice)
       return true;
 
+    if (!SearchStart())
+      return false;
 
 
     return true;
