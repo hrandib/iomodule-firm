@@ -617,6 +617,7 @@ static uint8_t CurrentOperationPhase = 0;
 static uint8_t CurrentOperationValue = 0;
 
 void TimerHandler() {
+  TimerDisable();
   switch (CurrentOperation) {
     case owopDone:
       TimerDisable();
@@ -636,7 +637,6 @@ void TimerHandler() {
           CurrentOperationPhase++;
         break;
         case 2:
-          TimerDisable();
           CurrentOperation = owopDone;
         break;
       }
@@ -656,7 +656,6 @@ void TimerHandler() {
           CurrentOperationPhase++;
         break;
         case 2:
-          TimerDisable();
           CurrentOperation = owopDone;
         break;
       }
@@ -676,14 +675,12 @@ void TimerHandler() {
           CurrentOperationPhase++;
         break;
         case 2:
-          TimerDisable();
           CurrentOperation = owopDone;
         break;
       }
     break;
 
     default:
-      TimerDisable();
       CurrentOperation = owopDone;
     break;
   }
