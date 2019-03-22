@@ -160,13 +160,15 @@ CppApplication
   Group { name: "Utils"
     prefix: "utils/"
     files: [
-      "ch_extended.h",
-      "order_conv.h",
-      "string_utils.h",
-      "string_utils.cpp",
-      "type_traits_ex.h",
-      "circularfifo.h",
-    ]
+          "ch_extended.h",
+          "crc8.cpp",
+          "crc8.h",
+          "order_conv.h",
+          "string_utils.h",
+          "string_utils.cpp",
+          "type_traits_ex.h",
+          "circularfifo.h",
+      ]
   }
   Group { name: "Port"
     prefix: ChibiOS + "os/common/ports/ARMCMx/"

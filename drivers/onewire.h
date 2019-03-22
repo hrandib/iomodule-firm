@@ -1,9 +1,4 @@
-/*
- * onewire.h
- *
- *  Created on: Feb 4, 2019
- *      Author: herman
- */
+
 
 #ifndef ONEWIRE_H_
 #define ONEWIRE_H_
@@ -15,35 +10,6 @@
 #include "hal_pal.h"
 
 namespace OWire {
-/*
-  #define OW_HANDLER_STATUS_NONE	0
-  #define OW_HANDLER_STATUS_DONE	1
-  #define OW_HANDLER_STATUS_ERROR	2
-
-  extern volatile uint32_t ow_timing;
-
-  void ow_init();
-
-  void ow_reset();
-  void ow_write_bit();
-  void ow_read_bit();
-  void ow_read();
-  void ow_write_data(uint8_t data);
-  uint8_t ow_read_data();
-
-  void ow_handler();
-  uint8_t ow_done();
-  uint8_t ow_done_status();
-
-  /*
-   * SEARCH Algorithm
-   *
-
-  uint8_t ow_search_start();
-  uint8_t ow_search_next();
-  uint8_t ow_search_done();
-  uint8_t *ow_search_result();
-*/
 
 enum class Command {
   NOP,
