@@ -28,6 +28,11 @@
 
 extern std::atomic_uint32_t uptimeCounter;
 
+enum OWMasterCommand {
+  owcmdNone,
+  owcmdRescanNetwork,
+};
+
 class OWMaster : Rtos::BaseStaticThread<512>
 {
 private:
@@ -35,6 +40,9 @@ private:
 public:
   void Init();
   void main() override;
+
+  void ExecNetScan();
+  msg_t SendMessage(OWMasterCommand msg);
 };
 
 extern OWMaster owMaster;

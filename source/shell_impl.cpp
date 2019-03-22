@@ -29,6 +29,7 @@
 #include "modbus_impl.h"
 #include "chprintf.h"
 #include "string_utils.h"
+#include "owmaster_impl.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -304,6 +305,7 @@ void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
 void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
 {
   shellUsage(chp, "list one wire devices. search one wire devices");
+  owMaster.SendMessage(owcmdRescanNetwork);
 }
 
 Shell::Shell()

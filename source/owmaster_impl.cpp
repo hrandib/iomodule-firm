@@ -27,6 +27,7 @@
 #include "order_conv.h"
 #include "chprintf.h"
 #include "onewire.h"
+#include "chmsg.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -45,6 +46,10 @@ extern "C" {
 static systime_t lastNetScan = 0;
 static systime_t lastNetQueryTemp = 0;
 static uint8_t lastScanIndx = 0;
+
+void OWMaster::ExecNetScan() {
+  lastNetScan = 0;
+}
 
 void OWMaster::Process()
 {
@@ -97,8 +102,25 @@ void OWMaster::main() {
 
   while(true) {
     Process();
+
+    /* Searching for a queued message then retrieving it.*/
+    chSysLock();
+    bool haveMsg = chMsgIsPendingI(currp);
+    chSysUnlock();
+    if (haveMsg) {
+      thread_t *tp = chMsgWait();
+       OWMasterCommand *cmd = reinterpret_cast<OWMasterCommand*>(chMsgGet(tp));
+       if (*cmd == owcmdRescanNetwork)
+         ExecNetScan();
+      chMsgRelease(tp, MSG_OK);
+    }
+
     sleep(MS2ST(1));
   }
+}
+
+msg_t OWMaster::SendMessage(OWMasterCommand msg) {
+  return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
 }
 
 } // extern C
