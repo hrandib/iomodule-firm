@@ -97,7 +97,7 @@ namespace OWire {
             CurrentOperationValue = (CurrentOperationValue << 1) & 0xff;
             CurrentOperationValue |= bit & 0x01;
             CurrentOperationPhase = 0;
-            palTogglePad(GPIOB, 4);
+//            palTogglePad(GPIOB, 4);
             TimerOneShot(gpt, 60); // min 60 mks from `owSend1()`
             return;
         }
@@ -109,6 +109,7 @@ namespace OWire {
             if (CurrentOperationValueBitCnt) {
               owSend0();
               CurrentOperationPhase++;
+              palTogglePad(GPIOB, 4);
               TimerOneShot(gpt, 1);
               return;
             } else {
