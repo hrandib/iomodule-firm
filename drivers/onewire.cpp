@@ -11,6 +11,7 @@
 
 //#include "stm32f10x.h"
 
+#include "chprintf.h"
 #include <string.h> //for memset
 
 /*
@@ -613,6 +614,9 @@ enum OwOperation {
 };
 
 namespace OWire {
+#define owSend1() (palClearPad(txPort, txPin))
+#define owSend0() (palSetPad(txPort, txPin))
+#define owRead() (palReadPad(rxPort, rxPin))
 
   // Timer
 
@@ -638,13 +642,13 @@ namespace OWire {
       case owopReset:
         switch (CurrentOperationPhase) {
           case 0:
-            palSetPad(txPort, txPin);
+            owSend1();
             CurrentOperationValue = 0;
             CurrentOperationPhase++;
             gptStartOneShotI(gpt, 150);
             break;
           case 1:
-            CurrentOperationValue = palReadPad(rxPort, rxPin);
+            CurrentOperationValue = owRead();
             CurrentOperationPhase++;
             gptStartOneShotI(gpt, 200);
           break;
@@ -705,24 +709,32 @@ namespace OWire {
   // OWDriver
 
   bool OWDriver::Reset(bool *networkHaveDevice) {
-    *networkHaveDevice = false;
-    if (palReadPad(rxPort, rxPin) != PAL_HIGH)
-      return false;
+    owSend1();
+    parentThread->sleep(MS2ST(1));
 
-    palClearPad(txPort, txPin);
+    *networkHaveDevice = false;
+    if (palReadPad(rxPort, rxPin) != PAL_HIGH) {
+      chprintf((BaseSequentialStream*)&SD1, "scan err pads: %d [%d]\r\n", palReadPad(rxPort, rxPin), rxPin);
+      return false;
+    }
+
+    owSend0();
     CurrentOperation = owopReset;
     CurrentOperationPhase = 0;
-    gptStartOneShotI(GPTD_, 5);
+    gptStartOneShot(GPTD_, 5);
 
     parentThread->sleep(MS2ST(1)); //ms
 
     if (CurrentOperation != owopDone){
-      gptStopTimerI(GPTD_);
+      owSend1();
+      gptStopTimer(GPTD_);
       CurrentOperation = owopDone;
+      chprintf((BaseSequentialStream*)&SD1, "scan err op: %d\r\n", CurrentOperation);
       return false;
     }
 
     *networkHaveDevice = (CurrentOperationValue == 0);
+    chprintf((BaseSequentialStream*)&SD1, "scan: %s\r\n", (*networkHaveDevice) ? "ok":"no");
 
     return true;
   }
@@ -735,7 +747,7 @@ namespace OWire {
     palClearPad(txPort, txPin);
     CurrentOperation = owopReadBit;
     CurrentOperationPhase = 0;
-    gptStartOneShotI(GPTD_, 5);
+    gptStartOneShot(GPTD_, 5);
 
     return true;
   }
@@ -754,7 +766,7 @@ namespace OWire {
     CurrentOperation = owopWriteBit;
     CurrentOperationPhase = 0;
     CurrentOperationValue = bit;
-    gptStartOneShotI(GPTD_, 5);
+    gptStartOneShot(GPTD_, 5);
 
     return true;
   }
@@ -787,17 +799,17 @@ namespace OWire {
 
     parentThread = _parentThread;
 
-    GPTD_->customData = static_cast<OWDriver*>(this);
     gptStart(GPTD_, &gptconf_);
-    gptStopTimerI(GPTD_);
+    GPTD_->customData = static_cast<OWDriver*>(this);
+    gptStopTimer(GPTD_);
 
     palSetPadMode(txPort, txPin, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPadMode(rxPort, rxPin, PAL_MODE_INPUT);
-    palSetPad(txPort, txPin);
+    owSend1();
   }
 
   bool OWDriver::Ready() {
-    return (CurrentOperation == owopDone) && (palReadPad(rxPort, rxPin) != PAL_HIGH);
+    return (CurrentOperation == owopDone) && (owRead() == PAL_HIGH);
   }
 
   bool OWDriver::Search() {

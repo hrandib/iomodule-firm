@@ -42,8 +42,8 @@ OWMaster owMaster;
 
 extern "C" {
 
-static systime_t lastNetScan = {0};
-static systime_t lastNetQueryTemp = {0};
+static systime_t lastNetScan = 0;
+static systime_t lastNetQueryTemp = 0;
 static uint8_t lastScanIndx = 0;
 
 void OWMaster::Process()
@@ -55,9 +55,9 @@ void OWMaster::Process()
 
   // scan network. 60 min between scans
   if (lastNetScan == 0 || chVTGetSystemTimeX() - lastNetScan > 60 * 60 * 1000) {
+    chprintf((BaseSequentialStream*)&SD1, "OW network scan\r\n");
     OWire::owDriver.Search(); // search all devices
     lastNetScan = chVTGetSystemTimeX();
-    chprintf((BaseSequentialStream*)&SD1, "OW network scan\r\n");
     return;
   }
 /*
