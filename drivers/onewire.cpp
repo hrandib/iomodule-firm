@@ -688,7 +688,8 @@ namespace OWire {
           case 2:
             CurrentOperationValueBitCnt--;
             // reading window - (1mks after `owSend1()`) .. (15mks from start(`owSend0()`))
-            CurrentOperationValue = ((owRead() & 0x01) << CurrentOperationValueBitCnt) & 0xff;
+            bool bit = owRead() & 0x01;
+            CurrentOperationValue |= (bit << CurrentOperationValueBitCnt) & 0xff;
             CurrentOperationPhase = 0;
             TimerOneShot(gpt, 55); // min 60 mks from `owSend1()`
             return;
