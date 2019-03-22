@@ -733,7 +733,7 @@ namespace OWire {
     CurrentOperationPhase = 0;
     gptStartOneShot(GPTD_, 500);
 
-    parentThread->sleep(MS2ST(1)); //ms
+    parentThread->sleep(MS2ST(2)); //ms
 
     if (CurrentOperation != owopDone){
       owSend1();
