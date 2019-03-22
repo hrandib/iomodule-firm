@@ -97,6 +97,7 @@ namespace OWire {
             CurrentOperationValue = (CurrentOperationValue << 1) & 0xff;
             CurrentOperationValue |= bit & 0x01;
             CurrentOperationPhase = 0;
+            palTogglePad(GPIOB, 4);
             TimerOneShot(gpt, 60); // min 60 mks from `owSend1()`
             return;
         }
@@ -125,6 +126,7 @@ namespace OWire {
           case 2:
             owSend1();
             CurrentOperationPhase = 0;
+            palTogglePad(GPIOB, 4);
             TimerOneShot(gpt, 20); // min 60 mks from `owSend1()`
             return;
         }
@@ -180,7 +182,11 @@ namespace OWire {
     CurrentOperationValueBitCnt = 1;
     gptStartOneShot(GPTD_, 1);
 
-    parentThread->sleep(MS2ST(1)); //ms
+    for (int i = 0; i < 10; i++) {
+      parentThread->sleep(MS2ST(1)); //ms
+      if (CurrentOperation == owopDone)
+        break;
+    }
 
     if (CurrentOperation != owopDone){
       owSend1();
@@ -205,7 +211,11 @@ namespace OWire {
     CurrentOperationValueBitCnt = 2;
     gptStartOneShot(GPTD_, 1);
 
-    parentThread->sleep(MS2ST(1)); //ms
+    for (int i = 0; i < 10; i++) {
+      parentThread->sleep(MS2ST(1)); //ms
+      if (CurrentOperation == owopDone)
+        break;
+    }
 
     if (CurrentOperation != owopDone){
       owSend1();
@@ -229,11 +239,16 @@ namespace OWire {
     CurrentOperationValueBitCnt = 1;
     gptStartOneShot(GPTD_, 1);
 
-    parentThread->sleep(MS2ST(1)); //ms
+    for (int i = 0; i < 10; i++) {
+      parentThread->sleep(MS2ST(1)); //ms
+      if (CurrentOperation == owopDone)
+        break;
+    }
 
     if (CurrentOperation != owopDone){
       owSend1();
       gptStopTimer(GPTD_);
+      chprintf((BaseSequentialStream*)&SD1, "wr op error: %d\r\n", CurrentOperation);
       CurrentOperation = owopDone;
       return false;
     }
@@ -252,7 +267,11 @@ namespace OWire {
     CurrentOperationValueBitCnt = 8;
     gptStartOneShot(GPTD_, 1);
 
-    parentThread->sleep(MS2ST(1)); //ms
+    for (int i = 0; i < 10; i++) {
+      parentThread->sleep(MS2ST(1)); //ms
+      if (CurrentOperation == owopDone)
+        break;
+    }
 
     if (CurrentOperation != owopDone){
       owSend1();
@@ -276,7 +295,12 @@ namespace OWire {
     CurrentOperationValueBitCnt = 8;
     gptStartOneShot(GPTD_, 1);
 
-    parentThread->sleep(MS2ST(1)); // 1 bit = 60mks, 1 byte = 480mks
+    // 1 bit = 60mks, 1 byte = 480mks
+    for (int i = 0; i < 10; i++) {
+      parentThread->sleep(MS2ST(1)); //ms
+      if (CurrentOperation == owopDone)
+        break;
+    }
 
     if (CurrentOperation != owopDone){
       owSend1();
@@ -321,6 +345,9 @@ namespace OWire {
     palSetPadMode(txPort, txPin, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPadMode(rxPort, rxPin, PAL_MODE_INPUT);
     owSend1();
+    //debug
+    palSetPadMode(GPIOB, 4, PAL_MODE_OUTPUT_PUSHPULL);
+    palClearPad(GPIOB, 4);
   }
 
   bool OWDriver::Ready() {
