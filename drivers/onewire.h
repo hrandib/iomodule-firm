@@ -16,18 +16,6 @@
 
 namespace OWire {
 /*
-  #define OW_SEARCH_ROM			0xF0
-  #define OW_READ_ROM				0x33
-  #define OW_MATCH_ROM			0x55
-  #define OW_SKIP_ROM				0xCC
-
-  #define OW_SEARCH_FALSE			 0
-  #define OW_SEARCH_TRUE			 1
-
-  #define OW_SEARCH_DONE_NONE	 0
-  #define OW_SEARCH_DONE		   1
-  #define OW_SEARCH_DONE_LAST	 2
-
   #define OW_HANDLER_STATUS_NONE	0
   #define OW_HANDLER_STATUS_DONE	1
   #define OW_HANDLER_STATUS_ERROR	2
@@ -56,6 +44,22 @@ namespace OWire {
   uint8_t ow_search_done();
   uint8_t *ow_search_result();
 */
+
+enum class Command {
+  NOP,
+  SearchRom = 0xF0,
+  ReadRom = 0x33,
+  MatchRom = 0x55,
+  SkipRom = 0xCC
+};
+
+#define OW_SEARCH_FALSE			 0
+#define OW_SEARCH_TRUE			 1
+
+#define OW_SEARCH_DONE_NONE	 0
+#define OW_SEARCH_DONE		   1
+#define OW_SEARCH_DONE_LAST	 2
+
   class OWDriver {
   private:
     GPTDriver* const GPTD_;
@@ -63,12 +67,12 @@ namespace OWire {
 
     bool Reset(bool *noNetwork);
     bool ReadBit(bool *bit);
-    bool Read2Bit(uint8_t *bit);
+    bool Read2Bit(uint8_t *b);
     bool WriteBit(bool bit);
     bool ReadByte(uint8_t *bit);
     bool WriteByte(uint8_t bit);
 
-    bool SearchStart();
+    bool SearchStart(bool needReset);
     bool SearchNext();
     bool SearchDone();
     bool SearchResult();

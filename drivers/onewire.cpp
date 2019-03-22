@@ -606,11 +606,8 @@ uint8_t *ow_search_result()
 enum OwOperation {
   owopDone,
   owopReset,
-  owopReadBit,
-  owopRead2Bit,
-  owopReadByte,
-  owopWriteBit,
-  owopWriteByte
+  owopReadBits,
+  owopWriteBits,
 };
 
 namespace OWire {
@@ -623,6 +620,7 @@ namespace OWire {
   static enum OwOperation CurrentOperation = owopDone;
   static uint8_t CurrentOperationPhase = 0;
   static uint8_t CurrentOperationValue = 0;
+  static uint8_t CurrentOperationValueBitCnt = 0;
 
   // global declarations for use in class and timer callback
   static GPIO_TypeDef *txPort;
@@ -645,10 +643,9 @@ namespace OWire {
   void TimerHandler(GPTDriver* gpt) {
     //OWDriver& owd = *static_cast<OWDriver*>(gpt->customData);
 
-    TimerDisable(gpt);
-
     switch (CurrentOperation) {
       case owopDone:
+        TimerDisable(gpt);
         break;
 
       case owopReset:
@@ -670,46 +667,64 @@ namespace OWire {
         }
       break;
 
-      case owopReadBit:
+      case owopReadBits:
         switch (CurrentOperationPhase) {
           case 0:
+            if (CurrentOperationValueBitCnt) {
+              owSend0();
+              CurrentOperationPhase++;
+              TimerOneShot(gpt, 1);
+              return;
+            } else {
+              CurrentOperation = owopDone;
+              break;
+            };
+          case 1:
             owSend1();
             CurrentOperationValue = 0;
             CurrentOperationPhase++;
             TimerOneShot(gpt, 5);
-            break;
-          case 1:
-            CurrentOperationValue = owRead(); // reading window - (1mks after `owSend1()`) .. (15mks from start(`owSend0()`))
-            CurrentOperationPhase++;
-            TimerOneShot(gpt, 55); // min 60 mks from `owSend1()`
-          break;
+            return;
           case 2:
-            CurrentOperation = owopDone;
-          break;
+            CurrentOperationValueBitCnt--;
+            // reading window - (1mks after `owSend1()`) .. (15mks from start(`owSend0()`))
+            CurrentOperationValue = ((owRead() & 0x01) << CurrentOperationValueBitCnt) & 0xff;
+            CurrentOperationPhase = 0;
+            TimerOneShot(gpt, 55); // min 60 mks from `owSend1()`
+            return;
         }
       break;
 
-      case owopWriteBit:
+      case owopWriteBits:
         switch (CurrentOperationPhase) {
           case 0:
-            if (CurrentOperationValue)
+            if (CurrentOperationValueBitCnt) {
+              owSend0();
+              CurrentOperationPhase++;
+              TimerOneShot(gpt, 1);
+              return;
+            } else {
+              CurrentOperation = owopDone;
+              break;
+            };
+          case 1:
+            CurrentOperationValueBitCnt--;
+            if (!(CurrentOperationValue & (1 << CurrentOperationValueBitCnt)))
               owSend1();
             CurrentOperationPhase++;
-            TimerOneShot(gpt, 45);
-            break;
-          case 1:
-            owSend1();
-            CurrentOperationPhase++;
-            TimerOneShot(gpt, 10); // min 60 mks from `owSend1()`
-          break;
+            TimerOneShot(gpt, 50);
+            return;
           case 2:
-            CurrentOperation = owopDone;
-          break;
+            owSend1();
+            CurrentOperationPhase = 0;
+            TimerOneShot(gpt, 10); // min 60 mks from `owSend1()`
+            return;
         }
       break;
 
       default:
         CurrentOperation = owopDone;
+        TimerDisable(gpt);
       break;
     }
     return;
@@ -724,7 +739,6 @@ namespace OWire {
 
     *networkHaveDevice = false;
     if (owRead() != PAL_HIGH) {
-      chprintf((BaseSequentialStream*)&SD1, "scan err pads: %d [%d]\r\n", palReadPad(rxPort, rxPin), rxPin);
       return false;
     }
 
@@ -743,7 +757,6 @@ namespace OWire {
     }
 
     *networkHaveDevice = (CurrentOperationValue == 0);
-    chprintf((BaseSequentialStream*)&SD1, "scan: %s\r\n", (*networkHaveDevice) ? "ok":"no");
 
     return true;
   }
@@ -753,10 +766,11 @@ namespace OWire {
     if (owRead() != PAL_HIGH)
       return false;
 
-    owSend0();
-    CurrentOperation = owopReadBit;
+    CurrentOperation = owopReadBits;
     CurrentOperationPhase = 0;
-    gptStartOneShot(GPTD_, 5);
+    CurrentOperationValue = 0;
+    CurrentOperationValueBitCnt = 1;
+    gptStartOneShot(GPTD_, 1);
 
     parentThread->sleep(MS2ST(1)); //ms
 
@@ -772,8 +786,27 @@ namespace OWire {
     return true;
   }
 
-  bool OWDriver::Read2Bit(uint8_t *bit) {
-    *bit = 0x0;
+  bool OWDriver::Read2Bit(uint8_t *b) {
+    *b = 0;
+    if (owRead() != PAL_HIGH)
+      return false;
+
+    CurrentOperation = owopReadBits;
+    CurrentOperationPhase = 0;
+    CurrentOperationValue = 0;
+    CurrentOperationValueBitCnt = 2;
+    gptStartOneShot(GPTD_, 1);
+
+    parentThread->sleep(MS2ST(1)); //ms
+
+    if (CurrentOperation != owopDone){
+      owSend1();
+      gptStopTimer(GPTD_);
+      CurrentOperation = owopDone;
+      return false;
+    }
+
+    *b = CurrentOperationValue;
 
     return true;
   }
@@ -782,11 +815,11 @@ namespace OWire {
     if (owRead() != PAL_HIGH)
       return false;
 
-    owSend0();
-    CurrentOperation = owopWriteBit;
+    CurrentOperation = owopWriteBits;
     CurrentOperationPhase = 0;
     CurrentOperationValue = bit;
-    gptStartOneShot(GPTD_, 5);
+    CurrentOperationValueBitCnt = 1;
+    gptStartOneShot(GPTD_, 1);
 
     parentThread->sleep(MS2ST(1)); //ms
 
@@ -800,18 +833,63 @@ namespace OWire {
     return true;
   }
 
-  bool OWDriver::ReadByte(uint8_t *bit) {
-    *bit = 0;
+  bool OWDriver::ReadByte(uint8_t *b) {
+    *b = 0;
+    if (owRead() != PAL_HIGH)
+      return false;
+
+    CurrentOperation = owopReadBits;
+    CurrentOperationPhase = 0;
+    CurrentOperationValue = 0;
+    CurrentOperationValueBitCnt = 8;
+    gptStartOneShot(GPTD_, 1);
+
+    parentThread->sleep(MS2ST(1)); //ms
+
+    if (CurrentOperation != owopDone){
+      owSend1();
+      gptStopTimer(GPTD_);
+      CurrentOperation = owopDone;
+      return false;
+    }
+
+    *b = CurrentOperationValue;
 
     return true;
   }
 
-  bool OWDriver::WriteByte(uint8_t bit) {
+  bool OWDriver::WriteByte(uint8_t b) {
+    if (owRead() != PAL_HIGH)
+      return false;
+
+    CurrentOperation = owopWriteBits;
+    CurrentOperationPhase = 0;
+    CurrentOperationValue = b;
+    CurrentOperationValueBitCnt = 8;
+    gptStartOneShot(GPTD_, 1);
+
+    parentThread->sleep(MS2ST(1)); // 1 bit = 60mks, 1 byte = 480mks
+
+    if (CurrentOperation != owopDone){
+      owSend1();
+      gptStopTimer(GPTD_);
+      CurrentOperation = owopDone;
+      return false;
+    }
 
     return true;
   }
 
-  bool OWDriver::SearchStart() {
+  bool OWDriver::SearchStart(bool needReset) {
+    if (needReset) {
+      bool haveDevice = false;
+      if (!Reset(&haveDevice))
+          return false;
+
+      if (!haveDevice)
+        return true;
+    }
+
 
     return true;
   }
@@ -849,13 +927,73 @@ namespace OWire {
     if (!Reset(&haveDevice))
         return false;
 
+    chprintf((BaseSequentialStream*)&SD1, "reset: %s\r\n", haveDevice ? "ok":"no devices");
+
     if (!haveDevice)
       return true;
 
-    if (!SearchStart())
-      return false;
+    uint8_t lastCollision = 0;
+    uint8_t prevRom[8] = {0};
+    uint8_t romArr[8] = {0};
+    uint8_t* rom = &romArr[0]; //8 byte buffer for current search
 
+    WriteByte((uint8_t)Command::SearchRom);
 
+    uint8_t lastZero = 0;
+    uint8_t bitIndex = 1;	//Current bit search, start at 1, end at 64 (for convenience)
+    uint8_t byteIndex = 0; //Current byte search in
+    uint8_t byteMask = 1;
+    bool searchDirection = false;
+    do {
+      uint8_t b;
+      Read2Bit(&b);
+      bool idBit = b & 2;
+      bool idBitComp = b & 1;
+      chprintf((BaseSequentialStream*)&SD1, "read[%d / %d]: %s %s\r\n", bitIndex, byteIndex, (idBit) ? "+":"-", (idBitComp) ? "+":"-");
+
+      // no devices on 1-wire. error or search algorithm mistake...
+      if (b == 0x03) {
+        chprintf((BaseSequentialStream*)&SD1, "0x03 error!\r\n");
+        return false;
+      }
+
+      // All devices coupled have 0 or 1
+      if(idBit != idBitComp)
+        searchDirection = idBit;  // bit write value for search
+      else	//collision here
+      {
+        // if this discrepancy is before the Last Discrepancy
+        // on a previous next then pick the same as last time
+        if(bitIndex < lastCollision)
+          searchDirection = ((prevRom[byteIndex] & byteMask) > 0);
+        else
+          searchDirection = (bitIndex == lastCollision);
+        if(!searchDirection)
+        {
+          lastZero = bitIndex;
+        }
+      }
+
+      if(searchDirection)
+        rom[byteIndex] |= byteMask;
+      else
+        rom[byteIndex] &= ~byteMask;
+
+      WriteBit(searchDirection);
+
+      ++bitIndex;
+      byteMask <<= 1;
+
+      if(!byteMask)
+      {
+//        crc(rom[byteIndex]);  // accumulate the CRC
+        ++byteIndex;
+        byteMask = 1;
+      }
+    } while (byteIndex < 8);
+
+    chprintf((BaseSequentialStream*)&SD1, "id: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
+             romArr[0], romArr[1],romArr[2],romArr[3],romArr[4],romArr[5],romArr[6],romArr[7]);
     return true;
   }
 
