@@ -304,8 +304,20 @@ void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
 
 void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
 {
-  shellUsage(chp, "list one wire devices. search one wire devices");
-  owMaster.SendMessage(owcmdRescanNetwork);
+  if(!argc) {
+    chprintf(chp, "list: (now n/a)\r\n");
+    return;
+  }
+
+  if("scan"sv == argv[0]) {
+    owMaster.SendMessage(owcmdRescanNetwork);
+    return;
+  }
+
+  shellUsage(chp, "Control OneWire master module"
+                  "\r\nReturns current devices list if no arguments passed"
+                  "\r\n\tow scan - manually rescans network");
+  return;
 }
 
 Shell::Shell()
