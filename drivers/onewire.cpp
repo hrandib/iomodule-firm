@@ -681,7 +681,6 @@ namespace OWire {
             };
           case 1:
             owSend1();
-            CurrentOperationValue = 0;
             CurrentOperationPhase++;
             TimerOneShot(gpt, 5);
             return;
