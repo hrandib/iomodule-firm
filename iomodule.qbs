@@ -164,6 +164,8 @@ CppApplication
           "crc8.cpp",
           "crc8.h",
           "order_conv.h",
+          "sconfig.cpp",
+          "sconfig.h",
           "string_utils.h",
           "string_utils.cpp",
           "type_traits_ex.h",

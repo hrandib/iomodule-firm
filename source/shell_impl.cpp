@@ -30,6 +30,7 @@
 #include "chprintf.h"
 #include "string_utils.h"
 #include "owmaster_impl.h"
+#include "sconfig.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -306,7 +307,10 @@ void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
 
 void cmd_setup(BaseSequentialStream *chp, int argc, char* argv[])
 {
-
+  if(!argc) {
+    Util::sConfig.Print(chp);
+    return;
+  }
 
   shellUsage(chp, "Setup module modes"
                   "\r\nReturns current setup if no arguments passed"
