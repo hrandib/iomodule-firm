@@ -71,7 +71,9 @@ namespace OWire {
         return true;
       }
 
-      chprintf(chp, "ID[%d]: %02x", i, intlist[i].ID[0]);
+      chprintf(chp, "ID[%d]:", i);
+      for (int j = 0; j < 8; j ++)
+        chprintf(chp, " %02x", intlist[i].ID[j]);
       if (!printIDOnly) {
         chprintf(chp, " temp: %04x", i, intlist[i].Temperature);
         chprintf(chp, " hum: %04x", i, intlist[i].Humidity);

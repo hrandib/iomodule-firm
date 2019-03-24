@@ -47,6 +47,7 @@ static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setmbid(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_setup(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_ow(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
@@ -59,6 +60,7 @@ static const ShellCommand commands[] = {
   {"getcounters", cmd_getcounters},
   {"uptime", cmd_uptime},
   {"setmbid", cmd_setmbid},
+  {"setup", cmd_setup},
   {"ow", cmd_ow},
   {nullptr, nullptr}
 };
@@ -300,6 +302,23 @@ void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
   shellUsage(chp, "Set MODBUS device ID"
                   "\r\nReturns current device ID if no arguments passed"
                   "\r\n\tsetmbid [1-246]");
+}
+
+void cmd_setup(BaseSequentialStream *chp, int argc, char* argv[])
+{
+
+
+  shellUsage(chp, "Setup module modes"
+                  "\r\nReturns current setup if no arguments passed"
+                  "\r\nsetup values:"
+                  "\r\n\tmbid - modbus id"
+                  "\r\n\tex - executor"
+                  "\r\n\tow - one wire master"
+                  "\r\n\ttemp - temperature controller"
+                  "\r\nexamples:"
+                  "\r\n\tow +ex - enable executor"
+                  "\r\n\tow -ex - disable executor");
+  return;
 }
 
 void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
