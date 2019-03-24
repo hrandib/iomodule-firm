@@ -25,7 +25,7 @@ namespace Util {
 
   bool SConfig::LoadFromEEPROM() {
     SConfigStruct_t cfg;
-    if(sizeof(cfg) != nvram::eeprom.Write(nvram::Section::Modbus, cfg)) {
+    if(sizeof(cfg) != nvram::eeprom.Read(nvram::Section::Modbus, cfg)) {
       return false;
     }
     if(crc8_ow((uint8_t *)&intConfig, sizeof(intConfig)))
@@ -35,14 +35,11 @@ namespace Util {
   }
 
   bool SConfig::SaveToEEPROM() {
-    SConfigStruct_t cfg;
-    if(sizeof(cfg) != nvram::eeprom.Write(nvram::Section::Modbus, cfg)) {
+    intConfig.crc = crc8_ow((uint8_t *)&intConfig, sizeof(intConfig) - 1);
+
+    if(sizeof(intConfig) != nvram::eeprom.Write(nvram::Section::Modbus, intConfig)) {
       return false;
     }
-    if(crc8_ow((uint8_t *)&intConfig, sizeof(intConfig)))
-      return false;
-
-    memcpy(&intConfig, &cfg, sizeof(intConfig));
 
     return true;
   }
