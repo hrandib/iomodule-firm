@@ -359,6 +359,8 @@ namespace OWire {
     if (!Ready())
       return false;
 
+    owList.ClearAll();
+
     bool haveDevice = false;
     if (!Reset(&haveDevice))
         return false;
@@ -430,13 +432,16 @@ namespace OWire {
     } while (byteIndex < 8);
 
     uint8_t crc = crc8_ow(romArr, 8);
-    if(crc)
+    if(crc) {
       chprintf((BaseSequentialStream*)&SD1, "CRC error: %02x\r\n", crc);
-    else
+    } else {
       chprintf((BaseSequentialStream*)&SD1, "CRC OK\r\n");
+      owList.AddElm(romArr);
+    }
 
     chprintf((BaseSequentialStream*)&SD1, "id: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
              romArr[0], romArr[1],romArr[2],romArr[3],romArr[4],romArr[5],romArr[6],romArr[7]);
+
     return true;
   }
 
@@ -445,5 +450,4 @@ namespace OWire {
   }
 
   OWDriver owDriver;
-
 }
