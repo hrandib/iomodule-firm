@@ -53,7 +53,14 @@ enum Range {
   R_DigitalOutputStart = 160,
   R_DigitalOutputSize = 4,
   R_SystemStatStart = 192,
-  R_SystemStatSize = 2
+  R_SystemStatSize = 2,
+  R_SystemSetupStart = 250,
+  R_SystemSetupSize = 2,
+  R_SystemTempCntrlStart = 300,
+  R_SystemTempCntrlSize = 100,  // TBC
+  // ow records. record = 12b or 6 reg
+  R_SystemOWStart = 400,
+  R_SystemOWSize = 96    // 16 records 96 reg * 2b = 192b
 };
 
 extern "C" {

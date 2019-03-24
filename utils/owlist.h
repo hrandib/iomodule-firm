@@ -15,7 +15,7 @@ namespace OWire {
 
   class OWList {
   private:
-    static const int MaxListCount = 20;
+    static const int MaxListCount = 16;
     OWListElm intlist[MaxListCount];
     OWListElm *FindElm(uint8_t *id);
     OWListElm *FindOrAddElm(uint8_t *id);
