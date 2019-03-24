@@ -22,6 +22,8 @@ namespace OWire {
       for (int i = 0; i < MaxListCount; i++) {
         if (!memcmp(intlist[i].ID, idzero, 8)) {
             memcpy(intlist[i].ID, id, 8);
+            intlist[i].Temperature = 0xffff;
+            intlist[i].Humidity = 0xffff;
             return &intlist[i];
         }
       }
@@ -75,8 +77,8 @@ namespace OWire {
       for (int j = 0; j < 8; j ++)
         chprintf(chp, " %02x", intlist[i].ID[j]);
       if (!printIDOnly) {
-        chprintf(chp, " temp: %04x", i, intlist[i].Temperature);
-        chprintf(chp, " hum: %04x", i, intlist[i].Humidity);
+        chprintf(chp, " temp: %04x", intlist[i].Temperature);
+        chprintf(chp, " hum: %04x", intlist[i].Humidity);
       }
       chprintf(chp, "\r\n");
 

@@ -118,7 +118,7 @@ void OWMaster::main() {
        case owcmdPrintOWList:
          OWire::OWList *owlist = OWire::owDriver.getOwList();
          if (owlist)
-           owlist->Print((BaseSequentialStream*)&SD1, true);
+           owlist->Print((BaseSequentialStream*)&SD1, false);
          else
            chprintf((BaseSequentialStream*)&SD1, "OW list not found\r\n");
          break;
