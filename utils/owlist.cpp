@@ -47,14 +47,28 @@ namespace OWire {
   }
 
   bool OWList::SetTemperature(uint8_t *id, uint16_t temperature) {
+    auto elm = FindElm(id);
+    if (!elm)
+      return false;
 
+    elm->Temperature = temperature;
+    return true;
   }
 
   bool OWList::SetHumidity(uint8_t *id, uint16_t humidity) {
+    auto elm = FindElm(id);
+    if (!elm)
+      return false;
 
+    elm->Humidity = humidity;
+    return true;
   }
 
   uint8_t *OWList::GetModbusMem(uint16_t address, uint16_t size) {
+    if (address + size > sizeof(intlist))
+      return nullptr;
+
+    return ((uint8_t *)&intlist + address);
   }
 
   uint8_t *OWList::GetOWIDByListPosition(int listPos) {
