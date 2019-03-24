@@ -110,8 +110,20 @@ void OWMaster::main() {
     if (haveMsg) {
       thread_t *tp = chMsgWait();
        OWMasterCommand *cmd = reinterpret_cast<OWMasterCommand*>(chMsgGet(tp));
-       if (*cmd == owcmdRescanNetwork)
+
+       switch (*cmd) {
+       case owcmdRescanNetwork:
          ExecNetScan();
+         break;
+       case owcmdPrintOWList:
+         OWire::OWList *owlist = OWire::owDriver.getOwList();
+         if (owlist)
+           owlist->Print((BaseSequentialStream*)&SD1, true);
+         else
+           chprintf((BaseSequentialStream*)&SD1, "OW list not found\r\n");
+         break;
+       }
+
       chMsgRelease(tp, MSG_OK);
     }
 

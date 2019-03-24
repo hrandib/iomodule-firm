@@ -31,6 +31,7 @@ extern std::atomic_uint32_t uptimeCounter;
 enum OWMasterCommand {
   owcmdNone,
   owcmdRescanNetwork,
+  owcmdPrintOWList,
 };
 
 class OWMaster : Rtos::BaseStaticThread<512>

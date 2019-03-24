@@ -8,6 +8,7 @@
 #include "ch_extended.h"
 #include "hal.h"
 #include "hal_pal.h"
+#include "owlist.h"
 
 namespace OWire {
 
@@ -30,6 +31,7 @@ enum class Command {
   private:
     GPTDriver* const GPTD_;
     Rtos::BaseThread *parentThread;
+    OWList owList;
 
     bool Reset(bool *noNetwork);
     bool ReadBit(bool *bit);
@@ -52,6 +54,7 @@ enum class Command {
     bool Read(uint8_t data, size_t maxDataLen, size_t *dataLen);
 
     bool Search();
+    OWList *getOwList();
   };
 
   extern OWDriver owDriver;

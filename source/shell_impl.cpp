@@ -305,7 +305,8 @@ void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
 void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
 {
   if(!argc) {
-    chprintf(chp, "list: (now n/a)\r\n");
+    chprintf(chp, "ow devices list:\r\n");
+    owMaster.SendMessage(owcmdPrintOWList);
     return;
   }
 

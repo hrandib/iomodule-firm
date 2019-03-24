@@ -328,7 +328,7 @@ namespace OWire {
   }
 
   OWDriver::OWDriver():  GPTD_{&GPTD4}{
-
+    owList.ClearAll();
   }
 
   void OWDriver::Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin, Rtos::BaseThread *_parentThread) {
@@ -440,6 +440,10 @@ namespace OWire {
     return true;
   }
 
+  OWList *OWDriver::getOwList() {
+    return &owList;
+  }
 
   OWDriver owDriver;
+
 }

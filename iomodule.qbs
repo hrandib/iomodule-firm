@@ -168,6 +168,8 @@ CppApplication
           "string_utils.cpp",
           "type_traits_ex.h",
           "circularfifo.h",
+          "owlist.cpp",
+          "owlist.h",
       ]
   }
   Group { name: "Port"
