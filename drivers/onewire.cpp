@@ -122,7 +122,7 @@ namespace OWire {
             owSend0();
             CurrentOperationPhase++;
             palTogglePad(GPIOB, 4);
-            TimerOneShot(gpt, 1);
+            TimerOneShot(gpt, 10);
             return;
           case 1:
             CurrentOperationValueBitCnt--;
@@ -134,7 +134,7 @@ namespace OWire {
               *CurrentOperationValue = *CurrentOperationValue >> 1;
             }
             CurrentOperationPhase++;
-            TimerOneShot(gpt, 50);
+            TimerOneShot(gpt, 40);
             return;
           case 2:
             owSend1();
