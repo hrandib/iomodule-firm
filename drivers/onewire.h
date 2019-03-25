@@ -34,16 +34,15 @@ enum class Command {
     OWList owList;
 
     bool Reset(bool *noNetwork);
+
+    bool _Read(uint8_t *bits, int bitCount);
+    bool _Write(uint8_t *bits, int bitCount);
+
     bool ReadBit(bool *bit);
     bool Read2Bit(uint8_t *b);
     bool WriteBit(bool bit);
     bool ReadByte(uint8_t *bit);
     bool WriteByte(uint8_t bit);
-
-    bool SearchStart(bool needReset);
-    bool SearchNext();
-    bool SearchDone();
-    bool SearchResult();
   public:
     OWDriver();
     void Init(GPIO_TypeDef *_txPort, uint8_t _txPin, GPIO_TypeDef *_rxPort, uint8_t _rxPin, Rtos::BaseThread *_parentThread);

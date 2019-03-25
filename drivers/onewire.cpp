@@ -12,6 +12,7 @@ enum OwOperation {
   owopReset,
   owopReadBits,
   owopWriteBits,
+  owopNA,
 };
 
 namespace OWire {
@@ -27,8 +28,8 @@ namespace OWire {
 
   static enum OwOperation CurrentOperation = owopDone;
   static uint8_t CurrentOperationPhase = 0;
-  static uint8_t CurrentOperationValue = 0;
-  static uint8_t CurrentOperationValueBitCnt = 0;
+  static uint8_t *CurrentOperationValue = nullptr;
+  static int CurrentOperationValueBitCnt = 0;
 
   // global declarations for use in class and timer callback
   static GPIO_TypeDef *txPort;
@@ -59,12 +60,12 @@ namespace OWire {
         switch (CurrentOperationPhase) {
           case 0:
             owSend1();
-            CurrentOperationValue = 0;
+            *CurrentOperationValue = 0;
             CurrentOperationPhase++;
             TimerOneShot(gpt, 100);
             break;
           case 1:
-            CurrentOperationValue = owRead();
+            *CurrentOperationValue = owRead();
             CurrentOperationPhase++;
             TimerOneShot(gpt, 450); // min 480 mks from `owSend1()`
           break;
@@ -77,15 +78,15 @@ namespace OWire {
       case owopReadBits:
         switch (CurrentOperationPhase) {
           case 0:
-            if (CurrentOperationValueBitCnt) {
-              owSend0();
-              CurrentOperationPhase++;
-              TimerOneShot(gpt, 1);
-              return;
-            } else {
+            if (!CurrentOperationValueBitCnt) {
               CurrentOperation = owopDone;
               break;
             };
+
+            owSend0();
+            CurrentOperationPhase++;
+            TimerOneShot(gpt, 1);
+            return;
           case 1:
             owSend1();
             CurrentOperationPhase++;
@@ -93,10 +94,16 @@ namespace OWire {
             return;
           case 2:
             CurrentOperationValueBitCnt--;
+
             // reading window - (1mks after `owSend1()`) .. (15mks from start(`owSend0()`))
             bool bit = owRead() & 0x01;
-            CurrentOperationValue = (CurrentOperationValue << 1) & 0xff;
-            CurrentOperationValue |= bit & 0x01;
+            *CurrentOperationValue = (*CurrentOperationValue << 1) & 0xff;
+            *CurrentOperationValue |= bit & 0x01;
+
+            if (CurrentOperationValueBitCnt % 8 == 0) {
+              CurrentOperationValue++;
+              *CurrentOperationValue = 0;
+            }
             CurrentOperationPhase = 0;
 //            palTogglePad(GPIOB, 4);
             TimerOneShot(gpt, 60); // min 60 mks from `owSend1()`
@@ -107,21 +114,25 @@ namespace OWire {
       case owopWriteBits:
         switch (CurrentOperationPhase) {
           case 0:
-            if (CurrentOperationValueBitCnt) {
-              owSend0();
-              CurrentOperationPhase++;
-              palTogglePad(GPIOB, 4);
-              TimerOneShot(gpt, 1);
-              return;
-            } else {
+            if (!CurrentOperationValueBitCnt) {
               CurrentOperation = owopDone;
               break;
             };
+
+            owSend0();
+            CurrentOperationPhase++;
+            palTogglePad(GPIOB, 4);
+            TimerOneShot(gpt, 1);
+            return;
           case 1:
             CurrentOperationValueBitCnt--;
-            if (CurrentOperationValue & 0x01)
+            if (*CurrentOperationValue & 0x01)
               owSend1();
-            CurrentOperationValue = CurrentOperationValue >> 1;
+            if (CurrentOperationValueBitCnt % 8 == 0) {
+              CurrentOperationValue++;
+            } else {
+              *CurrentOperationValue = *CurrentOperationValue >> 1;
+            }
             CurrentOperationPhase++;
             TimerOneShot(gpt, 50);
             return;
@@ -146,6 +157,9 @@ namespace OWire {
   // OWDriver
 
   bool OWDriver::Reset(bool *networkHaveDevice) {
+    uint8_t b;
+    CurrentOperationValue = &b;
+
     owSend1();
     parentThread->sleep(MS2ST(1));
 
@@ -168,21 +182,22 @@ namespace OWire {
       return false;
     }
 
-    *networkHaveDevice = (CurrentOperationValue == 0);
+    *networkHaveDevice = (*CurrentOperationValue == 0);
 
+    CurrentOperationValue = nullptr;
     return true;
   }
 
-  bool OWDriver::ReadBit(bool *bit) {
-    *bit = false;
+  bool OWDriver::_Read(uint8_t *bits, int bitCount) {
     if (owRead() != PAL_HIGH)
       return false;
 
     CurrentOperation = owopReadBits;
     CurrentOperationPhase = 0;
-    CurrentOperationValue = 0;
-    CurrentOperationValueBitCnt = 1;
-    gptStartOneShot(GPTD_, 1);
+    CurrentOperationValue = bits;
+    *CurrentOperationValue = 0;
+    CurrentOperationValueBitCnt = bitCount;
+    gptStartOneShot(GPTD_, 100);
 
     for (int i = 0; i < 10; i++) {
       parentThread->sleep(MS2ST(1)); //ms
@@ -190,66 +205,42 @@ namespace OWire {
         break;
     }
 
+    CurrentOperationValue = nullptr;
+    gptStopTimer(GPTD_);
+
     if (CurrentOperation != owopDone){
       owSend1();
+      chprintf((BaseSequentialStream*)&SD1, "rd op error: %d\r\n", CurrentOperation);
       gptStopTimer(GPTD_);
       CurrentOperation = owopDone;
       return false;
     }
 
-    *bit = (CurrentOperationValue > 0);
-
     return true;
   }
 
-  bool OWDriver::Read2Bit(uint8_t *b) {
-    *b = 0;
-    if (owRead() != PAL_HIGH)
-      return false;
-
-    CurrentOperation = owopReadBits;
-    CurrentOperationPhase = 0;
-    CurrentOperationValue = 0;
-    CurrentOperationValueBitCnt = 2;
-    gptStartOneShot(GPTD_, 1);
-
-    for (int i = 0; i < 10; i++) {
-      parentThread->sleep(MS2ST(1)); //ms
-      if (CurrentOperation == owopDone)
-        break;
-    }
-
-    if (CurrentOperation != owopDone){
-      owSend1();
-      gptStopTimer(GPTD_);
-      CurrentOperation = owopDone;
-      return false;
-    }
-
-    *b = CurrentOperationValue;
-
-    return true;
-  }
-
-  bool OWDriver::WriteBit(bool bit) {
+  bool OWDriver::_Write(uint8_t *bits, int bitCount) {
     if (owRead() != PAL_HIGH)
       return false;
 
     CurrentOperation = owopWriteBits;
     CurrentOperationPhase = 0;
-    CurrentOperationValue = bit;
-    CurrentOperationValueBitCnt = 1;
-    gptStartOneShot(GPTD_, 1);
+    CurrentOperationValue = bits;
+    CurrentOperationValueBitCnt = bitCount;
+    gptStartOneShot(GPTD_, 100);
 
     for (int i = 0; i < 10; i++) {
-      parentThread->sleep(MS2ST(1)); //ms
+      parentThread->sleep(MS2ST(1));
+
       if (CurrentOperation == owopDone)
         break;
     }
 
+    CurrentOperationValue = nullptr;
+    gptStopTimer(GPTD_);
+
     if (CurrentOperation != owopDone){
       owSend1();
-      gptStopTimer(GPTD_);
       chprintf((BaseSequentialStream*)&SD1, "wr op error: %d\r\n", CurrentOperation);
       CurrentOperation = owopDone;
       return false;
@@ -258,74 +249,29 @@ namespace OWire {
     return true;
   }
 
+  bool OWDriver::ReadBit(bool *bit) {
+    uint8_t b = 0;
+    bool res = _Read(&b, 1);
+    if (res)
+      *bit = (b > 0);
+    return res;
+  }
+
+  bool OWDriver::Read2Bit(uint8_t *b) {
+    return _Read(b, 2);
+  }
+
   bool OWDriver::ReadByte(uint8_t *b) {
-    *b = 0;
-    if (owRead() != PAL_HIGH)
-      return false;
+    return _Read(b, 8);
+  }
 
-    CurrentOperation = owopReadBits;
-    CurrentOperationPhase = 0;
-    CurrentOperationValue = 0;
-    CurrentOperationValueBitCnt = 8;
-    gptStartOneShot(GPTD_, 1);
-
-    for (int i = 0; i < 10; i++) {
-      parentThread->sleep(MS2ST(1)); //ms
-      if (CurrentOperation == owopDone)
-        break;
-    }
-
-    if (CurrentOperation != owopDone){
-      owSend1();
-      gptStopTimer(GPTD_);
-      CurrentOperation = owopDone;
-      return false;
-    }
-
-    *b = CurrentOperationValue;
-
-    return true;
+  bool OWDriver::WriteBit(bool bit) {
+    uint8_t b = bit;
+    return _Write(&b, 1);
   }
 
   bool OWDriver::WriteByte(uint8_t b) {
-    if (owRead() != PAL_HIGH)
-      return false;
-
-    CurrentOperation = owopWriteBits;
-    CurrentOperationPhase = 0;
-    CurrentOperationValue = b;
-    CurrentOperationValueBitCnt = 8;
-    gptStartOneShot(GPTD_, 1);
-
-    // 1 bit = 60mks, 1 byte = 480mks
-    for (int i = 0; i < 10; i++) {
-      parentThread->sleep(MS2ST(1)); //ms
-      if (CurrentOperation == owopDone)
-        break;
-    }
-
-    if (CurrentOperation != owopDone){
-      owSend1();
-      gptStopTimer(GPTD_);
-      CurrentOperation = owopDone;
-      return false;
-    }
-
-    return true;
-  }
-
-  bool OWDriver::SearchStart(bool needReset) {
-    if (needReset) {
-      bool haveDevice = false;
-      if (!Reset(&haveDevice))
-          return false;
-
-      if (!haveDevice)
-        return true;
-    }
-
-
-    return true;
+    return _Write(&b, 8);
   }
 
   OWDriver::OWDriver():  GPTD_{&GPTD4}{
