@@ -320,7 +320,6 @@ namespace OWire {
     uint8_t lastCollision = 0;
     uint8_t prevRom[8] = {0};
     uint8_t currRom[8] = {0};
-    uint8_t* rom = &currRom[0]; //8 byte buffer for current search
 
     for(uint8_t cycles = 0; cycles < 30; cycles++) {
 
@@ -369,9 +368,9 @@ namespace OWire {
         }
 
         if(searchDirection)
-          rom[byteIndex] |= byteMask;
+          currRom[byteIndex] |= byteMask;
         else
-          rom[byteIndex] &= ~byteMask;
+          currRom[byteIndex] &= ~byteMask;
 
         //chprintf((BaseSequentialStream*)&SD1, " wr: %s %s\r\n", (searchDirection) ? "+":"-", b == 0?"<--":"");
         WriteBit(searchDirection);
