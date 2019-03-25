@@ -1,13 +1,11 @@
 
 #include "onewire.h"
-//#include "crc8.h"
-//#include "csection.h"
-
+#include "crc8.h"
 //#include "stm32f10x.h"
+#include "gpio.h"
 
 #include "chprintf.h"
 #include <string.h> //for memset
-#include "crc8.h"
 
 enum OwOperation {
   owopDone,
@@ -20,6 +18,10 @@ namespace OWire {
 #define owSend1() (palClearPad(txPort, txPin))
 #define owSend0() (palSetPad(txPort, txPin))
 #define owRead() (palReadPad(rxPort, rxPin))
+
+//using OWPinTx = Pa12;
+//using OWPinRx = Pb5;
+//using OWPinTest = Pb4;
 
   // Timer
 
@@ -35,15 +37,14 @@ namespace OWire {
   static uint8_t rxPin;
 
   void TimerDisable(GPTDriver* gpt) {
-    chSysLockFromISR();
+    Rtos::SysLockGuardFromISR lock{};
     gptStopTimerI(gpt);
-    chSysUnlockFromISR();
   };
 
   void TimerOneShot(GPTDriver* gpt, gptcnt_t interval) {
-    chSysLockFromISR();
+    Rtos::SysLockGuardFromISR lock{};
+    gptStopTimerI(gpt);
     gptStartOneShotI(gpt, interval);
-    chSysUnlockFromISR();
   };
 
   void TimerHandler(GPTDriver* gpt) {
