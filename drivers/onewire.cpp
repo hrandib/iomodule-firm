@@ -312,82 +312,101 @@ namespace OWire {
     if (!Reset(&haveDevice))
         return false;
 
-    chprintf((BaseSequentialStream*)&SD1, "reset: %s\r\n", haveDevice ? "ok":"no devices");
+    //chprintf((BaseSequentialStream*)&SD1, "reset: %s\r\n", haveDevice ? "ok":"no devices");
 
     if (!haveDevice)
       return true;
 
     uint8_t lastCollision = 0;
     uint8_t prevRom[8] = {0};
-    uint8_t romArr[8] = {0};
-    uint8_t* rom = &romArr[0]; //8 byte buffer for current search
+    uint8_t currRom[8] = {0};
+    uint8_t* rom = &currRom[0]; //8 byte buffer for current search
 
-    WriteByte((uint8_t)Command::SearchRom);
+    for(uint8_t cycles = 0; cycles < 30; cycles++) {
 
-    uint8_t lastZero = 0;
-    uint8_t bitIndex = 1;	//Current bit search, start at 1, end at 64 (for convenience)
-    uint8_t byteIndex = 0; //Current byte search in
-    uint8_t byteMask = 1;
-    bool searchDirection = false;
-    do {
-      uint8_t b;
-      Read2Bit(&b);
-      bool idBit = b & 2;
-      bool idBitComp = b & 1;
-      chprintf((BaseSequentialStream*)&SD1, "read[%d / %d]: %s %s", bitIndex, byteIndex, (idBit) ? "+":"-", (idBitComp) ? "+":"-");
+      // reset
+      bool haveDevice = false;
+      if (!Reset(&haveDevice))
+          return false;
 
-      // no devices on 1-wire. error or search algorithm mistake...
-      if (b == 0x03) {
-        chprintf((BaseSequentialStream*)&SD1, "\r\n 0x03 error!\r\n");
-        return false;
-      }
+      // send search command
+      WriteByte((uint8_t)Command::SearchRom);
 
-      // All devices coupled have 0 or 1
-      if(idBit != idBitComp)
-        searchDirection = idBit;  // bit write value for search
-      else	//collision here
-      {
-        // if this discrepancy is before the Last Discrepancy
-        // on a previous next then pick the same as last time
-        if(bitIndex < lastCollision)
-          searchDirection = ((prevRom[byteIndex] & byteMask) > 0);
-        else
-          searchDirection = (bitIndex == lastCollision);
-        if(!searchDirection)
-        {
-          lastZero = bitIndex;
+      // reading one ID
+      uint8_t lastZero = 0;
+      uint8_t bitIndex = 1;	//Current bit search, start at 1, end at 64 (for convenience)
+      uint8_t byteIndex = 0; //Current byte search in
+      uint8_t byteMask = 1;
+      bool searchDirection = false;
+      do {
+        uint8_t b;
+        Read2Bit(&b);
+        bool idBit = b & 2;
+        bool idBitComp = b & 1;
+        //chprintf((BaseSequentialStream*)&SD1, "read[%02d / %d]: %s %s", bitIndex, byteIndex, (idBit) ? "+":"-", (idBitComp) ? "+":"-");
+
+        // no devices on 1-wire. error or search algorithm mistake...
+        if (b == 0x03) {
+          chprintf((BaseSequentialStream*)&SD1, "\r\n 0x03 error!\r\n");
+          return false;
         }
+
+        // All devices coupled have 0 or 1
+        if(idBit != idBitComp)
+          searchDirection = idBit;  // bit write value for search
+        else	//collision here
+        {
+          // if this discrepancy is before the Last Discrepancy
+          // on a previous next then pick the same as last time
+          if(bitIndex < lastCollision)
+            searchDirection = ((prevRom[byteIndex] & byteMask) > 0);
+          else
+            searchDirection = (bitIndex == lastCollision);
+          if(!searchDirection)
+          {
+            lastZero = bitIndex;
+          }
+        }
+
+        if(searchDirection)
+          rom[byteIndex] |= byteMask;
+        else
+          rom[byteIndex] &= ~byteMask;
+
+        //chprintf((BaseSequentialStream*)&SD1, " wr: %s %s\r\n", (searchDirection) ? "+":"-", b == 0?"<--":"");
+        WriteBit(searchDirection);
+
+        ++bitIndex;
+        byteMask <<= 1;
+
+        if(!byteMask)
+        {
+          ++byteIndex;
+          byteMask = 1;
+        }
+      } while (byteIndex < 8);
+
+      uint8_t crc = crc8_ow(currRom, 8);
+      if(crc) {
+        chprintf((BaseSequentialStream*)&SD1, "CRC error: %02x\r\n", crc);
+        continue;
+      } else {
+        //chprintf((BaseSequentialStream*)&SD1, "CRC OK\r\n");
+        owList.AddElm(currRom);
       }
 
-      if(searchDirection)
-        rom[byteIndex] |= byteMask;
-      else
-        rom[byteIndex] &= ~byteMask;
+      chprintf((BaseSequentialStream*)&SD1, "id: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
+               currRom[0], currRom[1],currRom[2],currRom[3],currRom[4],currRom[5],currRom[6],currRom[7]);
 
-      chprintf((BaseSequentialStream*)&SD1, " wr: %s\r\n", (searchDirection) ? "+":"-");
-      WriteBit(searchDirection);
-
-      ++bitIndex;
-      byteMask <<= 1;
-
-      if(!byteMask)
-      {
-//        crc(rom[byteIndex]);  // accumulate the CRC
-        ++byteIndex;
-        byteMask = 1;
+      // there are no devices more
+      if(!(lastCollision = lastZero)) {
+        chprintf((BaseSequentialStream*)&SD1, "Search done."
+                                              "\r\n");
+        return true;
       }
-    } while (byteIndex < 8);
 
-    uint8_t crc = crc8_ow(romArr, 8);
-    if(crc) {
-      chprintf((BaseSequentialStream*)&SD1, "CRC error: %02x\r\n", crc);
-    } else {
-      chprintf((BaseSequentialStream*)&SD1, "CRC OK\r\n");
-      owList.AddElm(romArr);
-    }
-
-    chprintf((BaseSequentialStream*)&SD1, "id: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
-             romArr[0], romArr[1],romArr[2],romArr[3],romArr[4],romArr[5],romArr[6],romArr[7]);
+      memcpy(prevRom, currRom, 8);
+    };
 
     return true;
   }
