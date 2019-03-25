@@ -35,7 +35,7 @@ namespace Util {
     bool GetTempControlEnable();
     void SetTempControlEnable(bool tempen);
     uint16_t GetModbusAddress();
-    void SetModbusAddress(uint16_t address);
+    void SetModbusAddress(uint8_t address);
 
     void CheckDependencies();
 

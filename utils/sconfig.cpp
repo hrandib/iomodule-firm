@@ -76,7 +76,7 @@ namespace Util {
     return intConfig.ModbusAddress;
   }
 
-  void SConfig::SetModbusAddress(uint16_t address) {
+  void SConfig::SetModbusAddress(uint8_t address) {
     intConfig.ModbusAddress = address;
   }
 
