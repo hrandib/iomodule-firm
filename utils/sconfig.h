@@ -8,9 +8,10 @@
 
 namespace Util {
   typedef struct {
-    bool ExecutorEnable;
-    bool OWEnable;
-    bool TempControlEnable;
+    bool ExecutorEnable : 1;
+    bool OWEnable : 1;
+    bool TempControlEnable : 1;
+    uint8_t : 0; // start new byte
     uint16_t ModbusAddress;
 
     uint8_t crc;

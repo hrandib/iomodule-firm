@@ -20,6 +20,7 @@ namespace Util {
   }
 
   bool SConfig::Init() {
+    Clear();
     return LoadFromEEPROM();
   }
 
@@ -30,6 +31,8 @@ namespace Util {
     }
     if(crc8_ow((uint8_t *)&intConfig, sizeof(intConfig)))
       return false;
+
+    memcpy(&intConfig, &cfg, sizeof(intConfig));
 
     return true;
   }
@@ -42,6 +45,38 @@ namespace Util {
     }
 
     return true;
+  }
+
+  bool SConfig::GetExecutorEnable() {
+    return intConfig.ExecutorEnable;
+  }
+
+  void SConfig::SetExecutorEnable(bool exen) {
+    intConfig.ExecutorEnable = exen;
+  }
+
+  bool SConfig::GetOWEnable() {
+    return intConfig.OWEnable;
+  }
+
+  void SConfig::SetOWEnable(bool owen) {
+    intConfig.OWEnable = owen;
+  }
+
+  bool SConfig::GetTempControlEnable() {
+    return intConfig.TempControlEnable;
+  }
+
+  void SConfig::SetTempControlEnable(bool tempen) {
+    intConfig.TempControlEnable = tempen;
+  }
+
+  uint16_t SConfig::GetModbusAddress() {
+    return intConfig.ModbusAddress;
+  }
+
+  void SConfig::SetModbusAddress(uint16_t address) {
+    intConfig.ModbusAddress = address;
   }
 
   bool SConfig::Print(BaseSequentialStream *chp) {
