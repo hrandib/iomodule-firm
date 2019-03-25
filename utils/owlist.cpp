@@ -102,9 +102,9 @@ namespace OWire {
           chprintf(chp, " hum: n/a");
       }
       chprintf(chp, "\r\n");
-
     }
 
+    return true;
   }
 
 }
