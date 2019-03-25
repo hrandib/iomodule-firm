@@ -5,6 +5,7 @@
 #include "at24_impl.h"
 
 namespace Util {
+  SConfig sConfig;
 
   SConfig::SConfig() {
     Clear();
@@ -26,7 +27,7 @@ namespace Util {
 
   bool SConfig::LoadFromEEPROM() {
     SConfigStruct_t cfg;
-    if(sizeof(cfg) != nvram::eeprom.Read(nvram::Section::Modbus, cfg)) {
+    if(sizeof(cfg) != nvram::eeprom.Read(nvram::Section::Setup, cfg)) {
       return false;
     }
     if(crc8_ow((uint8_t *)&intConfig, sizeof(intConfig)))
@@ -38,9 +39,9 @@ namespace Util {
   }
 
   bool SConfig::SaveToEEPROM() {
-    intConfig.crc = crc8_ow((uint8_t *)&intConfig, sizeof(intConfig) - 1);
+    intConfig.crc = crc8_ow((uint8_t *)(&intConfig), sizeof(intConfig) - 1);
 
-    if(sizeof(intConfig) != nvram::eeprom.Write(nvram::Section::Modbus, intConfig)) {
+    if(sizeof(intConfig) != nvram::eeprom.Write(nvram::Section::Setup, intConfig)) {
       return false;
     }
 
@@ -79,6 +80,13 @@ namespace Util {
     intConfig.ModbusAddress = address;
   }
 
+  void SConfig::CheckDependencies() {
+    if (intConfig.TempControlEnable && !intConfig.OWEnable) {
+      intConfig.OWEnable = true;
+      chprintf((BaseSequentialStream*)&SD1, "Temp control ON but one wire OFF. Set one wire to enable.\r\n");
+    }
+  }
+
   bool SConfig::Print(BaseSequentialStream *chp) {
      chprintf(chp, "config:\r\n");
 
@@ -91,6 +99,4 @@ namespace Util {
   }
 
 
-
-  SConfig sConfig;
 }

@@ -21,6 +21,7 @@
  */
 
 #include "modbus_impl.h"
+#include "sconfig.h"
 #include "digitalin.h"
 #include "digitalout.h"
 #include "analogin.h"
@@ -282,8 +283,8 @@ bool Modbus::InitModbus()
 
 void Modbus::Init()
 {
-  uint32_t nvID{};
-  if(sizeof(nvID) != nvram::eeprom.Read(nvram::Section::Modbus, nvID) || !nvID || nvID >= MB_ADDRESS_MAX) {
+  uint32_t nvID = Util::sConfig.GetModbusAddress();
+  if(!nvID || nvID >= MB_ADDRESS_MAX) {
     devID_ = FALLBACK_ID;
   }
   else {
@@ -307,9 +308,6 @@ eMBErrorCode Modbus::SetID(uint8_t id)
 {
   if(!id || id >= MB_ADDRESS_MAX) {
     return MB_EINVAL;
-  }
-  if(sizeof(uint32_t) != nvram::eeprom.Write(nvram::Section::Modbus, (uint32_t)id)) {
-    return MB_EIO;
   }
   eMBSetSlaveID(id, TRUE, UniqProcessorId, UniqProcessorIdLen);
   devID_ = id;

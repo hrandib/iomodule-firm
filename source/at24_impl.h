@@ -34,7 +34,7 @@ static inline void log(const char* str, Ts... ts) {
 
 enum class Section {
   Reserved,
-  Modbus,
+  Setup,
 };
 
 namespace CAT24C08 {

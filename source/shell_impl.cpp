@@ -47,7 +47,6 @@ static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
-static void cmd_setmbid(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setup(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_ow(BaseSequentialStream *chp, int argc, char *argv[]);
 
@@ -60,7 +59,6 @@ static const ShellCommand commands[] = {
   {"getdigital", cmd_getdigital},
   {"getcounters", cmd_getcounters},
   {"uptime", cmd_uptime},
-  {"setmbid", cmd_setmbid},
   {"setup", cmd_setup},
   {"ow", cmd_ow},
   {nullptr, nullptr}
@@ -277,51 +275,83 @@ void cmd_uptime(BaseSequentialStream *chp, int argc, char **/*argv[]*/)
   }
 }
 
-void cmd_setmbid(BaseSequentialStream *chp, int argc, char* argv[])
-{
-  do {
-    if(!argc) {
-      chprintf(chp, "%u\r\n", modbus.GetID());
-    }
-    else if(argc == 1) {
-      auto id = io::svtou(argv[0]);
-      if(id && *id > 0 && *id < 247) {
-        eMBErrorCode status = modbus.SetID((uint8_t)*id);
-        if(status != MB_ENOERR) {
-          chprintf(chp, "Error: %u\r\n", status);
-        }
-      }
-      else {
-        break;
-      }
-    }
-    else {
-      break;
-    }
-    return;
-  } while(false);
-  shellUsage(chp, "Set MODBUS device ID"
-                  "\r\nReturns current device ID if no arguments passed"
-                  "\r\n\tsetmbid [1-246]");
-}
-
 void cmd_setup(BaseSequentialStream *chp, int argc, char* argv[])
 {
+  bool needHelp = false;
   if(!argc) {
     Util::sConfig.Print(chp);
     return;
   }
 
-  shellUsage(chp, "Setup module modes"
-                  "\r\nReturns current setup if no arguments passed"
-                  "\r\nsetup values:"
-                  "\r\n\tmbid - modbus id"
-                  "\r\n\tex - executor"
-                  "\r\n\tow - one wire master"
-                  "\r\n\ttemp - temperature controller"
-                  "\r\nexamples:"
-                  "\r\n\tow +ex - enable executor"
-                  "\r\n\tow -ex - disable executor");
+  for(int i = 0; i < argc; i++) {
+    if (("mbid"sv == argv[i]) && (i + 1 < argc)) {
+      i++;
+      auto id = io::svtou(argv[i]);
+      if(id && *id > 0 && *id < 247) {
+        Util::sConfig.SetModbusAddress((uint8_t)*id);
+
+        eMBErrorCode status = modbus.SetID((uint8_t)*id);
+        if(status != MB_ENOERR) {
+          chprintf(chp, "Set id error: %u\r\n", status);
+        }
+      } else {
+        chprintf(chp, "Modbus address error. Must be 1.. 246. but: %d\r\n", id ? *id : 0);
+      }
+
+      continue;
+    }
+
+    if ("load"sv == argv[i]) {
+      if (!Util::sConfig.LoadFromEEPROM())
+        chprintf(chp, "EEPROM load error.\r\n");
+      return;
+    }
+
+    bool fplus = argv[i][0] == '+';
+    bool fminus = argv[i][0] == '-';
+    if (fplus || fminus) {
+      if ("all"sv == &argv[i][1]) {
+        Util::sConfig.SetExecutorEnable(fplus);
+        Util::sConfig.SetOWEnable(fplus);
+        Util::sConfig.SetTempControlEnable(fplus);
+      }
+      if ("ex"sv == &argv[i][1]) {
+        Util::sConfig.SetExecutorEnable(fplus);
+      }
+      if ("ow"sv == &argv[i][1]) {
+        Util::sConfig.SetOWEnable(fplus);
+      }
+      if ("temp"sv == &argv[i][1]) {
+        Util::sConfig.SetTempControlEnable(fplus);
+      }
+
+      continue;
+    }
+
+    needHelp = true;
+  }
+
+  Util::sConfig.CheckDependencies();
+  if (!Util::sConfig.SaveToEEPROM()) {
+    chprintf(chp, "EEPROM save error.\r\n");
+  };
+
+  if (!needHelp) {
+    Util::sConfig.Print(chp);
+  } else {
+    shellUsage(chp, "Setup module modes"
+                    "\r\nReturns current setup if no arguments passed"
+                    "\r\nsetup values:"
+                    "\r\n\tmbid - modbus id"
+                    "\r\n\tex - executor"
+                    "\r\n\tow - one wire master"
+                    "\r\n\ttemp - temperature controller"
+                    "\r\n\tall - all modules"
+                    "\r\nexamples:"
+                    "\r\n\tow +ex - enable executor"
+                    "\r\n\tow -ex - disable executor");
+  }
+
   return;
 }
 

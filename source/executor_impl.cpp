@@ -26,6 +26,7 @@
 #include "analogin.h"
 #include "order_conv.h"
 #include "chprintf.h"
+#include "sconfig.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -86,7 +87,8 @@ void Executor::main()
   sleep(MS2ST(3000));
 
   while(true) {
-    Process();
+    if (Util::sConfig.GetExecutorEnable())
+      Process();
     sleep(MS2ST(100));
   }
 }

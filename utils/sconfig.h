@@ -12,9 +12,9 @@ namespace Util {
     bool OWEnable : 1;
     bool TempControlEnable : 1;
     uint8_t : 0; // start new byte
-    uint16_t ModbusAddress;
+    uint8_t ModbusAddress : 8;
 
-    uint8_t crc;
+    uint8_t crc : 8;
   } SConfigStruct_t;
 
   class SConfig {
@@ -36,6 +36,8 @@ namespace Util {
     void SetTempControlEnable(bool tempen);
     uint16_t GetModbusAddress();
     void SetModbusAddress(uint16_t address);
+
+    void CheckDependencies();
 
     bool Print(BaseSequentialStream *chp);
   };

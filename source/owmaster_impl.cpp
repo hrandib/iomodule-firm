@@ -26,6 +26,7 @@
 #include "analogin.h"
 #include "order_conv.h"
 #include "chprintf.h"
+#include "sconfig.h"
 #include "onewire.h"
 #include "chmsg.h"
 
@@ -101,7 +102,8 @@ void OWMaster::main() {
   sleep(MS2ST(300));
 
   while(true) {
-    Process();
+    if (Util::sConfig.GetOWEnable())
+      Process();
 
     /* Searching for a queued message then retrieving it.*/
     chSysLock();
@@ -112,6 +114,8 @@ void OWMaster::main() {
        OWMasterCommand *cmd = reinterpret_cast<OWMasterCommand*>(chMsgGet(tp));
 
        switch (*cmd) {
+       default:
+         break;
        case owcmdRescanNetwork:
          ExecNetScan();
          break;

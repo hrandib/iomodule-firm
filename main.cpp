@@ -33,6 +33,7 @@
 #include "digitalout.h"
 #include "modbus_impl.h"
 #include "at24_impl.h"
+#include "sconfig.h"
 #include "executor_impl.h"
 #include "owmaster_impl.h"
 
@@ -67,7 +68,7 @@ using nvram::eeprom;
 int main(void) {
   halInit();
   System::init();
-  Init(eeprom, aout, dout, ain, din, modbus, executor, owMaster);
+  Init(eeprom, Util::sConfig, aout, dout, ain, din, modbus, executor, owMaster);
   Shell sh;
   systime_t time = chVTGetSystemTimeX();
   while(true) {
