@@ -399,8 +399,7 @@ namespace OWire {
 
       // there are no devices more
       if(!(lastCollision = lastZero)) {
-        chprintf((BaseSequentialStream*)&SD1, "Search done."
-                                              "\r\n");
+        chprintf((BaseSequentialStream*)&SD1, "Search done.\r\n");
         return true;
       }
 
