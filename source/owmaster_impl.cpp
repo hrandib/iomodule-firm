@@ -73,6 +73,7 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
 
   if (!crc8_ow(sc, 9)) {
     chprintf((BaseSequentialStream*)&SD1, "read crc error\r\n");
+    return res;
   } else {
     chprintf((BaseSequentialStream*)&SD1, "read crc ok\r\n");
   }
