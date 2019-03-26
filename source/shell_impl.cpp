@@ -368,9 +368,15 @@ void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
     return;
   }
 
+  if("mes"sv == argv[0]) {
+    owMaster.SendMessage(owcmdMeasurement);
+    return;
+  }
+
   shellUsage(chp, "Control OneWire master module"
                   "\r\nReturns current devices list if no arguments passed"
-                  "\r\n\tow scan - manually rescans network");
+                  "\r\n\tow scan - manually rescans network"
+                  "\r\n\tow mes - manually start measurement cycle");
   return;
 }
 

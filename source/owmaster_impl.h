@@ -31,6 +31,7 @@ extern std::atomic_uint32_t uptimeCounter;
 enum OWMasterCommand {
   owcmdNone,
   owcmdRescanNetwork,
+  owcmdMeasurement,
   owcmdPrintOWList,
 };
 
@@ -41,12 +42,12 @@ private:
 
   void Process();
   bool Process18B20GetTemp(int listPosition);
-
 public:
   void Init();
   void main() override;
 
   void ExecNetScan();
+  void ExecMeasurementCycle();
   msg_t SendMessage(OWMasterCommand msg);
 };
 

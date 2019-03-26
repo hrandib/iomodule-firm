@@ -52,6 +52,10 @@ void OWMaster::ExecNetScan() {
   lastNetScan = 0;
 }
 
+void OWMaster::ExecMeasurementCycle() {
+  lastNetQueryTemp = 0;
+}
+
 bool OWMaster::Process18B20GetTemp(int listPosition) {
   bool res;
   uint8_t *id = OWire::owDriver.getOwList()->GetOWIDByListPosition(listPosition);
@@ -114,7 +118,7 @@ void OWMaster::Process()
   }
 
   // start convert. 60 sec between temperature measuring
-  if (!mesStarted && (lastNetQueryTemp == 0 || chVTGetSystemTimeX() - lastNetQueryTemp > 10 * 1000)) {
+  if (!mesStarted && (lastNetQueryTemp == 0 || chVTGetSystemTimeX() - lastNetQueryTemp > 60 * 1000)) {
     lastNetQueryTemp = chVTGetSystemTimeX();
 
     if (!OWire::owDriver.getOwList()->Count()) {
@@ -173,6 +177,9 @@ void OWMaster::main() {
          break;
        case owcmdRescanNetwork:
          ExecNetScan();
+         break;
+       case owcmdMeasurement:
+         ExecMeasurementCycle();
          break;
        case owcmdPrintOWList:
          OWire::OWList *owlist = OWire::owDriver.getOwList();
