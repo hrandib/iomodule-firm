@@ -37,7 +37,11 @@ enum OWMasterCommand {
 class OWMaster : Rtos::BaseStaticThread<512>
 {
 private:
+  bool mesStarted;
+
   void Process();
+  bool Process18B20GetTemp(int listPosition);
+
 public:
   void Init();
   void main() override;
