@@ -85,6 +85,7 @@ namespace OWire {
           case 0:
             if (!CurrentOperationValueBitCnt) {
               CurrentOperation = owopDone;
+
               break;
             };
 
@@ -104,8 +105,8 @@ namespace OWire {
             // reading window - (1mks after `owSend1()`) .. (15mks from start(`owSend0()`))
             bool bit = owRead() & 0x01;
             palTogglePad(GPIOB, 4);
-            *CurrentOperationValue = (*CurrentOperationValue << 1) & 0xff;
-            *CurrentOperationValue |= bit & 0x01;
+            *CurrentOperationValue = (*CurrentOperationValue >> 1) & 0xff;
+            *CurrentOperationValue |= (bit ? 0x80 : 0x00);
 
             if (CurrentOperationValueBitCnt % 8 == 0) {
               CurrentOperationValue++;
@@ -262,7 +263,11 @@ namespace OWire {
   }
 
   bool OWDriver::Read2Bit(uint8_t *b) {
-    return _Read(b, 2);
+    bool res = _Read(b, 2);
+    if (res)
+      *b = *b >> 6;
+
+    return res;
   }
 
   bool OWDriver::ReadByte(uint8_t *b) {
@@ -392,8 +397,8 @@ namespace OWire {
       do {
         uint8_t b;
         Read2Bit(&b);
-        bool idBit = b & 2;
-        bool idBitComp = b & 1;
+        bool idBit = b & 1;
+        bool idBitComp = b & 2;
         //chprintf((BaseSequentialStream*)&SD1, "read[%02d / %d]: %s %s", bitIndex, byteIndex, (idBit) ? "+":"-", (idBitComp) ? "+":"-");
 
         // no devices on 1-wire. error or search algorithm mistake...
