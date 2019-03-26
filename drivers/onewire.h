@@ -17,7 +17,14 @@ enum class Command {
   SearchRom = 0xF0,
   ReadRom = 0x33,
   MatchRom = 0x55,
-  SkipRom = 0xCC
+  SkipRom = 0xCC,
+
+  // DS18B20
+  ConvertT = 0x44,       // start temperature measurement
+  ReadScratcpad = 0xBE,  // transmit 9bytes to master
+  WriteScratcpad = 0x4E, // mastertransmit 3bytes
+  EEPROMRecall = 0xB8,   // read eeprom to scratchpad
+  CopyScratchpad = 0x48, // copy scratchpad
 };
 
 #define OW_SEARCH_FALSE			 0
@@ -49,8 +56,11 @@ enum class Command {
     void Process();
     bool Ready();
 
-    bool Write(uint8_t data, size_t dataLen);
-    bool Read(uint8_t data, size_t maxDataLen, size_t *dataLen);
+    bool SendCommandAllNet(uint8_t cmd);
+    bool SendCommand(uint8_t cmd);
+    bool Select(uint8_t *id);
+    bool Write(uint8_t *data, int dataLen);
+    bool Read(uint8_t *data, int dataLen);
 
     bool Search();
     OWList *getOwList();

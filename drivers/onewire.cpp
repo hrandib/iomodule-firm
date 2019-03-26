@@ -7,6 +7,11 @@
 #include "chprintf.h"
 #include <string.h> //for memset
 
+template<typename... Ts>
+static inline void log(const char* str, Ts... ts) {
+  chprintf((BaseSequentialStream*)&SD1, str, ts...);
+}
+
 enum OwOperation {
   owopDone,
   owopReset,
@@ -84,6 +89,7 @@ namespace OWire {
             };
 
             owSend0();
+            palTogglePad(GPIOB, 4);
             CurrentOperationPhase++;
             TimerOneShot(gpt, 1);
             return;
@@ -97,6 +103,7 @@ namespace OWire {
 
             // reading window - (1mks after `owSend1()`) .. (15mks from start(`owSend0()`))
             bool bit = owRead() & 0x01;
+            palTogglePad(GPIOB, 4);
             *CurrentOperationValue = (*CurrentOperationValue << 1) & 0xff;
             *CurrentOperationValue |= bit & 0x01;
 
@@ -105,7 +112,6 @@ namespace OWire {
               *CurrentOperationValue = 0;
             }
             CurrentOperationPhase = 0;
-//            palTogglePad(GPIOB, 4);
             TimerOneShot(gpt, 60); // min 60 mks from `owSend1()`
             return;
         }
@@ -121,7 +127,6 @@ namespace OWire {
 
             owSend0();
             CurrentOperationPhase++;
-            palTogglePad(GPIOB, 4);
             TimerOneShot(gpt, 10);
             return;
           case 1:
@@ -139,7 +144,6 @@ namespace OWire {
           case 2:
             owSend1();
             CurrentOperationPhase = 0;
-            palTogglePad(GPIOB, 4);
             TimerOneShot(gpt, 20); // min 60 mks from `owSend1()`
             return;
         }
@@ -302,6 +306,54 @@ namespace OWire {
     return (CurrentOperation == owopDone) && (owRead() == PAL_HIGH);
   }
 
+  bool OWDriver::SendCommandAllNet(uint8_t cmd) {
+    bool haveDevice = false;
+    if (!Reset(&haveDevice))
+        return false;
+
+    if (!haveDevice)
+      return true;
+
+    bool res = SendCommand((uint8_t)Command::SkipRom);
+    if(!res)
+      return res;
+
+    return SendCommand(cmd);
+  }
+
+  bool OWDriver::SendCommand(uint8_t cmd) {
+    return WriteByte(cmd);
+  }
+
+  bool OWDriver::Select(uint8_t *id) {
+    bool haveDevice = false;
+    if (!Reset(&haveDevice))
+        return false;
+
+    if (!haveDevice)
+      return true;
+
+    bool res = SendCommand((uint8_t)Command::MatchRom);
+    if(!res)
+      return res;
+
+    res = Write(id, 8);
+    if(!res)
+      return res;
+
+    return true;
+  }
+
+  bool OWDriver::Write(uint8_t *data, int dataLen) {
+    uint8_t vdata[20];
+    memcpy(vdata, data, (size_t)dataLen);
+    return _Write(vdata, 8 * dataLen);
+  }
+
+  bool OWDriver::Read(uint8_t *data, int dataLen) {
+    return _Read(data, dataLen * 8);
+  }
+
   bool OWDriver::Search() {
     if (!Ready())
       return false;
@@ -312,7 +364,7 @@ namespace OWire {
     if (!Reset(&haveDevice))
         return false;
 
-    //chprintf((BaseSequentialStream*)&SD1, "reset: %s\r\n", haveDevice ? "ok":"no devices");
+    //log("reset: %s\r\n", haveDevice ? "ok":"no devices");
 
     if (!haveDevice)
       return true;
@@ -329,7 +381,7 @@ namespace OWire {
           return false;
 
       // send search command
-      WriteByte((uint8_t)Command::SearchRom);
+      SendCommand((uint8_t)Command::SearchRom);
 
       // reading one ID
       uint8_t lastZero = 0;
@@ -387,19 +439,19 @@ namespace OWire {
 
       uint8_t crc = crc8_ow(currRom, 8);
       if(crc) {
-        chprintf((BaseSequentialStream*)&SD1, "CRC error: %02x\r\n", crc);
+        log("CRC error: %02x\r\n", crc);
         continue;
       } else {
         //chprintf((BaseSequentialStream*)&SD1, "CRC OK\r\n");
         owList.AddElm(currRom);
       }
 
-      chprintf((BaseSequentialStream*)&SD1, "id: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
+      log("id: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
                currRom[0], currRom[1],currRom[2],currRom[3],currRom[4],currRom[5],currRom[6],currRom[7]);
 
       // there are no devices more
       if(!(lastCollision = lastZero)) {
-        chprintf((BaseSequentialStream*)&SD1, "Search done.\r\n");
+        log("Search done.\r\n");
         return true;
       }
 
