@@ -49,6 +49,7 @@ static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setup(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_ow(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_temp(BaseSequentialStream *chp, int argc, char *argv[]);
 
 static const ShellCommand commands[] = {
 #if BOARD_VER == 1
@@ -60,6 +61,7 @@ static const ShellCommand commands[] = {
   {"getcounters", cmd_getcounters},
   {"uptime", cmd_uptime},
   {"setup", cmd_setup},
+  {"temp", cmd_temp},
   {"ow", cmd_ow},
   {nullptr, nullptr}
 };
@@ -377,6 +379,16 @@ void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
                   "\r\nReturns current devices list if no arguments passed"
                   "\r\n\tow scan - manually rescans network"
                   "\r\n\tow mes - manually start measurement cycle");
+  return;
+}
+
+void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
+{
+
+  shellUsage(chp, "Setup and view temperature control module"
+                  "\r\nReturns temp control current state if no arguments passed"
+                  "\r\n\ttemp scan - manually rescans network"
+                  "\r\n\ttemp mes - manually start measurement cycle");
   return;
 }
 
