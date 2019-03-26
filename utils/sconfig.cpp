@@ -3,6 +3,7 @@
 #include "chprintf.h"
 #include "crc8.h"
 #include "at24_impl.h"
+#include "digitalout.h"
 
 namespace Util {
   SConfig sConfig;
@@ -14,7 +15,7 @@ namespace Util {
   void SConfig::Clear() {
     intConfig.ExecutorEnable = true;
     intConfig.OWEnable = true;
-    intConfig.TempControlEnable = true;
+    intConfig.TempControlEnable = false;
     intConfig.ModbusAddress = 10;
 
     intConfig.crc = crc8_ow((uint8_t *)&intConfig, sizeof(intConfig) - 1);
@@ -81,6 +82,17 @@ namespace Util {
   }
 
   void SConfig::CheckDependencies() {
+    if (intConfig.TempControlEnable && intConfig.ExecutorEnable) {
+      intConfig.TempControlEnable = false;
+
+      // clear output port...
+      Digital::OutputCommand cmd{};
+      cmd.Set(decltype(cmd)::Mode::Clear, 0x1F);
+      Digital::output.SendMessage(cmd);
+
+      chprintf((BaseSequentialStream*)&SD1, "Temp control ON and executor ON. Set temp control to disable.\r\n");
+    }
+
     if (intConfig.TempControlEnable && !intConfig.OWEnable) {
       intConfig.OWEnable = true;
       chprintf((BaseSequentialStream*)&SD1, "Temp control ON but one wire OFF. Set one wire to enable.\r\n");
