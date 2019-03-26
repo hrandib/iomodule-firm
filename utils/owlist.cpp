@@ -78,6 +78,15 @@ namespace OWire {
     return intlist[listPos].ID;
   }
 
+  int OWList::Count() {
+    for (int i = 0; i < MaxListCount; i++)
+      if (!memcmp(intlist[i].ID, idzero, 8)) {
+        return i;
+      }
+
+    return MaxListCount;
+  }
+
   bool OWList::Print(BaseSequentialStream *chp, bool printIDOnly) {
 
     for (int i = 0; i < MaxListCount; i++) {

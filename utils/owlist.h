@@ -30,6 +30,8 @@ namespace OWire {
     uint8_t *GetModbusMem(uint16_t address, uint16_t size);
     uint8_t *GetOWIDByListPosition(int listPos);
 
+    int Count();
+
     bool Print(BaseSequentialStream *chp, bool printIDOnly);
   };
 }
