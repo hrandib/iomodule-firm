@@ -101,12 +101,12 @@ namespace OWire {
         chprintf(chp, " %02x", intlist[i].ID[j]);
       if (!printIDOnly) {
         if (intlist[i].Temperature != 0xffff)
-          chprintf(chp, " temp: %04x", intlist[i].Temperature);
+          chprintf(chp, " temp: %d.%d", (intlist[i].Temperature) / 100 - 100, 0);
         else
           chprintf(chp, " temp: n/a");
 
         if (intlist[i].Humidity != 0xffff)
-          chprintf(chp, " hum: %04x", intlist[i].Humidity);
+          chprintf(chp, " hum: %d", intlist[i].Humidity);
         else
           chprintf(chp, " hum: n/a");
       }
