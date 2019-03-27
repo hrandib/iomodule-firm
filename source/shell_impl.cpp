@@ -31,6 +31,7 @@
 #include "string_utils.h"
 #include "owmaster_impl.h"
 #include "sconfig.h"
+#include "tempcontrol_impl.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -384,10 +385,41 @@ void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
 
 void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
 {
+  if(!argc) {
+    tempControl.SendMessage(tccmdPrint);
+    return;
+  }
+
+  if("set"sv == argv[0] && argc >= 4) {
+    return;
+  }
+
+  if("enable"sv == argv[0] && argc >= 2) {
+    return;
+  }
+
+  if("disable"sv == argv[0] && argc >= 2) {
+    return;
+  }
 
   shellUsage(chp, "Setup and view temperature control module"
                   "\r\nReturns temp control current state if no arguments passed"
-                  "\r\n\ttemp scan - manually rescans network"
+                  "\r\narguments:"
+                  "\r\n\tdisable <channel num> - disable channel"
+                  "\r\n\tenable <channel num> - disable channel"
+                  "\r\n\tset <channel num> <value name> <value> - set config values"
+                  "\r\nchannel num:"
+                  "\r\n\t1..4"
+                  "\r\nvalue names:"
+                  "\r\n\tid1 - 1-wire sensor id for close loop"
+                  "\r\n\tid2 - 1-wire sensor id for open loop"
+                  "\r\n\temp1 - temperature control for close loop"
+                  "\r\n\temp2 - temperature control for open loop"
+                  "\r\nexamples:"
+                  "\r\n\ttemp enable 2 - enable channel 2"
+                  "\r\n\ttemp disable 2 - disable channel 2"
+                  "\r\n\ttemp set 2 id1 0102030405060708 - set sensor 1 id for channel 2"
+                  "\r\n\ttemp set 3 temp1 2250 - set sensor 1 temperature (22.5C) for channel 3"
                   "\r\n\ttemp mes - manually start measurement cycle");
   return;
 }

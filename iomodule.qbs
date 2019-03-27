@@ -303,6 +303,8 @@ CppApplication
           "source/owmaster_impl.h",
           "source/shell_impl.cpp",
           "source/shell_impl.h",
+          "source/tempcontrol_impl.cpp",
+          "source/tempcontrol_impl.h",
       ]
     excludeFiles: [
 			"**/*_res.c",
