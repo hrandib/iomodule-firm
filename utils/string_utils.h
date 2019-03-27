@@ -109,6 +109,7 @@ namespace io {
   uint8_t* InsertDot(uint16_t value, uint8_t position, uint8_t* buf);
 
   std::optional<uint32_t> svtou(std::string_view str);
+  bool hextobin(char *hex, uint8_t *bin, size_t len);
 }//io
 
 #endif // STRING_UTILS_H
