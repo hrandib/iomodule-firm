@@ -30,6 +30,10 @@ namespace OWire {
     uint8_t *GetModbusMem(uint16_t address, uint16_t size);
     uint8_t *GetOWIDByListPosition(int listPos);
 
+    bool isSensorPresent(uint8_t *id);
+    uint16_t GetTemperature(uint8_t *id);
+    uint16_t GetHumidity(uint8_t *id);
+
     int Count();
 
     bool Print(BaseSequentialStream *chp, bool printIDOnly);

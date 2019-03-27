@@ -78,6 +78,28 @@ namespace OWire {
     return intlist[listPos].ID;
   }
 
+  bool OWList::isSensorPresent(uint8_t *id) {
+    return (FindElm(id));
+  }
+
+  uint16_t OWList::GetTemperature(uint8_t *id) {
+    OWListElm *elm = FindElm(id);
+
+    if (!elm)
+      return 0xffff;
+
+    return elm->Temperature;
+  }
+
+  uint16_t OWList::GetHumidity(uint8_t *id) {
+    OWListElm *elm = FindElm(id);
+
+    if (!elm)
+      return 0xffff;
+
+    return elm->Humidity;
+  }
+
   int OWList::Count() {
     for (int i = 0; i < MaxListCount; i++)
       if (!memcmp(intlist[i].ID, idzero, 8)) {
