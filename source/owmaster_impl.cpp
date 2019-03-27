@@ -153,7 +153,7 @@ void OWMaster::Process()
 void OWMaster::Init() {
   mesStarted = false;
   OWire::owDriver.Init(GPIOA, 12, GPIOB, 5, this);
-  start(NORMALPRIO + 12);
+  start(NORMALPRIO + 11);
 }
 
 void OWMaster::main() {

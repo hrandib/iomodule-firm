@@ -54,7 +54,7 @@ void TempControl::Process()
 }
 
 void TempControl::Init() {
-  start(NORMALPRIO + 12);
+  start(NORMALPRIO + 15);
 }
 
 void TempControl::main() {

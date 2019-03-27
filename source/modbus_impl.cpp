@@ -301,7 +301,7 @@ void Modbus::Init()
   else {
     devID_ = nvID;
   }
-  start(NORMALPRIO + 11);
+  start(NORMALPRIO + 13);
 }
 
 void Modbus::main()
