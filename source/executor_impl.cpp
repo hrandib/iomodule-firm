@@ -43,6 +43,7 @@ Executor executor;
 extern "C" {
 
 static systime_t pinsTime[5] = {0};
+static systime_t pinGOTime = 0; // impulse on small relay to make GlobalOff command on all controllers
 
 void Executor::Process()
 {
@@ -53,18 +54,34 @@ void Executor::Process()
 
   for (uint8_t inputN = 0; inputN < 5; inputN++) {
     uint16_t vbit = uint16_t(1 << inputN);
+    // 200ms timeout
     if ((time - pinsTime[inputN] > 200) &&
         (changedBuffer & vbit) &&
         (regBuffer16 & vbit) )
     {
-      if (inputN > 3) {
+      // clear all if we release AllOFF button or release any button after 3s
+      if (inputN > 3 || (time - pinsTime[inputN] > 3000)) {
         Digital::OutputCommand cmd{};
         cmd.Set(decltype(cmd)::Mode::Clear, 0x1F);
         Digital::output.SendMessage(cmd);
+
+        Digital::OutputCommand cmdO{};
+        cmdO.Set(decltype(cmdO)::Mode::Set, 0x10);
+        Digital::output.SendMessage(cmdO);
+        pinGOTime = time;
       } else {
         Digital::OutputCommand cmd{};
         cmd.Set(decltype(cmd)::Mode::Toggle, vbit * vbit);
         Digital::output.SendMessage(cmd);
+      }
+
+      // timeout on small relay for 500ms and then put it to high
+      if(pinGOTime && time - pinGOTime > 500) {
+        Digital::OutputCommand cmd{};
+        cmd.Set(decltype(cmd)::Mode::Clear, 0x10);
+        Digital::output.SendMessage(cmd);
+
+        pinGOTime = 0;
       }
 
       pinsTime[inputN] = chVTGetSystemTimeX();
