@@ -363,6 +363,13 @@ namespace OWire {
     if (!Ready())
       return false;
 
+    // repeat 0x03 error point (hardware error or search algorithm mistake)
+    int RepeatCount = 3;
+
+repeat:
+    if (--RepeatCount <= 0)
+      return false;
+
     owList.ClearAll();
 
     bool haveDevice = false;
@@ -404,7 +411,9 @@ namespace OWire {
         // no devices on 1-wire. error or search algorithm mistake...
         if (b == 0x03) {
           chprintf((BaseSequentialStream*)&SD1, "\r\n 0x03 error!\r\n");
-          return false;
+
+          // make repeat several times...
+          goto repeat;
         }
 
         // All devices coupled have 0 or 1
