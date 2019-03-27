@@ -143,17 +143,17 @@ namespace io {
 
   bool hexdigittobin(char hex, uint8_t *bin) {
     if (hex >= '0' && hex <= '9') {
-      *bin = '0' - hex;
+      *bin = hex - '0';
       return true;
     }
 
     if (hex >= 'a' && hex <= 'f') {
-      *bin = 'a' - hex;
+      *bin = hex - 'a' + 0x0a;
       return true;
     }
 
     if (hex >= 'A' && hex <= 'F') {
-      *bin = 'A' - hex;
+      *bin = hex - 'A' + 0x0a;
       return true;
     }
 
@@ -164,12 +164,12 @@ namespace io {
     if (!hex || !bin || strlen(hex) != len * 2)
       return false;
 
-    for(size_t i = 0; i < len; i += 2) {
+    for(size_t i = 0; i < len * 2; i += 2) {
       uint8_t b1, b2 = 0;
       if (!hexdigittobin(hex[i], &b1) || !hexdigittobin(hex[i + 1], &b2))
         return false;
 
-      bin[i / 2] = (uint8_t)(b1 << 4) + b2;
+      bin[i / 2] = (uint8_t)((b1 & 0x0f) << 4) + (b2 & 0x0f);
     }
 
     return true;

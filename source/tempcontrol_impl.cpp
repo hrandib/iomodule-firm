@@ -102,7 +102,7 @@ bool TempControl::SetID(uint8_t channel, uint8_t sensorn, uint8_t *id) {
   if (channel > 3 || sensorn > 1 || !id)
     return false;
 
-  memcpy(channels[channel].id[sensorn], id, 8);
+  memcpy(&channels[channel].id[sensorn], id, 8);
   return true;
 }
 
@@ -129,7 +129,7 @@ void TempControl::Print(BaseSequentialStream *chp) {
     chprintf(chp, "Channel %d:\r\n", i + 1);
 
     chprintf(chp, "  Sensor1:", i);
-    if (!memcmp(channels[i].id[0], idzero, 8)) {
+    if (memcmp(channels[i].id[0], idzero, 8)) {
       printHex(chp, channels[i].id[0], 8);
       if (!OWire::owDriver.getOwList()->isSensorPresent(channels[i].id[0])) {
         chprintf(chp, " (t: %d) ", OWire::owDriver.getOwList()->GetTemperature(channels[i].id[0]) - 100 * 100);
@@ -137,11 +137,11 @@ void TempControl::Print(BaseSequentialStream *chp) {
         chprintf(chp, " (offline!)");
       }
     } else {
-      chprintf(chp, "n/a");
+      chprintf(chp, " n/a");
     }
 
     chprintf(chp, "\r\n  Sensor2:", i);
-    if (!memcmp(channels[i].id[1], idzero, 8)) {
+    if (memcmp(channels[i].id[1], idzero, 8)) {
       printHex(chp, channels[i].id[1], 8);
       if (!OWire::owDriver.getOwList()->isSensorPresent(channels[i].id[1])) {
         chprintf(chp, " (t: %d) ", OWire::owDriver.getOwList()->GetTemperature(channels[i].id[1]) - 100 * 100);
@@ -149,7 +149,7 @@ void TempControl::Print(BaseSequentialStream *chp) {
         chprintf(chp, " (offline!)");
       }
     } else {
-      chprintf(chp, "n/a");
+      chprintf(chp, " n/a");
     }
 
     chprintf(chp, "\r\n  Temperature1: ", i);

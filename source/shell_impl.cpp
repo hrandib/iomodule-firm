@@ -398,7 +398,7 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
       return;
     }
 
-    if("id1"sv == argv[2]) {
+    if("id1"sv == argv[2] || "id2"sv == argv[2]) {
       if (strlen(argv[3]) != 16) {
         chprintf(chp, "error: id must be 8 bytes in hex\r\n");
         return;
@@ -409,14 +409,8 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
         chprintf(chp, "error: id not a hex number\r\n");
         return;
       }
-      tempControl.SetID((uint8_t)*channelN - 1, 0, id);
 
-    } else if("id2"sv == argv[2]) {
-      if (strlen(argv[3]) != 16) {
-        chprintf(chp, "error: if must be 8 bytes in hex\r\n");
-        return;
-      }
-
+      tempControl.SetID((uint8_t)*channelN - 1, ((argv[2][2] == '1') ? 0 : 1), id);
 
     } else if("temp1"sv == argv[2] || "temp2"sv == argv[2]) {
       auto value = io::svtou(argv[3]);
