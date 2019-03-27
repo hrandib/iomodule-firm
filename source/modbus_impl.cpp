@@ -140,8 +140,10 @@ extern "C" {
     else if(usAddress >= R_OWStart && (usAddress + usNRegs < R_OWSize)) {
       iRegIndex = 0;
       uint8_t *data = OWire::owDriver.getOwList()->GetModbusMem((usAddress - R_OWStart) * 2, usNRegs * 2);
-
-      memcpy(pucRegBuffer, data, usNRegs * 2);
+      if (data)
+        memcpy(pucRegBuffer, data, usNRegs * 2);
+      else
+        eStatus = MB_ENOREG;
     }
     else {
       eStatus = MB_ENOREG;
