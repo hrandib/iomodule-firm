@@ -136,7 +136,7 @@ extern "C" {
         eStatus = MB_ENOREG;
       }
     }
-    //1-Wire inputs data
+    //1-Wire sensors data
     else if(usAddress >= R_OWStart && (usAddress + usNRegs < R_OWSize)) {
       iRegIndex = 0;
       uint8_t *data = OWire::owDriver.getOwList()->GetModbusMem((usAddress - R_OWStart) * 2, usNRegs * 2);
