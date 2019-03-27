@@ -13,8 +13,12 @@ namespace Util {
   }
 
   void SConfig::Clear() {
+#if BOARD_VER == 1
+    intConfig.ExecutorEnable = false;
+#else
     intConfig.ExecutorEnable = true;
-    intConfig.OWEnable = true;
+#endif
+    intConfig.OWEnable = false;
     intConfig.TempControlEnable = false;
     intConfig.ModbusAddress = 10;
 
