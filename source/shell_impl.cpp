@@ -429,19 +429,26 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
     return;
   }
 
-  if("enable"sv == argv[0] && argc >= 2) {
-    auto channelN = io::svtou(argv[1]);
-    if (!channelN || *channelN < 1 || *channelN > 4) {
-      chprintf(chp, "error: channel must be 1..4");
+  if(("enable"sv == argv[0] || "disable"sv == argv[0]) && argc >= 2) {
+    bool en = "enable"sv == argv[0];
+
+    if("all"sv == argv[1]) {
+      tempControl.SetChEnable(0, en);
+      tempControl.SetChEnable(1, en);
+      tempControl.SetChEnable(2, en);
+      tempControl.SetChEnable(3, en);
+
       return;
     }
 
-    tempControl.SetTemp((uint8_t)*channelN - 1, 0, 10001);
+    auto channelN = io::svtou(argv[1]);
+    if (!channelN || *channelN < 1 || *channelN > 4) {
+      chprintf(chp, "error: channel must be 1..4 or all");
+      return;
+    }
 
-    return;
-  }
+    tempControl.SetChEnable((uint8_t)*channelN - 1, en);
 
-  if("disable"sv == argv[0] && argc >= 2) {
     return;
   }
 
@@ -463,7 +470,7 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
                   "\r\n\t25C = 12500"
                   "\r\nexamples:"
                   "\r\n\ttemp enable 2 - enable channel 2"
-                  "\r\n\ttemp disable 2 - disable channel 2"
+                  "\r\n\ttemp disable all - disable all channels"
                   "\r\n\ttemp set 2 id1 0102030405060708 - set sensor 1 id for channel 2"
                   "\r\n\ttemp set 3 temp1 12250 - set sensor 1 temperature (22.5C) for channel 3"
                   "\r\n\ttemp mes - manually start measurement cycle");

@@ -98,6 +98,27 @@ void TempControl::main() {
   }
 }
 
+bool TempControl::SetChEnable(uint8_t channel, bool en) {
+  if (channel > 3)
+    return false;
+
+  if (en)
+    settings = settings | (uint8_t)(1 << channel);
+  else
+    settings = settings & (0xff ^ (uint8_t)(1 << channel));
+
+  //chprintf((BaseSequentialStream*)&SD1, "settings: %02x\r\n", settings);
+
+  return true;
+}
+
+bool TempControl::GetChEnabled(uint8_t channel) {
+  if (channel > 3)
+    return false;
+
+  return (settings & (uint8_t)(1 << channel));
+}
+
 bool TempControl::SetID(uint8_t channel, uint8_t sensorn, uint8_t *id) {
   if (channel > 3 || sensorn > 1 || !id)
     return false;
@@ -125,8 +146,8 @@ void TempControl::Print(BaseSequentialStream *chp) {
     return;
   }
 
-  for (int i = 0; i < MaxChannels; i++) {
-    chprintf(chp, "Channel %d:\r\n", i + 1);
+  for (uint8_t i = 0; i < MaxChannels; i++) {
+    chprintf(chp, "Channel %d (%s):\r\n", i + 1, (GetChEnabled(i)) ? "enabled" : "disabled");
 
     chprintf(chp, "  Sensor1:", i);
     if (memcmp(channels[i].id[0], idzero, 8)) {

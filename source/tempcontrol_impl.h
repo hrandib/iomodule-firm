@@ -40,6 +40,7 @@ class TempControl : Rtos::BaseStaticThread<512>
 {
 private:
   static const uint8_t MaxChannels = 4;
+  uint16_t settings; // b0, b1, b2, b3 - enable ch1..ch4
   tcChannelConfig_t channels[MaxChannels];
 
   void Process();
@@ -47,6 +48,8 @@ public:
   void Init();
   void main() override;
 
+  bool SetChEnable(uint8_t channel, bool en);
+  bool GetChEnabled(uint8_t channel);
   bool SetID(uint8_t channel, uint8_t sensorn, uint8_t *id);
   bool SetTemp(uint8_t channel, uint8_t sensorn, uint16_t temperature);
 
