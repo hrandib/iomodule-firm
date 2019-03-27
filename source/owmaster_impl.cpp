@@ -193,7 +193,7 @@ void OWMaster::main() {
       chMsgRelease(tp, MSG_OK);
     }
 
-    sleep(MS2ST(200));
+    sleep(MS2ST(300));
   }
 }
 

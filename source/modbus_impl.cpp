@@ -21,11 +21,13 @@
  */
 
 #include "modbus_impl.h"
+#include <string.h>
 #include "sconfig.h"
 #include "digitalin.h"
 #include "digitalout.h"
 #include "analogin.h"
 #include "order_conv.h"
+#include "onewire.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -60,8 +62,8 @@ enum Range {
   R_SystemTempCntrlStart = 300,
   R_SystemTempCntrlSize = 100,  // TBC
   // ow records. record = 12b or 6 reg
-  R_SystemOWStart = 400,
-  R_SystemOWSize = 96    // 16 records 96 reg * 2b = 192b
+  R_OWStart = 400,
+  R_OWSize = 96    // 16 records 96 reg * 2b = 192b
 };
 
 extern "C" {
@@ -133,6 +135,13 @@ extern "C" {
       else {
         eStatus = MB_ENOREG;
       }
+    }
+    //1-Wire inputs data
+    else if(usAddress >= R_OWStart && (usAddress + usNRegs < R_OWSize)) {
+      iRegIndex = 0;
+      uint8_t *data = OWire::owDriver.getOwList()->GetModbusMem((usAddress - R_OWStart) * 2, usNRegs * 2);
+
+      memcpy(pucRegBuffer, data, usNRegs * 2);
     }
     else {
       eStatus = MB_ENOREG;
