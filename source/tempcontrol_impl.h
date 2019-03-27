@@ -26,6 +26,11 @@
 #include "at24_impl.h"
 #include <atomic>
 
+typedef struct {
+  uint8_t id[2][8];
+  uint16_t temp[2];
+} __attribute__((__packed__)) tcChannelConfig_t ;
+
 enum TempControlCommand {
   tccmdNone,
   tccmdPrint,
@@ -34,10 +39,16 @@ enum TempControlCommand {
 class TempControl : Rtos::BaseStaticThread<512>
 {
 private:
+  static const uint8_t MaxChannels = 4;
+  tcChannelConfig_t channels[MaxChannels];
+
   void Process();
 public:
   void Init();
   void main() override;
+
+  bool SetID(uint8_t channel, uint8_t sensorn, uint8_t *id);
+  bool SetTemp(uint8_t channel, uint8_t sensorn, uint16_t temperature);
 
   void Print(BaseSequentialStream *chp);
 
