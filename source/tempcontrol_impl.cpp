@@ -131,7 +131,7 @@ void TempControl::Print(BaseSequentialStream *chp) {
     chprintf(chp, "  Sensor1:", i);
     if (memcmp(channels[i].id[0], idzero, 8)) {
       printHex(chp, channels[i].id[0], 8);
-      if (!OWire::owDriver.getOwList()->isSensorPresent(channels[i].id[0])) {
+      if (OWire::owDriver.getOwList()->isSensorPresent(channels[i].id[0])) {
         chprintf(chp, " (t: %d) ", OWire::owDriver.getOwList()->GetTemperature(channels[i].id[0]) - 100 * 100);
       } else {
         chprintf(chp, " (offline!)");
@@ -143,7 +143,7 @@ void TempControl::Print(BaseSequentialStream *chp) {
     chprintf(chp, "\r\n  Sensor2:", i);
     if (memcmp(channels[i].id[1], idzero, 8)) {
       printHex(chp, channels[i].id[1], 8);
-      if (!OWire::owDriver.getOwList()->isSensorPresent(channels[i].id[1])) {
+      if (OWire::owDriver.getOwList()->isSensorPresent(channels[i].id[1])) {
         chprintf(chp, " (t: %d) ", OWire::owDriver.getOwList()->GetTemperature(channels[i].id[1]) - 100 * 100);
       } else {
         chprintf(chp, " (offline!)");

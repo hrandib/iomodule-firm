@@ -79,7 +79,7 @@ namespace OWire {
   }
 
   bool OWList::isSensorPresent(uint8_t *id) {
-    return (FindElm(id));
+    return (FindElm(id) != nullptr);
   }
 
   uint16_t OWList::GetTemperature(uint8_t *id) {
