@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
+#include "shell_impl.h"
 #include "hal.h"
 #include "shell.h"
-#include "shell_impl.h"
+#include <string.h>
 #include "digitalout.h"
 #include "analogin.h"
 #include "digitalin.h"
@@ -391,10 +392,58 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
   }
 
   if("set"sv == argv[0] && argc >= 4) {
+    auto channelN = io::svtou(argv[1]);
+    if (!channelN || *channelN < 1 || *channelN > 4) {
+      chprintf(chp, "error: channel must be 1..4\r\n");
+      return;
+    }
+
+    if("id1"sv == argv[2]) {
+      if (strlen(argv[3]) != 16) {
+        chprintf(chp, "error: id must be 8 bytes in hex\r\n");
+        return;
+      }
+
+      uint8_t id[8] = {0};
+      if (!io::hextobin(argv[3], id, 8)) {
+        chprintf(chp, "error: id not a hex number\r\n");
+        return;
+      }
+      tempControl.SetID((uint8_t)*channelN - 1, 0, id);
+
+    } else if("id2"sv == argv[2]) {
+      if (strlen(argv[3]) != 16) {
+        chprintf(chp, "error: if must be 8 bytes in hex\r\n");
+        return;
+      }
+
+
+    } else if("temp1"sv == argv[2] || "temp2"sv == argv[2]) {
+      auto value = io::svtou(argv[3]);
+      if (!value || *value > 0xffff) {
+        chprintf(chp, "error: value must be 0..0xffff\r\n");
+        return;
+      }
+
+      tempControl.SetTemp((uint8_t)*channelN - 1, ((argv[2][4] == '1') ? 0 : 1), (uint16_t)*value);
+
+    } else {
+      chprintf(chp, "error: value name must be [id1, id2, temp1, temp2]");
+      return;
+    }
+
     return;
   }
 
   if("enable"sv == argv[0] && argc >= 2) {
+    auto channelN = io::svtou(argv[1]);
+    if (!channelN || *channelN < 1 || *channelN > 4) {
+      chprintf(chp, "error: channel must be 1..4");
+      return;
+    }
+
+    tempControl.SetTemp((uint8_t)*channelN - 1, 0, 10001);
+
     return;
   }
 
@@ -415,11 +464,14 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
                   "\r\n\tid2 - 1-wire sensor id for open loop"
                   "\r\n\temp1 - temperature control for close loop"
                   "\r\n\temp2 - temperature control for open loop"
+                  "\r\ntemperature:"
+                  "\r\n\ttemperature calc: (temperature + 100) * 100"
+                  "\r\n\t25C = 12500"
                   "\r\nexamples:"
                   "\r\n\ttemp enable 2 - enable channel 2"
                   "\r\n\ttemp disable 2 - disable channel 2"
                   "\r\n\ttemp set 2 id1 0102030405060708 - set sensor 1 id for channel 2"
-                  "\r\n\ttemp set 3 temp1 2250 - set sensor 1 temperature (22.5C) for channel 3"
+                  "\r\n\ttemp set 3 temp1 12250 - set sensor 1 temperature (22.5C) for channel 3"
                   "\r\n\ttemp mes - manually start measurement cycle");
   return;
 }
