@@ -19,8 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef I2CMASTER_IMPL_H
-#define I2CMASTER_IMPL_H
+#ifndef OWMASTER_IMPL_H
+#define OWMASTER_IMPL_H
 
 #include "ch_extended.h"
 #include "at24_impl.h"
@@ -53,4 +53,4 @@ public:
 
 extern OWMaster owMaster;
 
-#endif // I2CMASTER_IMPL_H
+#endif // OWMASTER_IMPL_H
