@@ -105,7 +105,7 @@ extern "C" {
       }
     }
     //Counters data, the number of registers must be even
-    else if(usAddress >= R_CounterStart) {
+    else if(usAddress >= R_CounterStart && usAddress < R_CounterStart + R_CounterSize) {
       iRegIndex = (int)(usAddress - R_CounterStart);
       if((usNRegs + iRegIndex) <= R_CounterSize && (usNRegs & 0x01) == 0) {
         auto counters = Digital::input.GetCounters();
@@ -122,7 +122,7 @@ extern "C" {
       }
     }
     //Analog inputs data
-    else if(usAddress >= R_AnalogInputStart) {
+    else if(usAddress >= R_AnalogInputStart && usAddress < R_AnalogInputStart + R_AnalogInputSize) {
       iRegIndex = (int)(usAddress - R_AnalogInputStart);
       if((usNRegs + iRegIndex) <= R_AnalogInputSize) {
         auto inputs = Analog::input.GetSamples();
@@ -137,7 +137,9 @@ extern "C" {
       }
     }
     //1-Wire sensors data
-    else if(usAddress >= R_OWStart && (usAddress + usNRegs < R_OWSize)) {
+    else if((usAddress >= R_OWStart) && (usAddress < R_OWStart + R_OWSize) &&
+            (usAddress + usNRegs <= R_OWStart + R_OWSize)) {
+      chprintf((BaseSequentialStream*)&SD1, "mb get %d %d\r\n", usAddress, usNRegs);
       iRegIndex = 0;
       uint8_t *data = OWire::owDriver.getOwList()->GetModbusMem((usAddress - R_OWStart) * 2, usNRegs * 2);
       if (data)
@@ -271,7 +273,7 @@ extern "C" {
 bool Modbus::InitModbus()
 {
   eMBErrorCode eStatus;
-  uint8_t devID = (uint8_t)devID_.load();
+  uint8_t devID = 5;//(uint8_t)devID_.load();
   eStatus = eMBInit(MB_RTU, devID, 1, 115200, MB_PAR_NONE);
   if (eStatus != MB_ENOERR) {
     return FALSE;
