@@ -410,7 +410,7 @@ repeat:
 
         // no devices on 1-wire. error or search algorithm mistake...
         if (b == 0x03) {
-          chprintf((BaseSequentialStream*)&SD1, "\r\n 0x03 error!\r\n");
+          //chprintf((BaseSequentialStream*)&SD1, "\r\n 0x03 error!\r\n");
 
           // make repeat several times...
           goto repeat;
@@ -460,8 +460,8 @@ repeat:
         owList.AddElm(currRom);
       }
 
-      log("id: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
-               currRom[0], currRom[1],currRom[2],currRom[3],currRom[4],currRom[5],currRom[6],currRom[7]);
+      //log("id: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
+      //         currRom[0], currRom[1],currRom[2],currRom[3],currRom[4],currRom[5],currRom[6],currRom[7]);
 
       // there are no devices more
       if(!(lastCollision = lastZero)) {
