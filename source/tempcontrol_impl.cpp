@@ -89,12 +89,19 @@ void TempControl::Process()
       bool desChOn = false;
 
       // safety check
-      if (chON && (!cht1ok || !t1ok)) {
-        ControlChannel(ch, false);
+      if (!cht1ok || !t1ok) {
+        if (chON)
+          ControlChannel(ch, false);
         continue;
       }
 
-      if (cht1ok && t1ok && t1 + 100 < cht1) { // todo: add histeresis
+      // main long loop control
+      if (cht2ok && t2ok && t2 + 100 < cht2) { // todo: add histeresis
+        desChOn = true;
+      }
+
+      // main short loop control
+      if ((!cht2ok || !t2ok) && cht1ok && t1ok && t1 + 100 < cht1) { // todo: add histeresis
         desChOn = true;
       }
 
@@ -109,8 +116,11 @@ void TempControl::Process()
       }
 
       // control
-      if (chON != desChOn)
+      if (chON != desChOn) {
+        chprintf((BaseSequentialStream*)&SD1, "t1 %d ch1 %d t2 %d ch2 %d\r\n", t1, cht1, t2, cht2);
+        chprintf((BaseSequentialStream*)&SD1, "ch %d control: %s\r\n", ch, desChOn ? "on" : "off");
         ControlChannel(ch, desChOn);
+      }
     } else {
       // safety. disabled channel have to be in off state
       if (chON)
@@ -173,7 +183,6 @@ bool TempControl::SetChEnable(uint8_t channel, bool en) {
   else
     settings = settings & (0xff ^ (uint8_t)(1 << channel));
 
-  //chprintf((BaseSequentialStream*)&SD1, "settings: %02x\r\n", settings);
   return true;
 }
 
