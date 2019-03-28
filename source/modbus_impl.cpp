@@ -68,6 +68,13 @@ enum Range {
 
 extern "C" {
 
+bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT mbDiapSize) {
+  return ( (address >= mbDiapAddress) &&
+           (address < mbDiapAddress + mbDiapSize) &&
+           (address + nregs <= mbDiapAddress + mbDiapSize)
+         );
+}
+
   /**
    * Modbus slave input register callback function.
    *
@@ -85,8 +92,7 @@ extern "C" {
     /* it already plus one in modbus function method. */
     --usAddress;
     //Uptime
-    if((usAddress >= R_SystemStatStart) && (usAddress < R_SystemStatStart + R_SystemStatSize) &&
-       (usAddress + usNRegs <= R_SystemStatStart + R_SystemStatSize)) {
+    if (MBAddressInDiap(usAddress, usNRegs, R_SystemStatStart, R_SystemStatSize)) {
       uint32_t be32 = htonl(uptimeCounter.load());
 
       uint16_t buf[2] = {0};
