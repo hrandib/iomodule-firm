@@ -465,7 +465,7 @@ repeat:
 
       // there are no devices more
       if(!(lastCollision = lastZero)) {
-        log("Search done.\r\n");
+        //log("Search done.\r\n");
         return true;
       }
 

@@ -111,7 +111,7 @@ void OWMaster::Process()
 
   // scan network. 60 min between scans
   if (!mesStarted && (lastNetScan == 0 || chVTGetSystemTimeX() - lastNetScan > 60 * 60 * 1000)) {
-    chprintf((BaseSequentialStream*)&SD1, "OW network scan\r\n");
+//    chprintf((BaseSequentialStream*)&SD1, "OW network scan\r\n");
     OWire::owDriver.Search(); // search all devices
     lastNetScan = chVTGetSystemTimeX();
     return;
@@ -125,9 +125,11 @@ void OWMaster::Process()
       return;
     }
 
-    bool res = OWire::owDriver.SendCommandAllNet((uint8_t)OWire::Command::ConvertT); // start convert T all sensors
+    if (!OWire::owDriver.SendCommandAllNet((uint8_t)OWire::Command::ConvertT)) // start convert T all sensors
+      return;
+
     mesStarted = true;
-    chprintf((BaseSequentialStream*)&SD1, "OW start convert [%d] %s\r\n", OWire::owDriver.getOwList()->Count(), res ? "ok" : "err");
+//    chprintf((BaseSequentialStream*)&SD1, "OW start convert [%d] %s\r\n", OWire::owDriver.getOwList()->Count(), res ? "ok" : "err");
     return;
   }
 
