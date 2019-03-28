@@ -410,7 +410,7 @@ repeat:
 
         // no devices on 1-wire. error or search algorithm mistake...
         if (b == 0x03) {
-          //chprintf((BaseSequentialStream*)&SD1, "\r\n 0x03 error!\r\n");
+          chprintf((BaseSequentialStream*)&SD1, "\r\n 0x03 error!\r\n");
 
           // make repeat several times...
           goto repeat;

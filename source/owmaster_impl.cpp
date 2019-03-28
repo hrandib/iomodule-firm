@@ -76,18 +76,20 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
     return res;
 
   if (!crc8(sc, 9)) {
-    chprintf((BaseSequentialStream*)&SD1, "read crc error\r\n");
+    //chprintf((BaseSequentialStream*)&SD1, "read crc error\r\n");
     return res;
   } else {
-    chprintf((BaseSequentialStream*)&SD1, "read crc ok\r\n");
+    //chprintf((BaseSequentialStream*)&SD1, "read crc ok\r\n");
   }
 
   // if resolution not 12 bit
   if ((sc[4] & 0x60) != 0x60) {
     chprintf((BaseSequentialStream*)&SD1, "resolution warning: %02x\r\n", (sc[4] & 0x60) >> 5);
+
+    // TODO: add fix the resolution
   }
 
-  chprintf((BaseSequentialStream*)&SD1, "data: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
+  //chprintf((BaseSequentialStream*)&SD1, "data: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
 
   // target format: (value + 100) * 100
   uint16_t temp = sc[0] + (uint16_t)(sc[1] << 8);
