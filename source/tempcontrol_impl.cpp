@@ -47,10 +47,76 @@ extern "C" {
 
 static const uint8_t idzero[8] = {0};
 
+bool TempControl::ControlChannel(uint8_t channel, bool value) {
+  Digital::OutputCommand cmd{};
+#if BOARD_VER == 1
+  cmd.Set(decltype(cmd)::Mode::Clear, 1 << channel);
+#else
+  cmd.Set(decltype(cmd)::Mode::Clear, 1 << (channel * 2));
+#endif
+  Digital::output.SendMessage(cmd);
+
+  return true;
+}
+
 void TempControl::Process()
 {
   if (!OWire::owDriver.Ready())
     return;
+
+  uint16_t regBuffer16 = Digital::input.GetBinaryVal();
+
+  for (uint8_t ch = 0; ch < MaxChannels; ch ++) {
+#if BOARD_VER == 1
+    bool chON = (regBuffer16 & (1 << ch));
+#else
+    bool chON = (regBuffer16 & (1 << (ch * 2)));
+#endif
+
+    if (GetChEnabled(ch)) {
+      uint16_t t1 = OWire::owDriver.getOwList()->GetTemperature(channels[ch].id[0]);
+      uint16_t t2 = OWire::owDriver.getOwList()->GetTemperature(channels[ch].id[1]);
+      // from -60C (4000) to +100C (20000)
+      bool t1ok = t1 > 4000 && t1 < 20000;
+      bool t2ok = t2 > 4000 && t2 < 20000;
+
+      uint16_t cht1 = channels[ch].temp[0];
+      uint16_t cht2 = channels[ch].temp[1];
+      // from -60C (4000) to +100C (20000)
+      bool cht1ok = t1 > 4000 && t1 < 20000;
+      bool cht2ok = t2 > 4000 && t2 < 20000;
+
+      bool desChOn = false;
+
+      // safety check
+      if (chON && (!cht1ok || !t1ok)) {
+        ControlChannel(ch, false);
+        continue;
+      }
+
+      if (cht1ok && t1ok && t1 + 100 < cht1) { // todo: add histeresis
+        desChOn = true;
+      }
+
+      // check if long loop is overheated
+      if (chON && cht2ok && t2ok && t2 > cht2) {
+        desChOn = false;
+      }
+
+      // check if short loop is overheated
+      if (chON && cht1ok && t1ok && t1 > cht1) {
+        desChOn = false;
+      }
+
+      // control
+      if (chON != desChOn)
+        ControlChannel(ch, desChOn);
+    } else {
+      // safety. disabled channel have to be in off state
+      if (chON)
+        ControlChannel(ch, false);
+    }
+  }
 
 
   return;
@@ -108,7 +174,6 @@ bool TempControl::SetChEnable(uint8_t channel, bool en) {
     settings = settings & (0xff ^ (uint8_t)(1 << channel));
 
   //chprintf((BaseSequentialStream*)&SD1, "settings: %02x\r\n", settings);
-
   return true;
 }
 

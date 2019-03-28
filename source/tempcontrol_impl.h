@@ -43,6 +43,8 @@ private:
   uint16_t settings; // b0, b1, b2, b3 - enable ch1..ch4
   tcChannelConfig_t channels[MaxChannels];
 
+  bool ControlChannel(uint8_t channel, bool value);
+
   void Process();
 public:
   void Init();
