@@ -85,15 +85,14 @@ extern "C" {
     /* it already plus one in modbus function method. */
     --usAddress;
     //Uptime
-    if(usAddress == R_SystemStatStart) {
-      if(usNRegs == R_SystemStatSize) {
-        uint32_t be32 = htonl(uptimeCounter.load());
-        *regBuffer16++ = uint16_t(be32 & 0xFFFF);
-        *regBuffer16++ = uint16_t(be32 >> 16);
-      }
-      else {
-        eStatus = MB_ENOREG;
-      }
+    if((usAddress >= R_SystemStatStart) && (usAddress < R_SystemStatStart + R_SystemStatSize) &&
+       (usAddress + usNRegs <= R_SystemStatStart + R_SystemStatSize)) {
+      uint32_t be32 = htonl(uptimeCounter.load());
+
+      uint16_t buf[2] = {0};
+      buf[0] = uint16_t(be32 & 0xFFFF);
+      buf[1] = uint16_t(be32 >> 16);
+      memcpy(regBuffer16, &buf[usAddress - R_SystemStatStart], usNRegs * 2);
     }
     //Digital inputs data
     else if(usAddress == R_DigitalInputStart) {
