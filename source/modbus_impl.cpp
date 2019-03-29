@@ -86,11 +86,11 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
    */
   eMBErrorCode eMBRegInputCB(UCHAR* pucRegBuffer, USHORT usAddress, USHORT usNRegs)
   {
-    eMBErrorCode eStatus = MB_ENOERR;
     int iRegIndex;
-    uint16_t* regBuffer16 = (uint16_t*)pucRegBuffer;
+    uint16_t* regBuffer16 = reinterpret_cast<uint16_t*>(pucRegBuffer);
     /* it already plus one in modbus function method. */
     --usAddress;
+
     //Uptime
     if (MBAddressInDiap(usAddress, usNRegs, R_SystemStatStart, R_SystemStatSize)) {
       uint32_t be32 = htonl(uptimeCounter.load());
@@ -99,18 +99,19 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
       buf[0] = uint16_t(be32 & 0xFFFF);
       buf[1] = uint16_t(be32 >> 16);
       memcpy(regBuffer16, &buf[usAddress - R_SystemStatStart], usNRegs * 2);
+
+      return MB_ENOERR;
     }
+
     //Digital inputs data
-    else if(usAddress == R_DigitalInputStart) {
-      if(usNRegs == R_DigitalInputSize) {
-        *regBuffer16 = htons(Digital::input.GetBinaryVal());
-      }
-      else {
-        eStatus = MB_ENOREG;
-      }
+    if(MBAddressInDiap(usAddress, usNRegs, R_DigitalInputStart, R_DigitalInputSize)) {
+      *regBuffer16 = htons(Digital::input.GetBinaryVal());
+
+      return MB_ENOERR;
     }
+
     //Counters data, the number of registers must be even
-    else if(usAddress >= R_CounterStart && usAddress < R_CounterStart + R_CounterSize) {
+    if(MBAddressInDiap(usAddress, usNRegs, R_CounterStart, R_CounterSize)) {
       iRegIndex = (int)(usAddress - R_CounterStart);
       if((usNRegs + iRegIndex) <= R_CounterSize && (usNRegs & 0x01) == 0) {
         auto counters = Digital::input.GetCounters();
@@ -121,13 +122,13 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
           ++iRegIndex;
           usNRegs -= 2;
         }
-      }
-      else {
-        eStatus = MB_ENOREG;
+
+        return MB_ENOERR;
       }
     }
+
     //Analog inputs data
-    else if(usAddress >= R_AnalogInputStart && usAddress < R_AnalogInputStart + R_AnalogInputSize) {
+    if(MBAddressInDiap(usAddress, usNRegs, R_AnalogInputStart, R_AnalogInputSize)) {
       iRegIndex = (int)(usAddress - R_AnalogInputStart);
       if((usNRegs + iRegIndex) <= R_AnalogInputSize) {
         auto inputs = Analog::input.GetSamples();
@@ -136,26 +137,24 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
           ++iRegIndex;
           --usNRegs;
         }
-      }
-      else {
-        eStatus = MB_ENOREG;
+
+        return MB_ENOERR;
       }
     }
+
     //1-Wire sensors data
-    else if((usAddress >= R_OWStart) && (usAddress < R_OWStart + R_OWSize) &&
-            (usAddress + usNRegs <= R_OWStart + R_OWSize)) {
-      chprintf((BaseSequentialStream*)&SD1, "mb get %d %d\r\n", usAddress, usNRegs);
+    if(MBAddressInDiap(usAddress, usNRegs, R_OWStart, R_OWSize)) {
       iRegIndex = 0;
       uint8_t *data = OWire::owDriver.getOwList()->GetModbusMem((usAddress - R_OWStart) * 2, usNRegs * 2);
-      if (data)
+      if (data) {
         memcpy(pucRegBuffer, data, usNRegs * 2);
-      else
-        eStatus = MB_ENOREG;
+        return MB_ENOERR;
+      } else {
+        return MB_ENOREG;
+      }
     }
-    else {
-      eStatus = MB_ENOREG;
-    }
-    return eStatus;
+
+    return MB_ENOREG;
   }
 
   /**
@@ -182,6 +181,7 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
     uint16_t* regBuffer16 = (uint16_t*)pucRegBuffer;
     /* it already plus one in modbus function method. */
     --usAddress;
+
     //Digital output data, write only part (set/clear/toggle)
     if(eMode == MB_REG_READ &&
        (usAddress > R_DigitalOutputStart || (usAddress == R_DigitalOutputStart && usNRegs > 1))) {
