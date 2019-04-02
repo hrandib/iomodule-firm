@@ -136,7 +136,7 @@ void TempControl::Process()
       // control
       if (chON != desChOn) {
         chStatus[ch].state |= ifbit(desChOn, 9);
-        chprintf((BaseSequentialStream*)&SD1, "t1 %d ch1 %d t2 %d ch2 %d\r\n", t1, cht1, t2, cht2);
+        chprintf((BaseSequentialStream*)&SD1, "t1 %d ch1 %d t2 %d ch2 %d state %04x\r\n", t1, cht1, t2, cht2, chStatus[ch].state);
         chprintf((BaseSequentialStream*)&SD1, "ch %d control: %s\r\n", ch, desChOn ? "on" : "off");
         ControlChannel(ch, desChOn);
       }
@@ -151,7 +151,6 @@ void TempControl::Process()
       }
     }
   }
-
 
   return;
 }
