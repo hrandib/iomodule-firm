@@ -145,9 +145,9 @@ void TempControl::Process()
       if (chON) {
         ControlChannel(ch, false);
 
-        chStatus[ch].state = 0;
-        chStatus[ch].temp[0] = 0;
-        chStatus[ch].temp[1] = 0;
+        chStatus[ch].state = 0x0000;
+        chStatus[ch].temp[0] = 0xffff;
+        chStatus[ch].temp[1] = 0xffff;
       }
     }
   }
