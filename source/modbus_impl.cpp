@@ -149,6 +149,12 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
       uint8_t *data = OWire::owDriver.getOwList()->GetModbusMem((usAddress - R_OWStart) * 2, usNRegs * 2);
       if (data) {
         memcpy(pucRegBuffer, data, usNRegs * 2);
+        // swap uint16 for temp sensors
+        for(uint16_t i = 0; i < usNRegs; i++) {
+          uint16_t basea = usAddress + i - R_OWStart;
+          if ((basea % 6 == 4) || (basea % 6 == 5))
+            regBuffer16[i] = Uint16Swap(regBuffer16[i]);
+        }
         return MB_ENOERR;
       } else {
         return MB_ENOREG;
