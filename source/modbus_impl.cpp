@@ -29,6 +29,7 @@
 #include "order_conv.h"
 #include "onewire.h"
 #include "utils.h"
+#include "tempcontrol_impl.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -150,7 +151,7 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
       }
     }
 
-    //1-Wire sensors data
+    // 1-Wire sensors data
     if(MBAddressInDiap(usAddress, usNRegs, R_OWStart, R_OWSize)) {
       iRegIndex = 0;
       uint8_t *data = OWire::owDriver.getOwList()->GetModbusMem((usAddress - R_OWStart) * 2, usNRegs * 2);
@@ -162,6 +163,23 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
           if ((basea % 6 == 4) || (basea % 6 == 5))
             regBuffer16[i] = Uint16Swap(regBuffer16[i]);
         }
+        return MB_ENOERR;
+      } else {
+        return MB_ENOREG;
+      }
+    }
+
+    // temperature control module statistic
+    if(MBAddressInDiap(usAddress, usNRegs, R_TempCntrlStateStart, R_TempCntrlStateSize)) {
+
+      uint8_t *data = tempControl.GetModbusStatusMem((usAddress - R_TempCntrlStateStart) * 2, usNRegs * 2);
+      if (data) {
+        memcpy(pucRegBuffer, data, usNRegs * 2);
+
+        // swap uint16
+        for(uint16_t i = 0; i < usNRegs; i++)
+          regBuffer16[i] = Uint16Swap(regBuffer16[i]);
+
         return MB_ENOERR;
       } else {
         return MB_ENOREG;
