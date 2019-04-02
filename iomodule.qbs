@@ -172,6 +172,8 @@ CppApplication
           "circularfifo.h",
           "owlist.cpp",
           "owlist.h",
+          "utils.cpp",
+          "utils.h",
       ]
   }
   Group { name: "Port"
