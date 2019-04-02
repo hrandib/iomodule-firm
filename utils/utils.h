@@ -14,6 +14,8 @@ namespace Util {
   static inline void log(const char* str, Ts... ts) {
     chprintf((BaseSequentialStream*)&SD1, str, ts...);
   }
+
+  void PrintBin(uint32_t data, uint8_t bitCount, uint8_t spaces);
 }
 
 #endif /* UTILS_H_ */

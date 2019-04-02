@@ -391,6 +391,21 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
     return;
   }
 
+  if("state"sv == argv[0]) {
+    tempControl.SendMessage(tccmdPrintStatus);
+    return;
+  }
+
+  if("load"sv == argv[0]) {
+    // TODO
+    return;
+  }
+
+  if("save"sv == argv[0]) {
+    // TODO
+    return;
+  }
+
   if("set"sv == argv[0] && argc >= 4) {
     auto channelN = io::svtou(argv[1]);
     if (!channelN || *channelN < 1 || *channelN > 4) {
@@ -453,8 +468,11 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
   }
 
   shellUsage(chp, "Setup and view temperature control module"
-                  "\r\nReturns temp control current state if no arguments passed"
+                  "\r\nReturns temp control current setup if no arguments passed"
                   "\r\narguments:"
+                  "\r\n\tstate - prints status"
+                  "\r\n\tload - loads current setup from eeprom"
+                  "\r\n\tsave - saves current setup to eeprom"
                   "\r\n\tdisable <channel num> - disable channel"
                   "\r\n\tenable <channel num> - disable channel"
                   "\r\n\tset <channel num> <value name> <value> - set config values"

@@ -97,7 +97,7 @@ void TempControl::Process()
       bool cht1ok = t1 > 4000 && t1 < 20000;
       bool cht2ok = t2 > 4000 && t2 < 20000;
 
-      chStatus[ch].state |= ifbit(cht2ok, 2);
+      chStatus[ch].state |= ifbit(cht1ok, 2);
       chStatus[ch].state |= ifbit(cht2ok, 3);
 
       bool desChOn = false;
@@ -192,6 +192,9 @@ void TempControl::main() {
          break;
        case tccmdPrint:
          Print((BaseSequentialStream*)&SD1);
+         break;
+       case tccmdPrintStatus:
+         PrintStatus((BaseSequentialStream*)&SD1);
          break;
        }
 
@@ -303,6 +306,52 @@ void TempControl::Print(BaseSequentialStream *chp) {
 
     chprintf(chp, "\r\n\r\n");
   }
+}
+
+#define strBoolState(ch, n)((chStatus[(ch)].state && (1 << n)) ? "on" : "off")
+
+void TempControl::PrintStatus(BaseSequentialStream *chp) {
+  if (!Util::sConfig.GetTempControlEnable()) {
+    chprintf(chp, "Temp control module in DISABLED state\r\n");
+    return;
+  }
+  chprintf(chp, "Temp control module status:\r\n");
+
+  for (uint8_t i = 0; i < MaxChannels; i++) {
+    chprintf(chp, "Channel %d (%s):\r\n", i + 1, (GetChEnabled(i)) ? "enabled" : "disabled");
+
+    if (chStatus[i].temp[0] != 0xffff)
+      chprintf(chp, "  temp1: %d\r\n", chStatus[i].temp[0] - 100 * 100);
+    else
+      chprintf(chp, "  temp1: n/a\r\n");
+
+    if (chStatus[i].temp[1] != 0xffff)
+      chprintf(chp, "  temp2: %d\r\n", chStatus[i].temp[1] - 100 * 100);
+    else
+      chprintf(chp, "  temp2: n/a\r\n");
+
+    chprintf(chp, "  status: 0x%04x (0b", chStatus[i].state);
+    Util::PrintBin(chStatus[i].state, 16, 4);
+    chprintf(chp, ")\r\n");
+
+    chprintf(chp, "    temperature 1 ok:   %s\r\n", strBoolState(i, 0));
+    chprintf(chp, "    temperature 2 ok:   %s\r\n", strBoolState(i, 1));
+    chprintf(chp, "    setup temp 1 ok:    %s\r\n", strBoolState(i, 2));
+    chprintf(chp, "    setup temp 2 ok:    %s\r\n", strBoolState(i, 3));
+    chprintf(chp, "    safety check error: %s\r\n", strBoolState(i, 4));
+    chprintf(chp, "    long loop needs heating:  %s\r\n", strBoolState(i, 5));
+    chprintf(chp, "    short loop needs heating: %s\r\n", strBoolState(i, 6));
+    chprintf(chp, "    long loop overheated:  %s\r\n", strBoolState(i, 7));
+    chprintf(chp, "    short loop overheated: %s\r\n", strBoolState(i, 8));
+    chprintf(chp, "    channel ON: %s\r\n", strBoolState(i, 9));
+
+    chprintf(chp, "\r\n");
+  }
+
+  uint16_t regBuffer16 = Digital::input.GetBinaryVal();
+  chprintf(chp, "control register : \r\n  0x%04x\r\n  0b", regBuffer16);
+  Util::PrintBin(regBuffer16, 16, 4);
+  chprintf(chp, "\r\n\r\n");
 }
 
 msg_t TempControl::SendMessage(TempControlCommand msg) {

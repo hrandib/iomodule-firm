@@ -39,6 +39,7 @@ typedef struct {
 enum TempControlCommand {
   tccmdNone,
   tccmdPrint,
+  tccmdPrintStatus,
 };
 
 class TempControl : Rtos::BaseStaticThread<512>
@@ -65,6 +66,7 @@ public:
   uint8_t *GetModbusChannelMem(uint16_t address, uint16_t size);
 
   void Print(BaseSequentialStream *chp);
+  void PrintStatus(BaseSequentialStream *chp);
 
   msg_t SendMessage(TempControlCommand msg);
 };
