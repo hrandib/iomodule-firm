@@ -138,8 +138,10 @@ void TempControl::Process()
       if (chON != desChOn) {
         chStatus[ch].state |= ifbit(desChOn, 9);
         chprintf((BaseSequentialStream*)&SD1, "t1 %d ch1 %d t2 %d ch2 %d state %04x\r\n", t1, cht1, t2, cht2, chStatus[ch].state);
-        chprintf((BaseSequentialStream*)&SD1, "ch %d control: %s\r\n", ch, desChOn ? "on" : "off");
-        ControlChannel(ch, desChOn);
+        chprintf((BaseSequentialStream*)&SD1, "ch %d current: %s control: %s\r\n", ch, chON ? "on" : "off", desChOn ? "on" : "off");
+
+        if (desChOn != chON)
+          ControlChannel(ch, desChOn);
       }
     } else {
       // safety. disabled channel have to be in off state
