@@ -94,8 +94,8 @@ void TempControl::Process()
       uint16_t cht1 = channels[ch].temp[0];
       uint16_t cht2 = channels[ch].temp[1];
       // from -60C (4000) to +100C (20000)
-      bool cht1ok = t1 > 4000 && t1 < 20000;
-      bool cht2ok = t2 > 4000 && t2 < 20000;
+      bool cht1ok = cht1 > 4000 && cht1 < 20000;
+      bool cht2ok = cht2 > 4000 && cht2 < 20000;
 
       chStatus[ch].state |= ifbit(cht1ok, 2);
       chStatus[ch].state |= ifbit(cht2ok, 3);
@@ -308,7 +308,7 @@ void TempControl::Print(BaseSequentialStream *chp) {
   }
 }
 
-#define strBoolState(ch, n)((chStatus[(ch)].state && (1 << n)) ? "on" : "off")
+#define strBoolState(ch, n)((chStatus[(ch)].state & (1 << (n))) ? "on" : "off")
 
 void TempControl::PrintStatus(BaseSequentialStream *chp) {
   if (!Util::sConfig.GetTempControlEnable()) {

@@ -196,7 +196,7 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
 
         // swap uint16
         for(uint16_t i = 0; i < usNRegs; i++) {
-          uint16_t basea = usAddress + i - R_OWStart;
+          uint16_t basea = usAddress + i - R_TempCntrlStart;
           if ((basea % 10 == 8) || (basea % 10 == 9))
             regBuffer16[i] = Uint16Swap(regBuffer16[i]);
         }
