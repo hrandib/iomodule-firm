@@ -58,10 +58,17 @@ enum Range {
   R_DigitalOutputSize = 4,
   R_SystemStatStart = 192,
   R_SystemStatSize = 2,
+
+  // modbus id and system setup
   R_SystemSetupStart = 250,
   R_SystemSetupSize = 2,
+
+  // temperature control
   R_TempCntrlStart = 300,
-  R_TempCntrlSize = 100,  // TBC
+  R_TempCntrlSize = 40,        // 4 records, 10b/record or 5 registers
+  R_TempCntrlStateStart = 350,
+  R_TempCntrlStateSize = 12,   // 4 records, 6b/record or 3 registers
+
   // ow records. record = 12b or 6 reg
   R_OWStart = 400,
   R_OWSize = 96    // 16 records 96 reg * 2b = 192b
