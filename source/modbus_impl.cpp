@@ -28,6 +28,7 @@
 #include "analogin.h"
 #include "order_conv.h"
 #include "onewire.h"
+#include "utils.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -178,9 +179,37 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
     };
     eMBErrorCode eStatus = MB_ENOERR;
     int iRegIndex;
-    uint16_t* regBuffer16 = (uint16_t*)pucRegBuffer;
+    uint16_t* regBuffer16 = reinterpret_cast<uint16_t*>(pucRegBuffer);
     /* it already plus one in modbus function method. */
     --usAddress;
+
+    // modbus id and task config
+    if(MBAddressInDiap(usAddress, usNRegs, R_SystemSetupStart, R_SystemSetupSize)) {
+      if(eMode == MB_REG_READ) {
+        uint16_t buf[2] = {0};
+        buf[0] = Uint16Swap(Util::sConfig.GetModbusAddress());
+        buf[1] = Uint16Swap(Util::sConfig.GetConfigWord());
+        memcpy(regBuffer16, &buf[usAddress - R_SystemSetupStart], usNRegs * 2);
+
+      } else {
+        for (uint16_t u = 0; u < usNRegs; u++) {
+          if(usAddress + u == R_SystemSetupStart) {
+            uint8_t addr = (uint8_t)(Uint16Swap(regBuffer16[u]) & 0xff);
+            Util::sConfig.SetModbusAddress(addr);
+            Util::sConfig.SaveToEEPROM();
+            SetMBAddress(addr);
+          }
+
+          if(usAddress + u == R_SystemSetupStart + 1) {
+            Util::sConfig.SetConfigWord(Uint16Swap(regBuffer16[u]));
+            Util::sConfig.SaveToEEPROM();
+          }
+        }
+      }
+
+      return MB_ENOERR;
+    }
+
 
     //Digital output data, write only part (set/clear/toggle)
     if(eMode == MB_REG_READ &&

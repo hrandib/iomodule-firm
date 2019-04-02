@@ -85,6 +85,20 @@ namespace Util {
     intConfig.ModbusAddress = address;
   }
 
+  uint16_t SConfig::GetConfigWord() {
+    return ( (intConfig.ExecutorEnable ? 0x01 : 0x00) |
+             (intConfig.OWEnable ? 0x02 : 0x00) |
+             (intConfig.TempControlEnable ? 0x04 : 0x00)
+             );
+  }
+
+  void SConfig::SetConfigWord(uint16_t w) {
+    intConfig.ExecutorEnable = w & 0x01;
+    intConfig.OWEnable = w & 0x02;
+    intConfig.TempControlEnable = w & 0x04;
+    CheckDependencies();
+  }
+
   void SConfig::CheckDependencies() {
     if (intConfig.TempControlEnable && intConfig.ExecutorEnable) {
       intConfig.TempControlEnable = false;

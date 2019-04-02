@@ -37,6 +37,9 @@ namespace Util {
     uint16_t GetModbusAddress();
     void SetModbusAddress(uint8_t address);
 
+    uint16_t GetConfigWord();
+    void SetConfigWord(uint16_t w);
+
     void CheckDependencies();
 
     bool Print(BaseSequentialStream *chp);
