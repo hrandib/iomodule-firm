@@ -30,6 +30,7 @@
 #include "sconfig.h"
 #include "onewire.h"
 #include "chmsg.h"
+#include "utils.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -234,6 +235,20 @@ bool TempControl::SetTemp(uint8_t channel, uint8_t sensorn, uint16_t temperature
 
   channels[channel].temp[sensorn] = temperature;
   return true;
+}
+
+uint8_t *TempControl::GetModbusStatusMem(uint16_t address, uint16_t size) {
+  if (address + size > sizeof(chStatus))
+    return nullptr;
+
+  return ((uint8_t *)&chStatus + address);
+}
+
+uint8_t *TempControl::GetModbusChannelMem(uint16_t address, uint16_t size) {
+  if (address + size > sizeof(channels))
+    return nullptr;
+
+  return ((uint8_t *)&channels + address);
 }
 
 void printHex(BaseSequentialStream *chp, uint8_t *data, int len) {
