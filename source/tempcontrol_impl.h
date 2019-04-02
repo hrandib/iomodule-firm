@@ -29,7 +29,12 @@
 typedef struct {
   uint8_t id[2][8];
   uint16_t temp[2];
-} __attribute__((__packed__)) tcChannelConfig_t ;
+} __attribute__((__packed__)) tcChannelConfig_t;
+
+typedef struct {
+  uint16_t state;
+  uint16_t temp[2];
+} __attribute__((__packed__)) tcChannelStatus_t;
 
 enum TempControlCommand {
   tccmdNone,
@@ -42,6 +47,7 @@ private:
   static const uint8_t MaxChannels = 4;
   uint16_t settings; // b0, b1, b2, b3 - enable ch1..ch4
   tcChannelConfig_t channels[MaxChannels];
+  tcChannelStatus_t chStatus[MaxChannels];
 
   bool ControlChannel(uint8_t channel, bool value);
 

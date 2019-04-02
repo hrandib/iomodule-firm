@@ -59,6 +59,8 @@ bool TempControl::ControlChannel(uint8_t channel, bool value) {
   return true;
 }
 
+#define ifbit(b, n)((b) ? (1 << n) : 0x00)
+
 void TempControl::Process()
 {
   if (!OWire::owDriver.Ready())
@@ -80,16 +82,28 @@ void TempControl::Process()
       bool t1ok = t1 > 4000 && t1 < 20000;
       bool t2ok = t2 > 4000 && t2 < 20000;
 
+      // save status
+      chStatus[ch].state = 0;
+      chStatus[ch].temp[0] = t1;
+      chStatus[ch].temp[1] = t2;
+
+      chStatus[ch].state |= ifbit(t1ok, 0);
+      chStatus[ch].state |= ifbit(t2ok, 1);
+
       uint16_t cht1 = channels[ch].temp[0];
       uint16_t cht2 = channels[ch].temp[1];
       // from -60C (4000) to +100C (20000)
       bool cht1ok = t1 > 4000 && t1 < 20000;
       bool cht2ok = t2 > 4000 && t2 < 20000;
 
+      chStatus[ch].state |= ifbit(cht2ok, 2);
+      chStatus[ch].state |= ifbit(cht2ok, 3);
+
       bool desChOn = false;
 
       // safety check
       if (!cht1ok || !t1ok) {
+        chStatus[ch].state |= ifbit(true, 4);
         if (chON)
           ControlChannel(ch, false);
         continue;
@@ -97,34 +111,44 @@ void TempControl::Process()
 
       // main long loop control
       if (cht2ok && t2ok && t2 + 100 < cht2) { // todo: add histeresis
+        chStatus[ch].state |= ifbit(true, 5);
         desChOn = true;
       }
 
       // main short loop control
       if ((!cht2ok || !t2ok) && cht1ok && t1ok && t1 + 100 < cht1) { // todo: add histeresis
+        chStatus[ch].state |= ifbit(true, 6);
         desChOn = true;
       }
 
       // check if long loop is overheated
       if (chON && cht2ok && t2ok && t2 > cht2) {
+        chStatus[ch].state |= ifbit(true, 7);
         desChOn = false;
       }
 
       // check if short loop is overheated
       if (chON && cht1ok && t1ok && t1 > cht1) {
+        chStatus[ch].state |= ifbit(true, 8);
         desChOn = false;
       }
 
       // control
       if (chON != desChOn) {
+        chStatus[ch].state |= ifbit(desChOn, 9);
         chprintf((BaseSequentialStream*)&SD1, "t1 %d ch1 %d t2 %d ch2 %d\r\n", t1, cht1, t2, cht2);
         chprintf((BaseSequentialStream*)&SD1, "ch %d control: %s\r\n", ch, desChOn ? "on" : "off");
         ControlChannel(ch, desChOn);
       }
     } else {
       // safety. disabled channel have to be in off state
-      if (chON)
+      if (chON) {
         ControlChannel(ch, false);
+
+        chStatus[ch].state = 0;
+        chStatus[ch].temp[0] = 0;
+        chStatus[ch].temp[1] = 0;
+      }
     }
   }
 
@@ -138,6 +162,10 @@ void TempControl::Init() {
     memset(channels[i].id[1], 0, 8);
     channels[i].temp[0] = 0xffff;
     channels[i].temp[1] = 0xffff;
+
+    chStatus[i].state = 0x0000;
+    chStatus[i].temp[0] = 0xffff;
+    chStatus[i].temp[1] = 0xffff;
   }
 
   start(NORMALPRIO + 15);
