@@ -40,6 +40,8 @@ enum TempControlCommand {
   tccmdNone,
   tccmdPrint,
   tccmdPrintStatus,
+  tccmdCfgLoadFromEEPROM,
+  tccmdCfgSaveToEEPROM,
 };
 
 class TempControl : Rtos::BaseStaticThread<512>
@@ -61,6 +63,8 @@ public:
   bool GetChEnabled(uint8_t channel);
   bool SetID(uint8_t channel, uint8_t sensorn, uint8_t *id);
   bool SetTemp(uint8_t channel, uint8_t sensorn, uint16_t temperature);
+  bool SaveToEEPROM();
+  bool LoadFromEEPROM();
 
   uint8_t *GetModbusStatusMem(uint16_t address, uint16_t size);
   uint8_t *GetModbusChannelMem(uint16_t address, uint16_t size);

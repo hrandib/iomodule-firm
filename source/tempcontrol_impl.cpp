@@ -31,6 +31,7 @@
 #include "onewire.h"
 #include "chmsg.h"
 #include "utils.h"
+#include "crc8.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -170,6 +171,8 @@ void TempControl::Init() {
     chStatus[i].temp[1] = 0xffff;
   }
 
+  LoadFromEEPROM();
+
   start(NORMALPRIO + 15);
 }
 
@@ -197,6 +200,12 @@ void TempControl::main() {
          break;
        case tccmdPrintStatus:
          PrintStatus((BaseSequentialStream*)&SD1);
+         break;
+       case tccmdCfgLoadFromEEPROM:
+         LoadFromEEPROM();
+         break;
+       case tccmdCfgSaveToEEPROM:
+         SaveToEEPROM();
          break;
        }
 
@@ -239,6 +248,33 @@ bool TempControl::SetTemp(uint8_t channel, uint8_t sensorn, uint16_t temperature
     return false;
 
   channels[channel].temp[sensorn] = temperature;
+  return true;
+}
+
+bool TempControl::SaveToEEPROM() {
+  uint8_t data[sizeof(channels) + 1];
+  memcpy(&data, &channels, sizeof(channels));
+  data[sizeof(channels)] = crc8_ow(data, sizeof(channels));
+
+  if(sizeof(data) != nvram::eeprom.Write(nvram::Section::TempSetup, data)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool TempControl::LoadFromEEPROM() {
+  uint8_t data[sizeof(channels) + 1];
+  size_t len = nvram::eeprom.Read(nvram::Section::TempSetup, data);
+  if(sizeof(data) != len) {
+    return false;
+  }
+  if(crc8_ow(data, sizeof(data))) {
+    return false;
+  }
+
+  memcpy(&channels, &data, sizeof(channels));
+
   return true;
 }
 

@@ -397,12 +397,12 @@ void cmd_temp(BaseSequentialStream *chp, int argc, char* argv[])
   }
 
   if("load"sv == argv[0]) {
-    // TODO
+    tempControl.SendMessage(tccmdCfgLoadFromEEPROM);
     return;
   }
 
   if("save"sv == argv[0]) {
-    // TODO
+    tempControl.SendMessage(tccmdCfgSaveToEEPROM);
     return;
   }
 

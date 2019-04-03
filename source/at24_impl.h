@@ -24,17 +24,29 @@
 
 #include "mtd_24aa.hpp"
 #include "chprintf.h"
+#include "utils.h"
 
 namespace nvram {
 
-template<typename... Ts>
-static inline void log(const char* str, Ts... ts) {
-  chprintf((BaseSequentialStream*)&SD1, str, ts...);
-}
-
 enum class Section {
   Reserved,
+  Modbus,
   Setup,
+  TempSetup,
+
+  SectionLast
+};
+
+typedef struct {
+  size_t Offset;
+  size_t Length;
+} Sections_t;
+
+static const Sections_t eepromSections[static_cast<uint8_t>(Section::SectionLast)] = {
+  {0, 4},
+  {4, 4},
+  {8, 4},   // Setup
+  {12, 81}, // TempSetup. 20b record * 4 records + crc = 81b
 };
 
 namespace CAT24C08 {
@@ -66,7 +78,7 @@ static const I2CConfig i2cfg1 = {
 class Eeprom
 {
 private:
-  static constexpr size_t SectionSize = 32;
+//  static constexpr size_t SectionSize = 32;
   Mtd24aa& dev_;
 public:
   Eeprom(Mtd24aa& dev) : dev_{dev}
@@ -75,17 +87,25 @@ public:
     palSetPadMode(GPIOB, 8, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);   /* SCL */
     palSetPadMode(GPIOB, 9, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);   /* SDA */
     i2cStart(&I2CD1, &i2cfg1);
+
+    (void)eepromSections;
   }
   template<typename T>
   size_t Write(Section sec, const T& obj)
   {
-    uint32_t offset = uint32_t(sec) * SectionSize;
+    uint32_t offset = eepromSections[static_cast<uint8_t>(sec)].Offset;
+    if (sizeof(obj) > eepromSections[static_cast<uint8_t>(sec)].Length)
+      return 0;
+
     return dev_.write((uint8_t*)&obj, sizeof(obj), offset);
   }
   template<typename T>
   size_t Read(Section sec, T& obj, size_t size = sizeof(T))
   {
-    uint32_t offset = uint32_t(sec) * SectionSize;
+    uint32_t offset = eepromSections[static_cast<uint8_t>(sec)].Offset;
+    if (sizeof(obj) > eepromSections[static_cast<uint8_t>(sec)].Length)
+      return 0;
+
     return dev_.read((uint8_t*)&obj, size, offset);
   }
 };
