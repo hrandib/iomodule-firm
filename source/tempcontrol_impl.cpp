@@ -50,12 +50,19 @@ extern "C" {
 static const uint8_t idzero[8] = {0};
 
 bool TempControl::ControlChannel(uint8_t channel, bool value) {
-  Digital::OutputCommand cmd{};
 #if BOARD_VER == 1
-  cmd.Set(decltype(cmd)::Mode::Clear, 1 << channel);
+  uint32_t chmask = 1 << channel;
 #else
-  cmd.Set(decltype(cmd)::Mode::Clear, 1 << (channel * 2));
+  uint32_t chmask = 1 << (channel * 2);
 #endif
+
+  Digital::OutputCommand cmd{};
+
+  if (value)
+    cmd.Set(decltype(cmd)::Mode::Set, chmask);
+  else
+    cmd.Set(decltype(cmd)::Mode::Clear, chmask);
+
   Digital::output.SendMessage(cmd);
 
   return true;
@@ -68,13 +75,15 @@ void TempControl::Process()
   if (!OWire::owDriver.Ready())
     return;
 
-  uint16_t regBuffer16 = Digital::input.GetBinaryVal();
+  uint16_t regBuffer16 = Digital::output.GetBinaryVal();
 
   for (uint8_t ch = 0; ch < MaxChannels; ch ++) {
+
+    // 1 - relay on 0 - relay off
 #if BOARD_VER == 1
     bool chON = (regBuffer16 & (1 << ch));
 #else
-    bool chON = (regBuffer16 & (1 << (ch * 2)));
+    bool chOn = (regBuffer16 & (1 << (ch * 2)));
 #endif
 
     if (GetChEnabled(ch)) {
@@ -106,7 +115,7 @@ void TempControl::Process()
       // safety check
       if (!cht1ok || !t1ok) {
         chStatus[ch].state |= ifbit(true, 4);
-        if (chON)
+        if (chOn)
           ControlChannel(ch, false);
         continue;
       }
@@ -124,29 +133,30 @@ void TempControl::Process()
       }
 
       // check if long loop is overheated
-      if (chON && cht2ok && t2ok && t2 > cht2) {
+      if (chOn && cht2ok && t2ok && t2 > cht2) {
         chStatus[ch].state |= ifbit(true, 7);
         desChOn = false;
       }
 
       // check if short loop is overheated
-      if (chON && cht1ok && t1ok && t1 > cht1) {
+      if (chOn && cht1ok && t1ok && t1 > cht1) {
         chStatus[ch].state |= ifbit(true, 8);
         desChOn = false;
       }
 
-      // control
-      if (chON != desChOn) {
-        chStatus[ch].state |= ifbit(desChOn, 9);
-        chprintf((BaseSequentialStream*)&SD1, "t1 %d ch1 %d t2 %d ch2 %d state %04x\r\n", t1, cht1, t2, cht2, chStatus[ch].state);
-        chprintf((BaseSequentialStream*)&SD1, "ch %d current: %s control: %s\r\n", ch, chON ? "on" : "off", desChOn ? "on" : "off");
+      chStatus[ch].state |= ifbit(desChOn, 9);
+      chStatus[ch].state |= ifbit(chOn, 10);
 
-        if (desChOn != chON)
-          ControlChannel(ch, desChOn);
+      // control
+      if (chOn != desChOn) {
+        chprintf((BaseSequentialStream*)&SD1, "t1 %d ch1 %d t2 %d ch2 %d state %04x\r\n", t1, cht1, t2, cht2, chStatus[ch].state);
+        chprintf((BaseSequentialStream*)&SD1, "ch %d current: %s control: %s\r\n", ch, chOn ? "on" : "off", desChOn ? "on" : "off");
+
+        ControlChannel(ch, desChOn);
       }
     } else {
       // safety. disabled channel have to be in off state
-      if (chON) {
+      if (chOn) {
         ControlChannel(ch, false);
 
         chStatus[ch].state = 0x0000;
@@ -356,7 +366,10 @@ void TempControl::PrintStatus(BaseSequentialStream *chp) {
   chprintf(chp, "Temp control module status:\r\n");
 
   for (uint8_t i = 0; i < MaxChannels; i++) {
-    chprintf(chp, "Channel %d (%s):\r\n", i + 1, (GetChEnabled(i)) ? "enabled" : "disabled");
+    chprintf(chp, "Channel %d %s\r\n", i + 1, (GetChEnabled(i)) ? "(enabled):" : "(disabled)");
+
+    if (!GetChEnabled(i))
+      continue;
 
     if (chStatus[i].temp[0] != 0xffff)
       chprintf(chp, "  temp1: %d\r\n", chStatus[i].temp[0] - 100 * 100);
@@ -381,12 +394,13 @@ void TempControl::PrintStatus(BaseSequentialStream *chp) {
     chprintf(chp, "    short loop needs heating: %s\r\n", strBoolState(i, 6));
     chprintf(chp, "    long loop overheated:  %s\r\n", strBoolState(i, 7));
     chprintf(chp, "    short loop overheated: %s\r\n", strBoolState(i, 8));
-    chprintf(chp, "    channel ON: %s\r\n", strBoolState(i, 9));
+    chprintf(chp, "    channel needs: %s\r\n", strBoolState(i, 9));
+    chprintf(chp, "    channel ON:    %s\r\n", strBoolState(i, 10));
 
     chprintf(chp, "\r\n");
   }
 
-  uint16_t regBuffer16 = Digital::input.GetBinaryVal();
+  uint16_t regBuffer16 = Digital::output.GetBinaryVal();
   chprintf(chp, "control register : \r\n  0x%04x\r\n  0b", regBuffer16);
   Util::PrintBin(regBuffer16, 16, 4);
   chprintf(chp, "\r\n\r\n");
