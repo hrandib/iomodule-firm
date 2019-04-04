@@ -133,13 +133,13 @@ void TempControl::Process()
       }
 
       // check if long loop is overheated
-      if (chOn && cht2ok && t2ok && t2 > cht2) {
+      if (cht2ok && t2ok && t2 > cht2) {
         chStatus[ch].state |= ifbit(true, 7);
         desChOn = false;
       }
 
       // check if short loop is overheated
-      if (chOn && cht1ok && t1ok && t1 > cht1) {
+      if (cht1ok && t1ok && t1 > cht1) {
         chStatus[ch].state |= ifbit(true, 8);
         desChOn = false;
       }
