@@ -42,6 +42,13 @@ Executor executor;
 
 extern "C" {
 
+#define SMALL_RELAY 0x100
+#define ALL_RELAY 0x1FF
+
+#define SMALL_RELAY_IMPULSE_LEN 500
+#define INPUT_ANTICHATTER 200
+#define INPUT_GLOBALOFF 3000
+
 static systime_t pinsTime[5] = {0};
 static systime_t pinGOTime = 0; // impulse on small relay to make GlobalOff command on all controllers
 
@@ -50,24 +57,23 @@ void Executor::Process()
   uint16_t outBuffer16 = Digital::output.GetBinaryVal();
   uint16_t regBuffer16 = Digital::input.GetBinaryVal();
   uint16_t changedBuffer = oldRegBuffer16 ^ regBuffer16;
-//  chprintf((BaseSequentialStream*)&SD1, "%x\r\n", regBuffer16);
   systime_t time = chVTGetSystemTimeX();
 
   for (uint8_t inputN = 0; inputN < 5; inputN++) {
     uint16_t vbit = uint16_t(1 << inputN);
     // 200ms timeout
-    if ((time - pinsTime[inputN] > 200) && (changedBuffer & vbit)) {
+    if ((time - pinsTime[inputN] > INPUT_ANTICHATTER) && (changedBuffer & vbit)) {
       if (regBuffer16 & vbit) {
         // clear all if we release AllOFF button or release any button after 3s
-        if (inputN > 3 || (time - pinsTime[inputN] > 3000)) {
+        if (inputN > 3 || (time - pinsTime[inputN] > INPUT_GLOBALOFF)) {
           Digital::OutputCommand cmd{};
-          cmd.Set(decltype(cmd)::Mode::Clear, 0x1FF);
+          cmd.Set(decltype(cmd)::Mode::Clear, ALL_RELAY);
           Digital::output.SendMessage(cmd);
 
           // if it comes not from globalreset input
           if (inputN < 4) {
             Digital::OutputCommand cmdO{};
-            cmdO.Set(decltype(cmdO)::Mode::Set, 0x100);
+            cmdO.Set(decltype(cmdO)::Mode::Set, SMALL_RELAY);
             Digital::output.SendMessage(cmdO);
           }
           pinGOTime = time;
@@ -83,14 +89,14 @@ void Executor::Process()
   }
 
   // small relay is on and timeout is not set
-  if(!pinGOTime && outBuffer16 & 0x100) {
+  if(!pinGOTime && outBuffer16 & SMALL_RELAY) {
     pinGOTime = time;
   }
 
   // timeout on small relay for 500ms and then put it to high
-  if(pinGOTime && time - pinGOTime > 500) {
+  if(pinGOTime && time - pinGOTime > SMALL_RELAY_IMPULSE_LEN) {
     Digital::OutputCommand cmd{};
-    cmd.Set(decltype(cmd)::Mode::Clear, 0x100);
+    cmd.Set(decltype(cmd)::Mode::Clear, SMALL_RELAY);
     Digital::output.SendMessage(cmd);
 
     pinGOTime = 0;
@@ -102,7 +108,7 @@ void Executor::Process()
 
 void Executor::Init()
 {
-  oldRegBuffer16 = 0xff;
+  oldRegBuffer16 = 0x1ff;
   start(NORMALPRIO + 12);
 }
 
