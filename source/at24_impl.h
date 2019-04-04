@@ -46,7 +46,7 @@ static const Sections_t eepromSections[static_cast<uint8_t>(Section::SectionLast
   {0, 4},
   {4, 4},
   {8, 4},   // Setup
-  {12, 81}, // TempSetup. 20b record * 4 records + crc = 81b
+  {12, 83}, // TempSetup. 20b record * 4 records + 2b settings + 1b crc = 83b
 };
 
 namespace CAT24C08 {

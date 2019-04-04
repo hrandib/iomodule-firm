@@ -149,7 +149,7 @@ void TempControl::Process()
 
       // control
       if (chOn != desChOn) {
-        chprintf((BaseSequentialStream*)&SD1, "t1 %d ch1 %d t2 %d ch2 %d state %04x\r\n", t1, cht1, t2, cht2, chStatus[ch].state);
+        chprintf((BaseSequentialStream*)&SD1, "[%d] t1 %d ch1 %d t2 %d ch2 %d state %04x\r\n", chVTGetSystemTimeX()/1000, t1, cht1, t2, cht2, chStatus[ch].state);
         chprintf((BaseSequentialStream*)&SD1, "ch %d current: %s control: %s\r\n", ch, chOn ? "on" : "off", desChOn ? "on" : "off");
 
         ControlChannel(ch, desChOn);
@@ -262,9 +262,10 @@ bool TempControl::SetTemp(uint8_t channel, uint8_t sensorn, uint16_t temperature
 }
 
 bool TempControl::SaveToEEPROM() {
-  uint8_t data[sizeof(channels) + 1];
+  uint8_t data[sizeof(channels) + sizeof(settings) + 1];
   memcpy(&data, &channels, sizeof(channels));
-  data[sizeof(channels)] = crc8_ow(data, sizeof(channels));
+  memcpy(&data[sizeof(channels)], &settings, sizeof(settings));
+  data[sizeof(data) - 1] = crc8_ow(data, sizeof(data) - 1);
 
   if(sizeof(data) != nvram::eeprom.Write(nvram::Section::TempSetup, data)) {
     return false;
@@ -274,16 +275,18 @@ bool TempControl::SaveToEEPROM() {
 }
 
 bool TempControl::LoadFromEEPROM() {
-  uint8_t data[sizeof(channels) + 1];
+  uint8_t data[sizeof(channels) + sizeof(settings) + 1];
   size_t len = nvram::eeprom.Read(nvram::Section::TempSetup, data);
   if(sizeof(data) != len) {
     return false;
   }
   if(crc8_ow(data, sizeof(data))) {
+    //Util::log("eeprom crc load error\r\n");
     return false;
   }
 
   memcpy(&channels, &data, sizeof(channels));
+  memcpy(&settings, &data[sizeof(channels)], sizeof(settings));
 
   return true;
 }
