@@ -47,6 +47,7 @@ static systime_t pinGOTime = 0; // impulse on small relay to make GlobalOff comm
 
 void Executor::Process()
 {
+  uint16_t outBuffer16 = Digital::output.GetBinaryVal();
   uint16_t regBuffer16 = Digital::input.GetBinaryVal();
   uint16_t changedBuffer = oldRegBuffer16 ^ regBuffer16;
 //  chprintf((BaseSequentialStream*)&SD1, "%x\r\n", regBuffer16);
@@ -79,6 +80,11 @@ void Executor::Process()
 
       pinsTime[inputN] = chVTGetSystemTimeX();
     }
+  }
+
+  // small relay is on and timeout is not set
+  if(!pinGOTime && outBuffer16 & 0x100) {
+    pinGOTime = time;
   }
 
   // timeout on small relay for 500ms and then put it to high

@@ -133,6 +133,10 @@ namespace Digital {
       Pins::SetConfig<GpioModes::OutputPushPull>();
       start(NORMALPRIO);
     }
+    uint16_t GetBinaryVal()
+    {
+      return (Pins::Read() & 0xffff);
+    }
     msg_t SendMessage(OutputCommand& msg)
     {
       return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
