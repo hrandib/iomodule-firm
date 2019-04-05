@@ -305,6 +305,13 @@ uint8_t *TempControl::GetModbusChannelMem(uint16_t address, uint16_t size) {
   return ((uint8_t *)&channels + address);
 }
 
+bool TempControl::SetModbusChannelMem(uint16_t address, uint16_t size, uint8_t *data) {
+  if (address + size > sizeof(channels))
+    return false;
+  memcpy(data, ((uint8_t *)&channels + address), size);
+  return true;
+}
+
 uint16_t TempControl::GetSettings() {
   return settings;
 }

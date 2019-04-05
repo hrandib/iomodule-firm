@@ -68,6 +68,7 @@ public:
 
   uint8_t *GetModbusStatusMem(uint16_t address, uint16_t size);
   uint8_t *GetModbusChannelMem(uint16_t address, uint16_t size);
+  bool SetModbusChannelMem(uint16_t address, uint16_t size, uint8_t *data);
   uint16_t GetSettings();
   void SetSettings(uint16_t s);
 
