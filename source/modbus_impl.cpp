@@ -283,6 +283,8 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
           return MB_ENOREG;
         }
       } else {
+        if(!tempControl.SetModbusChannelMem((usAddress - R_TempCntrlStart) * 2, usNRegs * 2))
+          return MB_ENOREG;
 
         return MB_ENOERR;
       }

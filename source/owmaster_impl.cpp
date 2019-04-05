@@ -76,7 +76,7 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
     return res;
 
   if (!crc8(sc, 9)) {
-    //chprintf((BaseSequentialStream*)&SD1, "read crc error\r\n");
+    chprintf((BaseSequentialStream*)&SD1, "read crc error\r\n");
     return res;
   } else {
     //chprintf((BaseSequentialStream*)&SD1, "read crc ok\r\n");
@@ -86,6 +86,7 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
   if ((sc[4] & 0x60) != 0x60) {
     chprintf((BaseSequentialStream*)&SD1, "resolution warning: %02x\r\n", (sc[4] & 0x60) >> 5);
 
+    chprintf((BaseSequentialStream*)&SD1, "wrong resolution: %02x\r\n", sc[4] & 0x60);
     // TODO: add fix the resolution
   }
 
@@ -98,6 +99,9 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
   // 2 ^ -1  ...  2 ^ -4
   t2 = t2 * 100 + (temp & 8 ? 50 : 0)  + (temp & 4 ? 25 : 0)  + (temp & 2 ? 12 : 0) + (temp & 1 ? 6 : 0);
   t2 = (100 * 100 + ((temp & 0x8000) ? -t2 : t2));
+
+  if (t2 > 14000)
+    chprintf((BaseSequentialStream*)&SD1, "data: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
 
   res = OWire::owDriver.getOwList()->SetTemperature(id, t2);
   if (!res)
@@ -136,7 +140,7 @@ void OWMaster::Process()
   }
 
   // read temp after 1 sec timeout
-  if (mesStarted && (lastNetQueryTemp == 0 || chVTGetSystemTimeX() - lastNetQueryTemp > 1 * 1000)) { // 1s after start convert
+  if (mesStarted && (lastNetQueryTemp == 0 || chVTGetSystemTimeX() - lastNetQueryTemp > 1 * 1200)) { // 1.2s after start convert
     int listlen = OWire::owDriver.getOwList()->Count();
     int scanIndx = 0;
     do {
@@ -186,11 +190,7 @@ void OWMaster::main() {
          ExecMeasurementCycle();
          break;
        case owcmdPrintOWList:
-         OWire::OWList *owlist = OWire::owDriver.getOwList();
-         if (owlist)
-           owlist->Print((BaseSequentialStream*)&SD1, false);
-         else
-           chprintf((BaseSequentialStream*)&SD1, "OW list not found\r\n");
+         Print();
          break;
        }
 
@@ -203,6 +203,21 @@ void OWMaster::main() {
 
 msg_t OWMaster::SendMessage(OWMasterCommand msg) {
   return chMsgSend(thread_ref, reinterpret_cast<msg_t>(&msg));
+}
+
+void OWMaster::Print() {
+  if (!Util::sConfig.GetOWEnable()) {
+    Util::log("One wire module in DISABLED state\r\n");
+    return;
+  }
+
+  OWire::OWList *owlist = OWire::owDriver.getOwList();
+
+  if (owlist)
+    owlist->Print((BaseSequentialStream*)&SD1, false);
+  else
+    Util::log("OW list not found\r\n");
+
 }
 
 } // extern C

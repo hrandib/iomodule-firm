@@ -49,6 +49,8 @@ public:
   void ExecNetScan();
   void ExecMeasurementCycle();
   msg_t SendMessage(OWMasterCommand msg);
+
+  void Print();
 };
 
 extern OWMaster owMaster;
