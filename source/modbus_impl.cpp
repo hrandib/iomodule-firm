@@ -67,6 +67,8 @@ enum Range {
   // temperature control
   R_TempCntrlStart = 300,
   R_TempCntrlSize = 40,        // 4 records, 10b/record or 5 registers
+  R_TempCntrlEnStart = 340,
+  R_TempCntrlEnSize = 1,
   R_TempCntrlStateStart = 350,
   R_TempCntrlStateSize = 12,   // 4 records, 6b/record or 3 registers
 
@@ -262,6 +264,40 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
       return MB_ENOERR;
     }
 
+    // temperature control module setup
+    if(MBAddressInDiap(usAddress, usNRegs, R_TempCntrlStart, R_TempCntrlSize)) {
+      if(eMode == MB_REG_READ) {
+        uint8_t *data = tempControl.GetModbusChannelMem((usAddress - R_TempCntrlStart) * 2, usNRegs * 2);
+        if (data) {
+          memcpy(pucRegBuffer, data, usNRegs * 2);
+
+          // swap uint16
+          for(uint16_t i = 0; i < usNRegs; i++) {
+            uint16_t basea = usAddress + i - R_TempCntrlStart;
+            if ((basea % 10 == 8) || (basea % 10 == 9))
+              regBuffer16[i] = Uint16Swap(regBuffer16[i]);
+          }
+
+          return MB_ENOERR;
+        } else {
+          return MB_ENOREG;
+        }
+      } else {
+
+        return MB_ENOERR;
+      }
+    }
+
+    // temp control enable register
+    if(MBAddressInDiap(usAddress, usNRegs, R_TempCntrlEnStart, R_TempCntrlEnSize)) {
+      if(eMode == MB_REG_READ) {
+        regBuffer16[0] = Uint16Swap(tempControl.GetSettings());
+      } else {
+        tempControl.SetSettings(Uint16Swap(regBuffer16[0]));
+      }
+
+      return MB_ENOERR;
+    }
 
     //Digital output data, write only part (set/clear/toggle)
     if(eMode == MB_REG_READ &&

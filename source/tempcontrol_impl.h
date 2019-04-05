@@ -68,6 +68,8 @@ public:
 
   uint8_t *GetModbusStatusMem(uint16_t address, uint16_t size);
   uint8_t *GetModbusChannelMem(uint16_t address, uint16_t size);
+  uint16_t GetSettings();
+  void SetSettings(uint16_t s);
 
   void Print(BaseSequentialStream *chp);
   void PrintStatus(BaseSequentialStream *chp);

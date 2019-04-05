@@ -305,6 +305,14 @@ uint8_t *TempControl::GetModbusChannelMem(uint16_t address, uint16_t size) {
   return ((uint8_t *)&channels + address);
 }
 
+uint16_t TempControl::GetSettings() {
+  return settings;
+}
+
+void TempControl::SetSettings(uint16_t s) {
+  settings = s & 0x0f;
+}
+
 void printHex(BaseSequentialStream *chp, uint8_t *data, int len) {
   for (int i = 0; i < len; i++)
     chprintf(chp, " %02x", data[i]);
