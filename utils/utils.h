@@ -16,6 +16,7 @@ namespace Util {
   }
 
   void PrintBin(uint32_t data, uint8_t bitCount, uint8_t spaces);
+  void PrintHex(uint8_t *data, size_t length, bool spaces);
 }
 
 #endif /* UTILS_H_ */

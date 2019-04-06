@@ -48,6 +48,7 @@ static void cmd_getanalog(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getdigital(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_cpuid(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setup(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_ow(BaseSequentialStream *chp, int argc, char *argv[]);
@@ -61,6 +62,7 @@ static const ShellCommand commands[] = {
   {"setdigital", cmd_setdigital},
   {"getdigital", cmd_getdigital},
   {"getcounters", cmd_getcounters},
+  {"cpuid", cmd_cpuid},
   {"uptime", cmd_uptime},
   {"setup", cmd_setup},
   {"temp", cmd_temp},
@@ -270,6 +272,15 @@ void cmd_setdigital(BaseSequentialStream *chp, int argc, char *argv[])
                   "\r\n\tsetdigital set 0x2020"
                   "\r\n\tsetdigital set_clear 0x0088 0xFF00"
                   "\r\n\tsetdigital toggle 666");
+}
+
+void cmd_cpuid(BaseSequentialStream *chp, int argc, char **/*argv[]*/)
+{
+  (void)argc;
+
+  chprintf(chp, "cpu id: ");
+  Util::PrintHex((uint8_t *) UID_BASE, 12, true);
+  chprintf(chp, "\r\n");
 }
 
 void cmd_uptime(BaseSequentialStream *chp, int argc, char **/*argv[]*/)

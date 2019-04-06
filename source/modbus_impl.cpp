@@ -37,7 +37,7 @@
 
 #include <array>
 
-static const uint8_t *UniqProcessorId = (uint8_t *) 0x1FFFF7E8;
+static const uint8_t *UniqProcessorId = (uint8_t *) UID_BASE;
 static const uint8_t UniqProcessorIdLen = 12;
 
 using Utils::htons;

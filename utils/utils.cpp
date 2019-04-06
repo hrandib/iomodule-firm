@@ -10,5 +10,13 @@ void PrintBin(uint32_t data, uint8_t bitCount, uint8_t spaces) {
   }
 }
 
+void PrintHex(uint8_t *data, size_t length, bool spaces) {
+  for (size_t i = 0; i < length; i++) {
+    log("%02x", data[i]);
+    if(spaces && i + 1 != length)
+      log(" ");
+  }
+}
+
 }
 
