@@ -283,8 +283,17 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
           return MB_ENOREG;
         }
       } else {
-        if(!tempControl.SetModbusChannelMem((usAddress - R_TempCntrlStart) * 2, usNRegs * 2))
+        // swap uint16
+        for(uint16_t i = 0; i < usNRegs; i++) {
+          uint16_t basea = usAddress + i - R_TempCntrlStart;
+          if ((basea % 10 == 8) || (basea % 10 == 9))
+            regBuffer16[i] = Uint16Swap(regBuffer16[i]);
+        }
+
+        if(!tempControl.SetModbusChannelMem((usAddress - R_TempCntrlStart) * 2, usNRegs * 2, (uint8_t *)regBuffer16))
           return MB_ENOREG;
+
+        tempControl.SaveToEEPROM();
 
         return MB_ENOERR;
       }
@@ -296,6 +305,7 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
         regBuffer16[0] = Uint16Swap(tempControl.GetSettings());
       } else {
         tempControl.SetSettings(Uint16Swap(regBuffer16[0]));
+        tempControl.SaveToEEPROM();
       }
 
       return MB_ENOERR;
