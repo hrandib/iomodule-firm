@@ -26,7 +26,11 @@
 #include "at24_impl.h"
 #include <atomic>
 
-extern std::atomic_uint32_t uptimeCounter;
+#define DS18B20_RESOLUTION_MASK 0x60
+#define DS18B20_RESOLUTION_09BIT 0x00
+#define DS18B20_RESOLUTION_10BIT 0x20
+#define DS18B20_RESOLUTION_11BIT 0x40
+#define DS18B20_RESOLUTION_12BIT 0x60
 
 enum OWMasterCommand {
   owcmdNone,

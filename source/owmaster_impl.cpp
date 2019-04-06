@@ -21,6 +21,7 @@
  */
 
 #include "owmaster_impl.h"
+#include <stdlib.h>
 #include "digitalin.h"
 #include "digitalout.h"
 #include "analogin.h"
@@ -62,6 +63,9 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
   if (!id)
     return false;
 
+  int repeatCount = 1;
+repeat:
+
   res = OWire::owDriver.Select(id);
   if (!res)
     return res;
@@ -83,11 +87,30 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
   }
 
   // if resolution not 12 bit
-  if ((sc[4] & 0x60) != 0x60) {
-    chprintf((BaseSequentialStream*)&SD1, "resolution warning: %02x\r\n", (sc[4] & 0x60) >> 5);
+  if ((sc[4] & DS18B20_RESOLUTION_MASK) != DS18B20_RESOLUTION_12BIT) {
+    chprintf((BaseSequentialStream*)&SD1, "resolution warning: %02x\r\n", (sc[4] & DS18B20_RESOLUTION_MASK) >> 5);
 
-    chprintf((BaseSequentialStream*)&SD1, "wrong resolution: %02x\r\n", sc[4] & 0x60);
-    // TODO: add fix the resolution
+    // fix the resolution
+    do {
+      sc[4] &= DS18B20_RESOLUTION_MASK ^ 0xff;
+      sc[4] |= DS18B20_RESOLUTION_12BIT;
+
+      res = OWire::owDriver.SendCommand((uint8_t)OWire::Command::WriteScratcpad);
+      if (!res)
+        break;
+
+      res = OWire::owDriver.Write(&sc[2], 3);
+      if (!res)
+        break;
+
+//      res = OWire::owDriver.SendCommand((uint8_t)OWire::Command::CopyScratchpad);
+      if (!res)
+        break;
+
+      Util::log("fix ok");
+
+    } while (false);
+
   }
 
   //chprintf((BaseSequentialStream*)&SD1, "data: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
@@ -102,6 +125,16 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
 
   if (t2 > 14000)
     chprintf((BaseSequentialStream*)&SD1, "data: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
+
+  uint16_t curt = OWire::owDriver.getOwList()->GetTemperature(id);
+
+  // if temp was ok and difference more than 3C - repeat.
+  if (curt && curt != 0xffff && std::abs((int)curt - (int)t2) > 300) {
+    Util::log("dif temp too high. repeat. was %04x now %04x\r\n", curt, t2);
+
+    if (repeatCount-- > 0)
+      goto repeat;
+  }
 
   res = OWire::owDriver.getOwList()->SetTemperature(id, t2);
   if (!res)
