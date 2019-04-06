@@ -413,6 +413,7 @@ repeat:
           chprintf((BaseSequentialStream*)&SD1, "\r\n 0x03 error!\r\n");
 
           // make repeat several times...
+          parentThread->sleep(MS2ST(10));
           goto repeat;
         }
 
