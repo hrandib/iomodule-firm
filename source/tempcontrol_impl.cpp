@@ -31,6 +31,7 @@
 #include "onewire.h"
 #include "chmsg.h"
 #include "utils.h"
+#include "string_utils.h"
 #include "crc8.h"
 
 #if BOARD_VER == 1
@@ -334,7 +335,7 @@ void TempControl::Print(BaseSequentialStream *chp) {
   for (uint8_t i = 0; i < MaxChannels; i++) {
     chprintf(chp, "Channel %d (%s):\r\n", i + 1, (GetChEnabled(i)) ? "enabled" : "disabled");
 
-    chprintf(chp, "  Sensor1:", i);
+    chprintf(chp, "  Sensor1:");
     if (memcmp(channels[i].id[0], idzero, 8)) {
       printHex(chp, channels[i].id[0], 8);
       if (OWire::owDriver.getOwList()->isSensorPresent(channels[i].id[0])) {
@@ -346,7 +347,7 @@ void TempControl::Print(BaseSequentialStream *chp) {
       chprintf(chp, " n/a");
     }
 
-    chprintf(chp, "\r\n  Sensor2:", i);
+    chprintf(chp, "\r\n  Sensor2:");
     if (memcmp(channels[i].id[1], idzero, 8)) {
       printHex(chp, channels[i].id[1], 8);
       if (OWire::owDriver.getOwList()->isSensorPresent(channels[i].id[1])) {
@@ -358,17 +359,8 @@ void TempControl::Print(BaseSequentialStream *chp) {
       chprintf(chp, " n/a");
     }
 
-    chprintf(chp, "\r\n  Temperature1: ", i);
-    if (channels[i].temp[0] != 0xffff)
-      chprintf(chp, "%d", channels[i].temp[0] - 100 * 100);
-    else
-      chprintf(chp, "n/a");
-
-    chprintf(chp, "\r\n  Temperature2: ", i);
-    if (channels[i].temp[1] != 0xffff)
-      chprintf(chp, "%d", channels[i].temp[1] - 100 * 100);
-    else
-      chprintf(chp, "n/a");
+    chprintf(chp, "\r\n  Temperature1: %s (%d)", io::SprintTemp(channels[i].temp[0]), channels[i].temp[0]);
+    chprintf(chp, "\r\n  Temperature2: %s (%d)", io::SprintTemp(channels[i].temp[1]), channels[i].temp[1]);
 
     chprintf(chp, "\r\n\r\n");
   }
@@ -389,15 +381,8 @@ void TempControl::PrintStatus(BaseSequentialStream *chp) {
     if (!GetChEnabled(i))
       continue;
 
-    if (chStatus[i].temp[0] != 0xffff)
-      chprintf(chp, "  temp1: %d\r\n", chStatus[i].temp[0] - 100 * 100);
-    else
-      chprintf(chp, "  temp1: n/a\r\n");
-
-    if (chStatus[i].temp[1] != 0xffff)
-      chprintf(chp, "  temp2: %d\r\n", chStatus[i].temp[1] - 100 * 100);
-    else
-      chprintf(chp, "  temp2: n/a\r\n");
+    chprintf(chp, "  temp1: %s (%d)\r\n", io::SprintTemp(chStatus[i].temp[0]), chStatus[i].temp[0]);
+    chprintf(chp, "  temp2: %s (%d)\r\n", io::SprintTemp(chStatus[i].temp[1]), chStatus[i].temp[1]);
 
     chprintf(chp, "  status: 0x%04x (0b", chStatus[i].state);
     Util::PrintBin(chStatus[i].state, 16, 4);

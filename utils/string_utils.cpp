@@ -191,6 +191,58 @@ namespace io {
     return sprintBuf;
   }
 
+  static char sprintTempBuf[8] = {0};
+  // temperature = (value + 100) * 100
+  // 0xff - temperature n/a
+  // 0..65535. from -100 to +555.34
+  char *SprintTemp(uint16_t temperature) {
+    memset(sprintTempBuf, 0, sizeof(sprintTempBuf));
+
+    if (temperature == 0xffff) {
+      sprintTempBuf[0] = 'n';
+      sprintTempBuf[1] = '/';
+      sprintTempBuf[2] = 'a';
+      return sprintTempBuf;
+    }
+
+    uint16_t vtemp = 0;
+
+    if (temperature < 100 * 100) {
+      vtemp = 100 * 100 - temperature;
+      sprintTempBuf[0] = '-';
+    } else {
+      vtemp = temperature - 100 * 100;
+      sprintTempBuf[0] = '+';
+    }
+
+    uint8_t cdigits = 1;
+    if (vtemp > 999)
+      cdigits = 2;
+    if (vtemp > 9999)
+      cdigits = 3;
+
+    sprintTempBuf[cdigits + 3] = '0' + vtemp % 10;
+    vtemp = vtemp / 10;
+
+    sprintTempBuf[cdigits + 2] = '0' + vtemp % 10;
+    vtemp = vtemp / 10;
+
+    sprintTempBuf[cdigits + 1] = '.';
+    sprintTempBuf[cdigits] = '0' + vtemp % 10;
+    vtemp = vtemp / 10;
+
+    if (cdigits > 1) {
+      sprintTempBuf[cdigits - 1] = '0' + vtemp % 10;
+      vtemp = vtemp / 10;
+
+      if (cdigits > 2)
+        sprintTempBuf[cdigits - 2] = '0' + vtemp % 10;
+    }
+
+
+    return sprintTempBuf;
+  }
+
 }//io
 
 

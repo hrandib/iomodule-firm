@@ -111,6 +111,7 @@ namespace io {
   std::optional<uint32_t> svtou(std::string_view str);
   bool hextobin(char *hex, uint8_t *bin, size_t len);
   char *SprintHex(uint8_t *data, size_t dataLen);
+  char *SprintTemp(uint16_t temperature);
 }//io
 
 #endif // STRING_UTILS_H
