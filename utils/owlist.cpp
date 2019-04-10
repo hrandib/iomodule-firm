@@ -123,8 +123,8 @@ namespace OWire {
       for (int j = 0; j < 8; j ++)
         chprintf(chp, " %02x", intlist[i].ID[j]);
       if (!printIDOnly) {
-        chprintf(chp, " temp: %s (%d)", io::SprintTemp(intlist[i].Temperature), intlist[i].Temperature);
-        chprintf(chp, " hum: %s (%d)", io::SprintTemp(intlist[i].Humidity), intlist[i].Humidity);
+        chprintf(chp, (intlist[i].Temperature == 0xffff) ? " temp: n/a" : " temp: %s (%d)", io::SprintTemp(intlist[i].Temperature), intlist[i].Temperature);
+        chprintf(chp, (intlist[i].Humidity == 0xffff) ? " hum: n/a" : " hum: %s (%d)", io::SprintTemp(intlist[i].Humidity), intlist[i].Humidity);
       }
       chprintf(chp, "\r\n");
     }
