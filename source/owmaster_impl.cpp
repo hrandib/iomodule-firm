@@ -72,7 +72,7 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
 
   // if resolution not 12 bit
   if ((sc[4] & DS18B20_RESOLUTION_MASK) != DS18B20_RESOLUTION_12BIT) {
-    chprintf((BaseSequentialStream*)&SD1, "resolution warning: %02x\r\n", (sc[4] & DS18B20_RESOLUTION_MASK) >> 5);
+    Util::log("resolution warning: %02x\r\n", (sc[4] & DS18B20_RESOLUTION_MASK) >> 5);
 
     // fix the resolution
     do {
@@ -93,7 +93,7 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
 
   }
 
-  //chprintf((BaseSequentialStream*)&SD1, "data: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
+  //Util::log("data: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
 
   // target format: (value + 100) * 100
   uint16_t temp = sc[0] + (uint16_t)(sc[1] << 8);
@@ -104,7 +104,7 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
   t2 = (100 * 100 + ((temp & 0x8000) ? -t2 : t2));
 
   if (t2 > 14000)
-    chprintf((BaseSequentialStream*)&SD1, "data-err: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
+    Util::log("data-err: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
 
   res = OWire::owDriver.getOwList()->SetTemperature(id, t2);
   if (!res)
@@ -120,7 +120,7 @@ void OWMaster::Process()
 
   // scan network. 60 min between scans
   if (!mesStarted && (lastNetScan == 0 || chVTGetSystemTimeX() - lastNetScan > 60 * 60 * 1000)) {
-//    chprintf((BaseSequentialStream*)&SD1, "OW network scan\r\n");
+//    Util::log("OW network scan\r\n");
     OWire::owDriver.Search(); // search all devices
     lastNetScan = chVTGetSystemTimeX();
     return;
@@ -138,7 +138,7 @@ void OWMaster::Process()
       return;
 
     mesStarted = true;
-//    chprintf((BaseSequentialStream*)&SD1, "OW start convert [%d] %s\r\n", OWire::owDriver.getOwList()->Count(), res ? "ok" : "err");
+//    Util::log("OW start convert [%d] %s\r\n", OWire::owDriver.getOwList()->Count(), res ? "ok" : "err");
     return;
   }
 
@@ -203,10 +203,10 @@ bool OWMaster::DS18B20ReadScratchpad(uint8_t *id, uint8_t *sp) {
     return res;
 
   if (!crc8(sc, 9)) {
-    chprintf((BaseSequentialStream*)&SD1, "read crc error\r\n");
+    Util::log("read crc error\r\n");
     return res;
   } else {
-    //chprintf((BaseSequentialStream*)&SD1, "read crc ok\r\n");
+    //Util::log("read crc ok\r\n");
   }
 
   memcpy(sp, sc, sizeof(sc));
