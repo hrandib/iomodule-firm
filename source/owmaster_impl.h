@@ -31,6 +31,7 @@
 #define DS18B20_RESOLUTION_10BIT 0x20
 #define DS18B20_RESOLUTION_11BIT 0x40
 #define DS18B20_RESOLUTION_12BIT 0x60
+#define DS18B20_SCRATCHPAD_LEN 0x09
 
 enum OWMasterCommand {
   owcmdNone,
@@ -45,6 +46,12 @@ private:
   bool mesStarted;
 
   void Process();
+
+  bool DS18B20DoubleReadScratchpad(uint8_t *id, uint8_t *sp, size_t maxErrorCycles);
+  bool DS18B20ReadScratchpad(uint8_t *id, uint8_t *sp);
+  bool DS18B20WriteScratchpad(uint8_t *id, uint8_t *sp);
+  bool DS18B20CopyScratchpad(uint8_t *id);
+
   bool Process18B20GetTemp(int listPosition);
 public:
   void Init();
