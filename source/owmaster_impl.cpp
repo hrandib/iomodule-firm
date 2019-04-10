@@ -79,15 +79,15 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
       sc[4] &= DS18B20_RESOLUTION_MASK ^ 0xff;
       sc[4] |= DS18B20_RESOLUTION_12BIT;
 
-      res = DS18B20WriteScratchpad(id, &sc[3]);
+      res = DS18B20WriteScratchpad(id, &sc[2]);
       if (!res)
         break;
 
-      //res = DS18B20CopyScratchpad(id);
+      res = DS18B20CopyScratchpad(id);
       if (!res)
         break;
 
-      Util::log("fix ok");
+      Util::log("fix ok\r\n");
 
     } while (false);
 
