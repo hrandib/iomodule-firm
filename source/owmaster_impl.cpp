@@ -22,6 +22,7 @@
 
 #include "owmaster_impl.h"
 #include <stdlib.h>
+#include <string.h>
 #include "digitalin.h"
 #include "digitalout.h"
 #include "analogin.h"
@@ -31,6 +32,7 @@
 #include "onewire.h"
 #include "crc8.h"
 #include "chmsg.h"
+#include "string_utils.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -63,28 +65,10 @@ bool OWMaster::Process18B20GetTemp(int listPosition) {
   if (!id)
     return false;
 
-  int repeatCount = 1;
-repeat:
-
-  res = OWire::owDriver.Select(id);
+  uint8_t sc[DS18B20_SCRATCHPAD_LEN];
+  res = DS18B20DoubleReadScratchpad(id, sc, 4);
   if (!res)
     return res;
-
-  res = OWire::owDriver.SendCommand((uint8_t)OWire::Command::ReadScratcpad);
-  if (!res)
-    return res;
-
-  uint8_t sc[9];
-  res = OWire::owDriver.Read(sc, sizeof(sc));
-  if (!res)
-    return res;
-
-  if (!crc8(sc, 9)) {
-    chprintf((BaseSequentialStream*)&SD1, "read crc error\r\n");
-    return res;
-  } else {
-    //chprintf((BaseSequentialStream*)&SD1, "read crc ok\r\n");
-  }
 
   // if resolution not 12 bit
   if ((sc[4] & DS18B20_RESOLUTION_MASK) != DS18B20_RESOLUTION_12BIT) {
@@ -95,15 +79,11 @@ repeat:
       sc[4] &= DS18B20_RESOLUTION_MASK ^ 0xff;
       sc[4] |= DS18B20_RESOLUTION_12BIT;
 
-      res = OWire::owDriver.SendCommand((uint8_t)OWire::Command::WriteScratcpad);
+      res = DS18B20WriteScratchpad(id, &sc[3]);
       if (!res)
         break;
 
-      res = OWire::owDriver.Write(&sc[2], 3);
-      if (!res)
-        break;
-
-//      res = OWire::owDriver.SendCommand((uint8_t)OWire::Command::CopyScratchpad);
+      //res = DS18B20CopyScratchpad(id);
       if (!res)
         break;
 
@@ -124,17 +104,7 @@ repeat:
   t2 = (100 * 100 + ((temp & 0x8000) ? -t2 : t2));
 
   if (t2 > 14000)
-    chprintf((BaseSequentialStream*)&SD1, "data: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
-
-  uint16_t curt = OWire::owDriver.getOwList()->GetTemperature(id);
-
-  // if temp was ok and difference more than 3C - repeat.
-  if (curt && curt != 0xffff && std::abs((int)curt - (int)t2) > 300) {
-    Util::log("dif temp too high. repeat. was %04x now %04x\r\n", curt, t2);
-
-    if (repeatCount-- > 0)
-      goto repeat;
-  }
+    chprintf((BaseSequentialStream*)&SD1, "data-err: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0], sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[7], sc[8]);
 
   res = OWire::owDriver.getOwList()->SetTemperature(id, t2);
   if (!res)
@@ -189,6 +159,86 @@ void OWMaster::Process()
   }
 
   return;
+}
+
+bool OWMaster::DS18B20DoubleReadScratchpad(uint8_t *id, uint8_t *sp, size_t maxErrorCycles) {
+  bool res;
+  uint8_t sc[2][DS18B20_SCRATCHPAD_LEN];
+
+  for (size_t i = 0; i < maxErrorCycles; i++) {
+    res = DS18B20ReadScratchpad(id, sc[0]);
+    if (!res)
+      continue;
+
+    res = DS18B20ReadScratchpad(id, sc[1]);
+    if (!res)
+      continue;
+
+    if (!memcmp(sc[0], sc[1], 9)) {
+      memcpy(sp, sc[0], 9);
+      return true;
+    } else {
+      Util::log("error receive a scratchpad [%s]:\r\n", io::SprintHex(id, 8));
+      Util::log("d1: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[0][0], sc[0][1], sc[0][2], sc[0][3], sc[0][4], sc[0][5], sc[0][6], sc[0][7], sc[0][8]);
+      Util::log("d2: %02x %02x %02x %02x %02x %02x %02x %02x %02x\r\n", sc[1][0], sc[1][1], sc[1][2], sc[1][3], sc[1][4], sc[1][5], sc[1][6], sc[1][7], sc[1][8]);
+    }
+  }
+
+  Util::log("cant read ds18b20 id:%s\r\n", io::SprintHex(id, 8));
+  return false;
+}
+
+bool OWMaster::DS18B20ReadScratchpad(uint8_t *id, uint8_t *sp) {
+  bool res = OWire::owDriver.Select(id);
+  if (!res)
+    return res;
+
+  res = OWire::owDriver.SendCommand((uint8_t)OWire::Command::ReadScratcpad);
+  if (!res)
+    return res;
+
+  uint8_t sc[DS18B20_SCRATCHPAD_LEN];
+  res = OWire::owDriver.Read(sc, sizeof(sc));
+  if (!res)
+    return res;
+
+  if (!crc8(sc, 9)) {
+    chprintf((BaseSequentialStream*)&SD1, "read crc error\r\n");
+    return res;
+  } else {
+    //chprintf((BaseSequentialStream*)&SD1, "read crc ok\r\n");
+  }
+
+  memcpy(sp, sc, sizeof(sc));
+  return true;
+}
+
+bool OWMaster::DS18B20WriteScratchpad(uint8_t *id, uint8_t *sp) {
+  bool res = OWire::owDriver.Select(id);
+  if (!res)
+    return res;
+
+  res = OWire::owDriver.SendCommand((uint8_t)OWire::Command::WriteScratcpad);
+  if (!res)
+    return res;
+
+  res = OWire::owDriver.Write(sp, 3);
+  if (!res)
+    return res;
+
+  return true;
+}
+
+bool OWMaster::DS18B20CopyScratchpad(uint8_t *id) {
+  bool res = OWire::owDriver.Select(id);
+  if (!res)
+    return res;
+
+  res = OWire::owDriver.SendCommand((uint8_t)OWire::Command::CopyScratchpad);
+  if (!res)
+    return res;
+
+  return true;
 }
 
 void OWMaster::Init() {

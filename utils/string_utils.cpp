@@ -175,6 +175,22 @@ namespace io {
     return true;
   }
 
+  static const char HEXs[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+  static char sprintBuf[20] = {0};
+  char *SprintHex(uint8_t *data, size_t dataLen) {
+    memset(sprintBuf, 0, sizeof(sprintBuf));
+
+    if(dataLen * 2 > sizeof(sprintBuf))
+      return nullptr;
+
+    for (size_t i = 0; i < dataLen; i++) {
+      sprintBuf[i * 2] = HEXs[(data[i] >> 4) & 0x0f];
+      sprintBuf[i * 2 + 1] = HEXs[data[i] & 0x0f];
+    }
+
+    return sprintBuf;
+  }
+
 }//io
 
 
