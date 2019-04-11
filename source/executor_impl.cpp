@@ -43,14 +43,11 @@ Executor executor;
 extern "C" {
 
 #define SMALL_RELAY 0x100
-#define ALL_RELAY 0x1FF
+#define BIG_RELAY 0x0FF
 
 #define SMALL_RELAY_IMPULSE_LEN 500
 #define INPUT_ANTICHATTER 200
 #define INPUT_GLOBALOFF 3000
-
-static systime_t pinsTime[5] = {0};
-static systime_t pinGOTime = 0; // impulse on small relay to make GlobalOff command on all controllers
 
 void Executor::Process()
 {
@@ -66,25 +63,19 @@ void Executor::Process()
       if (regBuffer16 & vbit) {
         // clear all if we release AllOFF button or release any button after 3s
         if (inputN > 3 || (time - pinsTime[inputN] > INPUT_GLOBALOFF)) {
-          Digital::OutputCommand cmd{};
-          cmd.Set(decltype(cmd)::Mode::Clear, ALL_RELAY);
-          Digital::output.SendMessage(cmd);
+          IOClearAll();
 
           // if it comes not from globalreset input
-          if (inputN < 4) {
-            Digital::OutputCommand cmdO{};
-            cmdO.Set(decltype(cmdO)::Mode::Set, SMALL_RELAY);
-            Digital::output.SendMessage(cmdO);
-          }
+          if (inputN < 4)
+            IOSetGlobalOff();
+
           pinGOTime = time;
         } else {
-          Digital::OutputCommand cmd{};
-          cmd.Set(decltype(cmd)::Mode::Toggle, vbit * vbit); // bits 0, 2, 4, 6 - relay
-          Digital::output.SendMessage(cmd);
+          IOToggle(inputN);
         }
       }
 
-      pinsTime[inputN] = chVTGetSystemTimeX();
+      pinsTime[inputN] = time;
     }
   }
 
@@ -106,9 +97,37 @@ void Executor::Process()
   return;
 }
 
+bool Executor::IOSet(uint8_t channel, bool value) {
+  Digital::OutputCommand cmd{};
+  if (value)                          // bits 0, 2, 4, 6 - relay
+    cmd.Set(decltype(cmd)::Mode::Set, 1 << (channel * 2));
+  else
+    cmd.Set(decltype(cmd)::Mode::Clear, 1 << (channel * 2));
+  return Digital::output.SendMessage(cmd) == MSG_OK;
+}
+
+bool Executor::IOToggle(uint8_t channel) {
+  Digital::OutputCommand cmd{};        // bits 0, 2, 4, 6 - relay
+  cmd.Set(decltype(cmd)::Mode::Toggle, 1 << (channel * 2));
+  return Digital::output.SendMessage(cmd) == MSG_OK;
+}
+
+bool Executor::IOClearAll() {
+  Digital::OutputCommand cmd{};
+  cmd.Set(decltype(cmd)::Mode::Clear, BIG_RELAY);
+  return Digital::output.SendMessage(cmd) == MSG_OK;
+}
+
+bool Executor::IOSetGlobalOff() {
+  Digital::OutputCommand cmd{};
+  cmd.Set(decltype(cmd)::Mode::Set, SMALL_RELAY);
+  return Digital::output.SendMessage(cmd) == MSG_OK;
+}
+
 void Executor::Init()
 {
   oldRegBuffer16 = 0x1ff;
+  SimistorPlusRelay = false;
   start(NORMALPRIO + 12);
 }
 
@@ -122,6 +141,29 @@ void Executor::main()
       Process();
     sleep(MS2ST(100));
   }
+}
+
+void Executor::Print() {
+  if (!Util::sConfig.GetExecutorEnable()) {
+    Util::log("Executor module in DISABLED state\r\n");
+    return;
+  }
+  Util::log("Executor module status:\r\n");
+
+  uint16_t outBuffer16 = Digital::output.GetBinaryVal();
+  uint16_t inBuffer16 = Digital::input.GetBinaryVal();
+
+  Util::log("input values: 0x%04x 0b", inBuffer16);
+  Util::PrintBin(inBuffer16, 8, 0);
+  Util::log("\r\noutput values: 0x%04x 0b", outBuffer16);
+  Util::PrintBin(outBuffer16, 9, 0);
+  Util::log("\r\n");
+
+  for (uint8_t i = 0; i < 4; i++)
+    Util::log("channel%d: %s\r\n", i, (outBuffer16 & (1 << (i * 2))) ? "on" : "off");
+
+  Util::log("globaloff: %s\r\n", (outBuffer16 & 0x100) ? "on" : "off");
+  Util::log("\r\n");
 }
 
 } // extern C

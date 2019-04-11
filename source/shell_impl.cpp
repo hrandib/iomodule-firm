@@ -33,6 +33,7 @@
 #include "owmaster_impl.h"
 #include "sconfig.h"
 #include "tempcontrol_impl.h"
+#include "executor_impl.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -51,6 +52,7 @@ static void cmd_getcounters(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_cpuid(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_uptime(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_setup(BaseSequentialStream *chp, int argc, char *argv[]);
+static void cmd_ex(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_ow(BaseSequentialStream *chp, int argc, char *argv[]);
 static void cmd_temp(BaseSequentialStream *chp, int argc, char *argv[]);
 
@@ -65,8 +67,9 @@ static const ShellCommand commands[] = {
   {"cpuid", cmd_cpuid},
   {"uptime", cmd_uptime},
   {"setup", cmd_setup},
-  {"temp", cmd_temp},
+  {"ex", cmd_ex},
   {"ow", cmd_ow},
+  {"temp", cmd_temp},
   {nullptr, nullptr}
 };
 
@@ -392,6 +395,48 @@ void cmd_ow(BaseSequentialStream *chp, int argc, char* argv[])
                   "\r\nReturns current devices list if no arguments passed"
                   "\r\n\tow scan - manually rescans network"
                   "\r\n\tow mes - manually start measurement cycle");
+  return;
+}
+
+void cmd_ex(BaseSequentialStream *chp, int argc, char* argv[])
+{
+  if(!argc) {
+    executor.Print();
+    return;
+  }
+
+  if("goff"sv == argv[0]) {
+    executor.IOClearAll();
+    executor.IOSetGlobalOff();
+    return;
+  }
+
+  auto value = io::svtou(argv[0]);
+  if(value && *value > 0 && *value < 5) {
+    executor.IOToggle((uint8_t)*value - 1);
+    return;
+  }
+
+  if (argc >= 2) {
+    auto ch = io::svtou(argv[1]);
+    if(ch && *ch > 0 && *ch < 5) {
+      if("set"sv == argv[0]) {
+        executor.IOSet((uint8_t)*ch - 1, true);
+        return;
+      }
+      if("res"sv == argv[0]) {
+        executor.IOSet((uint8_t)*ch - 1, false);
+        return;
+      }
+    }
+  }
+
+  shellUsage(chp, "Control executor module"
+                  "\r\nReturns current state if no arguments passed"
+                  "\r\n\tex <num> - toggle output 1-4"
+                  "\r\n\tex goff - off all outputs and issue `global off` signal from relay"
+                  "\r\n\tex set <num> - set output 1-4"
+                  "\r\n\tex res <num> - reset output 1-4");
   return;
 }
 
