@@ -35,12 +35,13 @@ private:
   void Process();
 
   systime_t pinsTime[5] = {0};
+  systime_t triacsTime[4] = {0};
   systime_t pinGOTime = 0; // impulse on small relay to make GlobalOff command on all controllers
 public:
   void Init();
   void main() override;
 
-  bool SimistorPlusRelay;
+  bool TriacsDisabled;
   bool IOSet(uint8_t channel, bool value);
   bool IOToggle(uint8_t channel);
   bool IOClearAll();

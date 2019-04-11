@@ -56,6 +56,53 @@ void Executor::Process()
   uint16_t changedBuffer = oldRegBuffer16 ^ regBuffer16;
   systime_t time = chVTGetSystemTimeX();
 
+  // triac control
+  if (!TriacsDisabled) {
+    for (uint8_t chId = 0; chId < 4; chId++) {
+      bool triacOn = outBuffer16 & (1 << (chId * 2 + 1));
+      bool relayOn = outBuffer16 & (1 << (chId * 2));
+
+      // triac=on, timer=off ==> set the timer
+      if (triacOn && !triacsTime[chId]) {
+        triacsTime[chId] = time;
+        continue;
+      }
+
+      // triac=on, relay=off, timer>60ms ==> power the relay
+      if (triacOn && !relayOn && time - triacsTime[chId] > 60) {
+        Digital::OutputCommand cmd{};
+        cmd.Set(decltype(cmd)::Mode::Set, 1 << (chId * 2));
+        Digital::output.SendMessage(cmd);
+        continue;
+      }
+
+      // triac=on, relay=on, timer>160ms ==> power off the triac
+      if (triacOn && !relayOn && time - triacsTime[chId] > 160) {
+        Digital::OutputCommand cmd{};
+        cmd.Set(decltype(cmd)::Mode::Clear, 1 << (chId * 2 + 1));
+        Digital::output.SendMessage(cmd);
+
+        triacsTime[chId] = 0;
+        continue;
+      }
+    }
+  }
+
+  // small relay is on and timeout is not set
+  if(!pinGOTime && outBuffer16 & SMALL_RELAY) {
+    pinGOTime = time;
+  }
+
+  // timeout on small relay for 500ms and then put it to high
+  if(pinGOTime && time - pinGOTime > SMALL_RELAY_IMPULSE_LEN) {
+    Digital::OutputCommand cmd{};
+    cmd.Set(decltype(cmd)::Mode::Clear, SMALL_RELAY);
+    Digital::output.SendMessage(cmd);
+
+    pinGOTime = 0;
+  }
+
+  // main control
   for (uint8_t inputN = 0; inputN < 5; inputN++) {
     uint16_t vbit = uint16_t(1 << inputN);
     // 200ms timeout
@@ -79,43 +126,48 @@ void Executor::Process()
     }
   }
 
-  // small relay is on and timeout is not set
-  if(!pinGOTime && outBuffer16 & SMALL_RELAY) {
-    pinGOTime = time;
-  }
-
-  // timeout on small relay for 500ms and then put it to high
-  if(pinGOTime && time - pinGOTime > SMALL_RELAY_IMPULSE_LEN) {
-    Digital::OutputCommand cmd{};
-    cmd.Set(decltype(cmd)::Mode::Clear, SMALL_RELAY);
-    Digital::output.SendMessage(cmd);
-
-    pinGOTime = 0;
-  }
-
   oldRegBuffer16 = regBuffer16;
   return;
 }
 
 bool Executor::IOSet(uint8_t channel, bool value) {
-  Digital::OutputCommand cmd{};
-  if (value)                          // bits 0, 2, 4, 6 - relay
-    cmd.Set(decltype(cmd)::Mode::Set, 1 << (channel * 2));
-  else
-    cmd.Set(decltype(cmd)::Mode::Clear, 1 << (channel * 2));
-  return Digital::output.SendMessage(cmd) == MSG_OK;
+  if (TriacsDisabled) {
+    Digital::OutputCommand cmd{};
+    if (value)                          // bits 0, 2, 4, 6 - relay
+      cmd.Set(decltype(cmd)::Mode::Set, 1 << (channel * 2));
+    else
+      cmd.Set(decltype(cmd)::Mode::Clear, 1 << (channel * 2));
+    return Digital::output.SendMessage(cmd) == MSG_OK;
+  } else {
+    uint16_t outBuffer16 = Digital::output.GetBinaryVal();
+
+  }
 }
 
 bool Executor::IOToggle(uint8_t channel) {
-  Digital::OutputCommand cmd{};        // bits 0, 2, 4, 6 - relay
-  cmd.Set(decltype(cmd)::Mode::Toggle, 1 << (channel * 2));
-  return Digital::output.SendMessage(cmd) == MSG_OK;
+  if (TriacsDisabled) {
+    Digital::OutputCommand cmd{};        // bits 0, 2, 4, 6 - relay
+    cmd.Set(decltype(cmd)::Mode::Toggle, 1 << (channel * 2));
+    return Digital::output.SendMessage(cmd) == MSG_OK;
+  } else {
+    Digital::OutputCommand cmd{};     // bits 1, 3, 5, 7 - triacs
+    cmd.Set(decltype(cmd)::Mode::Set, 1 << (channel * 2 + 1));
+    return Digital::output.SendMessage(cmd) == MSG_OK;
+  }
 }
 
 bool Executor::IOClearAll() {
-  Digital::OutputCommand cmd{};
-  cmd.Set(decltype(cmd)::Mode::Clear, BIG_RELAY);
-  return Digital::output.SendMessage(cmd) == MSG_OK;
+  if (TriacsDisabled) {
+    Digital::OutputCommand cmd{};
+    cmd.Set(decltype(cmd)::Mode::Clear, BIG_RELAY);
+    return Digital::output.SendMessage(cmd) == MSG_OK;
+  } else {
+    uint16_t outBuffer16 = Digital::output.GetBinaryVal();
+
+    Digital::OutputCommand cmd{};      // shifts relays in ON state to triacs
+    cmd.Set(decltype(cmd)::Mode::Set, ((outBuffer16 & 0x55) << 1) & 0xff);
+    return Digital::output.SendMessage(cmd) == MSG_OK;
+  }
 }
 
 bool Executor::IOSetGlobalOff() {
@@ -127,7 +179,7 @@ bool Executor::IOSetGlobalOff() {
 void Executor::Init()
 {
   oldRegBuffer16 = 0x1ff;
-  SimistorPlusRelay = false;
+  TriacsDisabled = true;
   start(NORMALPRIO + 12);
 }
 
@@ -137,9 +189,12 @@ void Executor::main()
   sleep(MS2ST(3000));
 
   while(true) {
-    if (Util::sConfig.GetExecutorEnable())
+    bool executorEnable = Util::sConfig.GetExecutorEnable();
+    if (executorEnable)
       Process();
-    sleep(MS2ST(100));
+
+    // fast only if we needs triac control
+    sleep((TriacsDisabled || !executorEnable) ? MS2ST(100) : MS2ST(20));
   }
 }
 
