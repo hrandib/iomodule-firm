@@ -73,11 +73,12 @@ void Executor::Process()
         Digital::OutputCommand cmd{};
         cmd.Set(decltype(cmd)::Mode::Set, 1 << (chId * 2));
         Digital::output.SendMessage(cmd);
+        triacsTime[chId] = time;
         continue;
       }
 
-      // triac=on, relay=on, timer>160ms ==> power off the triac
-      if (triacOn && !relayOn && time - triacsTime[chId] > 160) {
+      // triac=on, relay=on, timer>100ms ==> power off the triac
+      if (triacOn && !relayOn && time - triacsTime[chId] > 100) {
         Digital::OutputCommand cmd{};
         cmd.Set(decltype(cmd)::Mode::Clear, 1 << (chId * 2 + 1));
         Digital::output.SendMessage(cmd);
