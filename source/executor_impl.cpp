@@ -155,6 +155,13 @@ bool Executor::OutSet(uint8_t channel, bool value) {
   } else {
     uint16_t outBuffer16 = Digital::output.GetBinaryVal();
 
+    // set triac timer
+    if((outBuffer16 & ChRelay2Mask(channel)) != value) {
+      bool res =  IOSet(ChTriac2Mask(channel));
+      triacsTime[channel] = chVTGetSystemTimeX();
+      return res;
+    }
+    return true;
   }
 }
 
@@ -162,9 +169,11 @@ bool Executor::OutToggle(uint8_t channel) {
   if (TriacsDisabled) {
     return IOToggle(ChRelay2Mask(channel));
   } else {
-    return IOSet(ChTriac2Mask(channel));
+    bool res =  IOSet(ChTriac2Mask(channel));
 
     // set triac timer
+    triacsTime[channel] = chVTGetSystemTimeX();
+    return res;
   }
 }
 
@@ -175,9 +184,14 @@ bool Executor::OutClearAll() {
     uint16_t outBuffer16 = Digital::output.GetBinaryVal();
 
     // shifts relays in ON state to triacs
-    return IOSet(((outBuffer16 & 0x55) << 1) & 0xff);
+    bool res =  IOSet(((outBuffer16 & 0x55) << 1) & 0xff);
 
     // set triac timer
+    for (uint8_t i = 0; i < 4; i++)
+      if(outBuffer16 & ChRelay2Mask(i))
+        triacsTime[i] = chVTGetSystemTimeX();
+
+    return res;
   }
 }
 
