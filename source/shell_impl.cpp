@@ -406,14 +406,14 @@ void cmd_ex(BaseSequentialStream *chp, int argc, char* argv[])
   }
 
   if("goff"sv == argv[0]) {
-    executor.IOClearAll();
-    executor.IOSetGlobalOff();
+    executor.OutClearAll();
+    executor.OutGlobalOff();
     return;
   }
 
   auto value = io::svtou(argv[0]);
   if(value && *value > 0 && *value < 5) {
-    executor.IOToggle((uint8_t)*value - 1);
+    executor.OutToggle((uint8_t)*value - 1);
     return;
   }
 
@@ -421,11 +421,11 @@ void cmd_ex(BaseSequentialStream *chp, int argc, char* argv[])
     auto ch = io::svtou(argv[1]);
     if(ch && *ch > 0 && *ch < 5) {
       if("set"sv == argv[0]) {
-        executor.IOSet((uint8_t)*ch - 1, true);
+        executor.OutSet((uint8_t)*ch - 1, true);
         return;
       }
       if("res"sv == argv[0]) {
-        executor.IOSet((uint8_t)*ch - 1, false);
+        executor.OutSet((uint8_t)*ch - 1, false);
         return;
       }
     }
