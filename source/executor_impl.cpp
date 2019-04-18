@@ -64,26 +64,32 @@ void Executor::Process()
   // triac control
   if (!TriacsDisabled) {
     for (uint8_t chId = 0; chId < 4; chId++) {
-      bool triacOn = outBuffer16 & (1 << (chId * 2 + 1));
-      bool relayOn = outBuffer16 & (1 << (chId * 2));
+      //bool relayOn = outBuffer16 & ChRelay2Mask(chId);
+      bool triacOn = outBuffer16 & ChTriac2Mask(chId);
 
       // triac=on, timer=off ==> set the timer
-      if (triacOn && !triacsTime[chId]) {
-        triacsTime[chId] = time;
+      if (triacOn && !triacsTimeOn[chId] && !triacsTimeOff[chId]) {
+        triacsTimeOn[chId] = time;
+        triacsTimeOff[chId] = 0;
+        Util::log("%d triac %d set time\r\n", time, chId);
         continue;
       }
 
-      // triac=on, relay=off, timer>60ms ==> power the relay, set the timer
-      if (triacOn && !relayOn && time - triacsTime[chId] > 60) {
-        IOSet(ChRelay2Mask(chId));
-        triacsTime[chId] = time;
+      // triac=on, timer>100ms ==> toggle the relay, set the timer
+      if (triacOn && triacsTimeOn[chId] && time - triacsTimeOn[chId] > 100) {
+        IOToggle(ChRelay2Mask(chId));
+        triacsTimeOn[chId] = 0;
+        triacsTimeOff[chId] = time;
+        Util::log("%d triac %d toggle relay\r\n", time, chId);
         continue;
       }
 
-      // triac=on, relay=on, timer>100ms ==> power off the triac, disable the timer
-      if (triacOn && !relayOn && time - triacsTime[chId] > 100) {
+      // triac=on, 1st phase is done, timer>100ms ==> power off the triac, disable the timer
+      if (triacOn && !triacsTimeOn[chId] && time - triacsTimeOff[chId] > 100) {
         IOClear(ChTriac2Mask(chId));
-        triacsTime[chId] = 0;
+        triacsTimeOn[chId] = 0;
+        triacsTimeOff[chId] = 0;
+        Util::log("%d triac %d clear\r\n", time, chId);
         continue;
       }
     }
@@ -158,7 +164,7 @@ bool Executor::OutSet(uint8_t channel, bool value) {
     // set triac timer
     if((outBuffer16 & ChRelay2Mask(channel)) != value) {
       bool res =  IOSet(ChTriac2Mask(channel));
-      triacsTime[channel] = chVTGetSystemTimeX();
+      triacsTimeOn[channel] = chVTGetSystemTimeX();
       return res;
     }
     return true;
@@ -172,7 +178,7 @@ bool Executor::OutToggle(uint8_t channel) {
     bool res =  IOSet(ChTriac2Mask(channel));
 
     // set triac timer
-    triacsTime[channel] = chVTGetSystemTimeX();
+    //triacsTimeOn[channel] = chVTGetSystemTimeX();
     return res;
   }
 }
@@ -189,7 +195,7 @@ bool Executor::OutClearAll() {
     // set triac timer
     for (uint8_t i = 0; i < 4; i++)
       if(outBuffer16 & ChRelay2Mask(i))
-        triacsTime[i] = chVTGetSystemTimeX();
+        triacsTimeOn[i] = chVTGetSystemTimeX();
 
     return res;
   }
@@ -202,7 +208,7 @@ bool Executor::OutGlobalOff() {
 void Executor::Init()
 {
   oldRegBuffer16 = 0x1ff;
-  TriacsDisabled = true;
+  TriacsDisabled = false;
   start(NORMALPRIO + 12);
 }
 

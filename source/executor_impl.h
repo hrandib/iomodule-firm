@@ -35,7 +35,8 @@ private:
   void Process();
 
   systime_t pinsTime[5] = {0};
-  systime_t triacsTime[4] = {0};
+  systime_t triacsTimeOn[4] = {0};
+  systime_t triacsTimeOff[4] = {0};
   systime_t pinGOTime = 0; // impulse on small relay to make GlobalOff command on all controllers
 
   bool IOSet(uint16_t reg);
