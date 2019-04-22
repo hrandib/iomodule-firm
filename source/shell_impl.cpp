@@ -411,6 +411,34 @@ void cmd_ex(BaseSequentialStream *chp, int argc, char* argv[])
     return;
   }
 
+  if("setup"sv == argv[0]) {
+    if (argc > 2 && "triacs"sv == argv[1]) {
+      if ("on"sv == argv[2]) {
+        executor.SetTriacsDisabled(false);
+      }
+      if ("off"sv == argv[2]) {
+        executor.SetTriacsDisabled(true);
+      }
+      if ("toggle"sv == argv[2]) {
+        executor.SetTriacsDisabled(!executor.GetTriacsDisabled());
+      }
+      Util::log("Triacs: %s\r\n", executor.GetTriacsDisabled() ? "off" : "on");
+    }
+
+    if (argc > 3 && "timer"sv == argv[1]) {
+      auto ch = io::svtou(argv[2]);
+      auto val = io::svtou(argv[3]);
+      if(ch && *ch > 0 && *ch < 17 && val && *val < 65536) {
+        executor.SetPinOff(*ch & 0xff - 1, *val & 0xffff);
+        Util::log("setup timer [%d] %d\r\n", *ch, *val);
+      } else {
+        Util::log("Error: Invalid value.\r\n");
+      }
+    }
+
+    return;
+  }
+
   auto value = io::svtou(argv[0]);
   if(value && *value > 0 && *value < 5) {
     executor.OutToggle((uint8_t)*value - 1);
@@ -436,7 +464,10 @@ void cmd_ex(BaseSequentialStream *chp, int argc, char* argv[])
                   "\r\n\tex <num> - toggle output 1-4"
                   "\r\n\tex goff - off all outputs and issue `global off` signal from relay"
                   "\r\n\tex set <num> - set output 1-4"
-                  "\r\n\tex res <num> - reset output 1-4");
+                  "\r\n\tex res <num> - reset output 1-4"
+                  "\r\nSetup:"
+                  "\r\n\tex setup triacs <on|off|toggle> - setup using triacs with relay"
+                  "\r\n\tex setup time <num> <time in 0.1s> - setup time to send off on channel <num>. time up to 65535 = 6553.5s=1.82hour");
   return;
 }
 

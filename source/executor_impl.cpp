@@ -106,7 +106,23 @@ void Executor::Process()
     pinGOTime = 0;
   }
 
-  // TODO: timeout ON to OFF control
+  // timeout ON to OFF control
+  for(uint8_t i = 0; i < 16; i++)
+    if(PINTimeOffSetup[i]) {
+      bool io = outBuffer16 & (1 << i);
+
+      if (!io && PINTimeOff[i])
+        PINTimeOff[i] = 0;
+
+      if (io && !PINTimeOff[i])
+        PINTimeOff[i] = time;
+
+      // PINTimeOffSetup in 0.1s = 100ms
+      if (io && PINTimeOff[i] && time - PINTimeOff[i] > PINTimeOffSetup[i] * 100) {
+        IOClear((1 << i) & 0xffff);
+        PINTimeOff[i] = 0;
+      }
+    }
 
   // main control
   for (uint8_t inputN = 0; inputN < 5; inputN++) {
@@ -229,6 +245,22 @@ void Executor::main()
   }
 }
 
+void Executor::SetTriacsDisabled(bool state) {
+  TriacsDisabled = state;
+  // TODO: save to flash
+}
+
+bool Executor::GetTriacsDisabled() {
+  return TriacsDisabled;
+}
+
+void Executor::SetPinOff(uint8_t channel, uint16_t time) {
+  if (channel > 15)
+    return;
+
+  PINTimeOffSetup[channel] = time;
+}
+
 void Executor::Print() {
   if (!Util::sConfig.GetExecutorEnable()) {
     Util::log("Executor module in DISABLED state\r\n");
@@ -238,6 +270,8 @@ void Executor::Print() {
 
   uint16_t outBuffer16 = Digital::output.GetBinaryVal();
   uint16_t inBuffer16 = Digital::input.GetBinaryVal();
+
+  Util::log("Triacs: %s\r\n", TriacsDisabled ? "off" : "on");
 
   Util::log("input values: 0x%04x 0b", inBuffer16);
   Util::PrintBin(inBuffer16, 8, 0);
@@ -249,6 +283,17 @@ void Executor::Print() {
     Util::log("channel%d: %s\r\n", i, (outBuffer16 & (1 << (i * 2))) ? "on" : "off");
 
   Util::log("globaloff: %s\r\n", (outBuffer16 & 0x100) ? "on" : "off");
+
+  bool atmr = false;
+  for (uint8_t i = 0; i < 16; i++)
+    if (PINTimeOffSetup[i]) {
+      if (!atmr) {
+        Util::log("Timer off:\r\n");
+        atmr = true;
+      }
+      Util::log("[%d] %d\r\n", i + 1, PINTimeOffSetup[i]);
+    }
+
   Util::log("\r\n");
 }
 

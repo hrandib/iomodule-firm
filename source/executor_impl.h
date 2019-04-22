@@ -34,10 +34,14 @@ private:
   uint16_t oldRegBuffer16;
   void Process();
 
+  bool TriacsDisabled;
   systime_t pinsTime[5] = {0};
   systime_t triacsTimeOn[4] = {0};
   systime_t triacsTimeOff[4] = {0};
   systime_t pinGOTime = 0; // impulse on small relay to make GlobalOff command on all controllers
+
+  systime_t PINTimeOffSetup[16] = {0};
+  systime_t PINTimeOff[16] = {0};
 
   bool IOSet(uint16_t reg);
   bool IOClear(uint16_t reg);
@@ -46,7 +50,10 @@ public:
   void Init();
   void main() override;
 
-  bool TriacsDisabled;
+  void SetTriacsDisabled(bool state);
+  bool GetTriacsDisabled();
+  void SetPinOff(uint8_t channel, uint16_t time);
+
   bool OutSet(uint8_t channel, bool value);
   bool OutToggle(uint8_t channel);
   bool OutClearAll();
