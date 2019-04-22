@@ -33,6 +33,7 @@ enum class Section {
   Modbus,
   Setup,
   TempSetup,
+  Executor,
 
   SectionLast
 };
@@ -47,6 +48,7 @@ static const Sections_t eepromSections[static_cast<uint8_t>(Section::SectionLast
   {4, 4},
   {8, 4},   // Setup
   {12, 83}, // TempSetup. 20b record * 4 records + 2b settings + 1b crc = 83b
+  {95, 35}, // 2b settings + 16 channels * 2b + crc = 35
 };
 
 namespace CAT24C08 {
