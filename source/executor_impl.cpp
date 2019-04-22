@@ -71,7 +71,7 @@ void Executor::Process()
       if (triacOn && !triacsTimeOn[chId] && !triacsTimeOff[chId]) {
         triacsTimeOn[chId] = time;
         triacsTimeOff[chId] = 0;
-        Util::log("%d triac %d set time\r\n", time, chId);
+        //Util::log("%d triac %d set time\r\n", time, chId);
         continue;
       }
 
@@ -80,7 +80,7 @@ void Executor::Process()
         IOToggle(ChRelay2Mask(chId));
         triacsTimeOn[chId] = 0;
         triacsTimeOff[chId] = time;
-        Util::log("%d triac %d toggle relay\r\n", time, chId);
+        //Util::log("%d triac %d toggle relay\r\n", time, chId);
         continue;
       }
 
@@ -89,7 +89,7 @@ void Executor::Process()
         IOClear(ChTriac2Mask(chId));
         triacsTimeOn[chId] = 0;
         triacsTimeOff[chId] = 0;
-        Util::log("%d triac %d clear\r\n", time, chId);
+        //Util::log("%d triac %d clear\r\n", time, chId);
         continue;
       }
     }
@@ -105,6 +105,8 @@ void Executor::Process()
     IOClear(SMALL_RELAY);
     pinGOTime = 0;
   }
+
+  // TODO: timeout ON to OFF control
 
   // main control
   for (uint8_t inputN = 0; inputN < 5; inputN++) {
@@ -178,7 +180,7 @@ bool Executor::OutToggle(uint8_t channel) {
     bool res =  IOSet(ChTriac2Mask(channel));
 
     // set triac timer
-    //triacsTimeOn[channel] = chVTGetSystemTimeX();
+    triacsTimeOn[channel] = chVTGetSystemTimeX();
     return res;
   }
 }
