@@ -412,6 +412,22 @@ void cmd_ex(BaseSequentialStream *chp, int argc, char* argv[])
   }
 
   if("setup"sv == argv[0]) {
+    if (argc > 1 && "save"sv == argv[1]) {
+      if (executor.SaveToEEPROM()) {
+        Util::log("Save OK.\r\n");
+      } else {
+        Util::log("Save error.\r\n");
+      }
+    }
+
+    if (argc > 1 && "load"sv == argv[1]) {
+      if (executor.LoadFromEEPROM()) {
+        Util::log("Load OK.\r\n");
+      } else {
+        Util::log("Load error.\r\n");
+      }
+    }
+
     if (argc > 2 && "triacs"sv == argv[1]) {
       if ("on"sv == argv[2]) {
         executor.SetTriacsDisabled(false);
@@ -429,7 +445,7 @@ void cmd_ex(BaseSequentialStream *chp, int argc, char* argv[])
       auto ch = io::svtou(argv[2]);
       auto val = io::svtou(argv[3]);
       if(ch && *ch > 0 && *ch < 17 && val && *val < 65536) {
-        executor.SetPinOff(*ch & 0xff - 1, *val & 0xffff);
+        executor.SetPinOff((*ch & 0xff) - 1, *val & 0xffff);
         Util::log("setup timer [%d] %d\r\n", *ch, *val);
       } else {
         Util::log("Error: Invalid value.\r\n");

@@ -30,6 +30,7 @@
 #include "onewire.h"
 #include "utils.h"
 #include "tempcontrol_impl.h"
+#include "executor_impl.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -74,7 +75,11 @@ enum Range {
 
   // ow records. record = 12b or 6 reg
   R_OWStart = 400,
-  R_OWSize = 96    // 16 records 96 reg * 2b = 192b
+  R_OWSize = 96,    // 16 records 96 reg * 2b = 192b
+
+  // executor
+  R_ExStart = 500,
+  R_ExSize = 16 + 1    //
 };
 
 extern "C" {
@@ -310,6 +315,38 @@ bool MBAddressInDiap(USHORT address, USHORT nregs, USHORT mbDiapAddress, USHORT 
 
       return MB_ENOERR;
     }
+
+    // executor setup
+    if(MBAddressInDiap(usAddress, usNRegs, R_ExStart, R_ExSize)) {
+      if(eMode == MB_REG_READ) {
+        uint8_t *data = executor.GetModbusMem((usAddress - R_ExStart) * 2, usNRegs * 2);
+        if (data) {
+          memcpy(pucRegBuffer, data, usNRegs * 2);
+
+          // swap uint16
+          for(uint16_t i = 0; i < usNRegs; i++) {
+            regBuffer16[i] = Uint16Swap(regBuffer16[i]);
+          }
+
+          return MB_ENOERR;
+        } else {
+          return MB_ENOREG;
+        }
+      } else {
+        // swap uint16
+        for(uint16_t i = 0; i < usNRegs; i++) {
+          regBuffer16[i] = Uint16Swap(regBuffer16[i]);
+        }
+
+        if(!executor.SetModbusMem((usAddress - R_ExStart) * 2, usNRegs * 2, (uint8_t *)regBuffer16))
+          return MB_ENOREG;
+
+        executor.SaveToEEPROM();
+
+        return MB_ENOERR;
+      }
+    }
+
 
     //Digital output data, write only part (set/clear/toggle)
     if(eMode == MB_REG_READ &&
