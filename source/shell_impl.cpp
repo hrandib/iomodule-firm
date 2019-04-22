@@ -483,7 +483,7 @@ void cmd_ex(BaseSequentialStream *chp, int argc, char* argv[])
                   "\r\n\tex res <num> - reset output 1-4"
                   "\r\nSetup:"
                   "\r\n\tex setup triacs <on|off|toggle> - setup using triacs with relay"
-                  "\r\n\tex setup time <channel> <time in 0.1s> - setup pulse mode. <time> - send on->off command into channel. max pulse length is 65535 = 6553.5s = 1.82hour");
+                  "\r\n\tex setup timer <channel> <time in 0.1s> - setup pulse mode. <time> - send on->off command into channel. max pulse length is 65535 = 6553.5s = 1.82hour");
   return;
 }
 
