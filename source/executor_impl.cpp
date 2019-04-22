@@ -288,7 +288,7 @@ void Executor::Print() {
   for (uint8_t i = 0; i < 16; i++)
     if (PINTimeOffSetup[i]) {
       if (!atmr) {
-        Util::log("Timer off:\r\n");
+        Util::log("Channel timer off:\r\n");
         atmr = true;
       }
       Util::log("[%d] %d\r\n", i + 1, PINTimeOffSetup[i]);
