@@ -21,12 +21,14 @@
  */
 
 #include "executor_impl.h"
+#include "string.h"
 #include "digitalin.h"
 #include "digitalout.h"
 #include "analogin.h"
 #include "order_conv.h"
 #include "chprintf.h"
 #include "sconfig.h"
+#include "crc8.h"
 
 #if BOARD_VER == 1
 #include "analogout.h"
@@ -108,7 +110,7 @@ void Executor::Process()
 
   // timeout ON to OFF control
   for(uint8_t i = 0; i < 16; i++)
-    if(PINTimeOffSetup[i]) {
+    if(cfg.PINTimeOffSetup[i]) {
       bool io = outBuffer16 & (1 << i);
 
       if (!io && PINTimeOff[i])
@@ -118,7 +120,7 @@ void Executor::Process()
         PINTimeOff[i] = time;
 
       // PINTimeOffSetup in 0.1s = 100ms
-      if (io && PINTimeOff[i] && time - PINTimeOff[i] > PINTimeOffSetup[i] * 100) {
+      if (io && PINTimeOff[i] && time - PINTimeOff[i] > cfg.PINTimeOffSetup[i] * 100) {
         IOClear((1 << i) & 0xffff);
         PINTimeOff[i] = 0;
       }
@@ -226,7 +228,7 @@ bool Executor::OutGlobalOff() {
 void Executor::Init()
 {
   oldRegBuffer16 = 0x1ff;
-  TriacsDisabled = false;
+  TriacsDisabled = true;
   start(NORMALPRIO + 12);
 }
 
@@ -234,6 +236,7 @@ void Executor::main()
 {
   setName("Executor");
   sleep(MS2ST(3000));
+  LoadFromEEPROM();
 
   while(true) {
     bool executorEnable = Util::sConfig.GetExecutorEnable();
@@ -247,7 +250,6 @@ void Executor::main()
 
 void Executor::SetTriacsDisabled(bool state) {
   TriacsDisabled = state;
-  // TODO: save to flash
 }
 
 bool Executor::GetTriacsDisabled() {
@@ -258,7 +260,60 @@ void Executor::SetPinOff(uint8_t channel, uint16_t time) {
   if (channel > 15)
     return;
 
-  PINTimeOffSetup[channel] = time;
+  cfg.PINTimeOffSetup[channel] = time;
+}
+
+uint16_t Executor::GetConfig() {
+  return TriacsDisabled ? 0x01 : 0x00;
+}
+
+void Executor::SetConfig(uint16_t cfg) {
+  TriacsDisabled  = cfg & 0x01;
+}
+
+uint8_t *Executor::GetModbusMem(uint16_t address, uint16_t size) {
+  cfg.umbConfig = GetConfig();
+  if (address + size > sizeof(cfg))
+    return nullptr;
+
+  return ((uint8_t *)&cfg + address);
+}
+
+bool Executor::SetModbusMem(uint16_t address, uint16_t size, uint8_t *data) {
+  if (address + size > sizeof(cfg))
+    return false;
+  memcpy(((uint8_t *)&cfg + address), data, size);
+  SetConfig(cfg.umbConfig);
+  return true;
+}
+
+bool Executor::SaveToEEPROM() {
+  uint8_t *mb = GetModbusMem(0, 1);
+  uint8_t data[sizeof(cfg) + 1] = {0};
+  memcpy(data, mb, sizeof(cfg));
+  data[sizeof(data) - 1] = crc8mx(0xff, data, sizeof(data) - 1);
+
+  if(sizeof(data) != nvram::eeprom.Write(nvram::Section::Executor, data))
+    return false;
+
+  return true;
+}
+
+bool Executor::LoadFromEEPROM() {
+  uint8_t data[sizeof(cfg) + 1] = {0};
+  size_t len = nvram::eeprom.Read(nvram::Section::Executor, data);
+  if(sizeof(data) != len) {
+    return false;
+  }
+
+  if(crc8mx(0xff, data, sizeof(data))) {
+    Util::log("eeprom crc load error\r\n");
+    return false;
+  }
+
+  memcpy(&cfg, &data, sizeof(cfg));
+  SetConfig(cfg.umbConfig);
+  return true;
 }
 
 void Executor::Print() {
@@ -286,12 +341,12 @@ void Executor::Print() {
 
   bool atmr = false;
   for (uint8_t i = 0; i < 16; i++)
-    if (PINTimeOffSetup[i]) {
+    if (cfg.PINTimeOffSetup[i]) {
       if (!atmr) {
         Util::log("Channel on->off timer:\r\n");
         atmr = true;
       }
-      Util::log("[%d] %d\r\n", i + 1, PINTimeOffSetup[i]);
+      Util::log("[%d] %d\r\n", i + 1, cfg.PINTimeOffSetup[i]);
     }
 
   Util::log("\r\n");

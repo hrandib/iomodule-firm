@@ -40,7 +40,10 @@ private:
   systime_t triacsTimeOff[4] = {0};
   systime_t pinGOTime = 0; // impulse on small relay to make GlobalOff command on all controllers
 
-  systime_t PINTimeOffSetup[16] = {0};
+  struct __attribute__((packed)) {
+    uint16_t umbConfig = 0;
+    uint16_t PINTimeOffSetup[16] = {0};
+  } cfg;
   systime_t PINTimeOff[16] = {0};
 
   bool IOSet(uint16_t reg);
@@ -53,6 +56,12 @@ public:
   void SetTriacsDisabled(bool state);
   bool GetTriacsDisabled();
   void SetPinOff(uint8_t channel, uint16_t time);
+  uint16_t GetConfig();
+  void SetConfig(uint16_t cfg);
+  uint8_t *GetModbusMem(uint16_t address, uint16_t size);
+  bool SetModbusMem(uint16_t address, uint16_t size, uint8_t *data);
+  bool SaveToEEPROM();
+  bool LoadFromEEPROM();
 
   bool OutSet(uint8_t channel, bool value);
   bool OutToggle(uint8_t channel);
