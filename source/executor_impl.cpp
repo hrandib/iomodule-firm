@@ -229,6 +229,7 @@ void Executor::Init()
 {
   oldRegBuffer16 = 0x1ff;
   TriacsDisabled = true;
+  LoadFromEEPROM();
   start(NORMALPRIO + 12);
 }
 
@@ -236,7 +237,6 @@ void Executor::main()
 {
   setName("Executor");
   sleep(MS2ST(3000));
-  LoadFromEEPROM();
 
   while(true) {
     bool executorEnable = Util::sConfig.GetExecutorEnable();
@@ -343,7 +343,7 @@ void Executor::Print() {
   for (uint8_t i = 0; i < 16; i++)
     if (cfg.PINTimeOffSetup[i]) {
       if (!atmr) {
-        Util::log("Channel on->off timer:\r\n");
+        Util::log("\r\nChannel on->off timer:\r\n");
         atmr = true;
       }
       Util::log("[%d] %d\r\n", i + 1, cfg.PINTimeOffSetup[i]);
